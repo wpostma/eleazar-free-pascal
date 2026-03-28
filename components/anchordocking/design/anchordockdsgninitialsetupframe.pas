@@ -5,7 +5,8 @@ unit AnchorDockDsgnInitialSetupFrame;
 interface
 
 uses
-  Classes, SysUtils, Forms, Controls, StdCtrls, LazarusPackageIntf, AnchorDockStr, IDEWindowIntf,
+  Classes, SysUtils, Forms, Controls, StdCtrls, ExtCtrls,
+  LazarusPackageIntf, AnchorDockStr, IDEWindowIntf,
   AnchorDesktopOptions;
 
 type
@@ -15,6 +16,8 @@ type
   { TAnchorDockSetupFrame }
 
   TAnchorDockSetupFrame = class(TFrame)
+    imgClassic: TImage;
+    imgModern: TImage;
     lbInfo: TLabel;
     lbInfo1: TLabel;
     lbMulti: TLabel;
@@ -87,8 +90,8 @@ begin
   lbMulti.Caption := setupMultiWindowIDESeperateWindows;
   rbSingle.Caption := setupMultiWindowIDEModern;
   lbSingle.Caption := setupMultiWindowIDESingleWindow;
-  lbInfo.Caption := setupMultiWindowIDEInfo;
-  lbInfo1.Caption := setupMultiWindowIDEOption;
+  lbInfo.Caption := setupMultiWindowIDEOption;
+  lbInfo1.Caption := '';
 end;
 
 { TAnchorDockDsgnSetup }

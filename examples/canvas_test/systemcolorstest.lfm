@@ -1,5 +1,6 @@
 object frmSystemColors: TfrmSystemColors
   Left = 345
+  Position = poDefault
   Height = 320
   Top = 160
   Width = 480

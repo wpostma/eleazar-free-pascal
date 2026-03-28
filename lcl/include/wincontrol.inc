@@ -4551,6 +4551,13 @@ begin
   //DebugLn(['TWinControl.UpdateShowing ',dbgsName(Self),' FShowing=',dbgs(FShowing),' bShow=',dbgs(bShow), ' IsWindowVisible=', IsWindowVisible(FHandle)]);
   if bShow then
   begin
+    // showing is deferred — handles exist but don't show yet
+    if wcfDeferShowing in FWinControlFlags then begin
+      {$IFDEF DEBUG_LCL}
+      WriteLn(StdErr, '[UpdateShowing] DEFERRED ', Name, ':', ClassName);
+      {$ENDIF}
+      exit;
+    end;
     // the Handle should become visible
     // delay this until all other autosizing has been processed
     if AutoSizeDelayed or (not (caspShowing in AutoSizePhases)) then
@@ -6448,7 +6455,30 @@ end;
     TWinControl.CMVisibleChanged
 ------------------------------------------------------------------------------}
 procedure TWinControl.UpdateControlState;
+var
+  ParentWC: TWinControl;
 begin
+  // If our parent form is still being constructed (BeginFormUpdate active),
+  // defer all handle creation and showing. The form will batch it later
+  // in EndFormUpdate. This prevents GTK size-allocate storms on half-built forms.
+  ParentWC := Self;
+  while ParentWC <> nil do begin
+    if (ParentWC is TCustomForm) and (TCustomForm(ParentWC).FormIsUpdating) then begin
+      {$IFDEF DEBUG_LCL}
+      WriteLn(StdErr, '[UpdateControlState] DEFERRED ', Name, ':', ClassName,
+        ' — parent ', ParentWC.Name, ':', ParentWC.ClassName, ' updating');
+      {$ENDIF}
+      Exit;
+    end;
+    ParentWC := ParentWC.Parent;
+  end;
+
+  {$IFDEF DEBUG_LCL}
+  WriteLn(StdErr, '[UpdateControlState] ', Name, ':', ClassName,
+    ' Handle=', HandleAllocated,
+    ' ShouldBeVisible=', HandleObjectShouldBeVisible);
+  {$ENDIF}
+
   if HandleObjectShouldBeVisible then
     AdjustSize // this will trigger DoAllAutoSize, which calls UpdateShowing
   else

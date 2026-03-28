@@ -2023,7 +2023,8 @@ type
     wcfAdjustedLogicalClientRectValid,
     wcfKillIntfSetBounds,
     wcfDesignerDeleting,     // Only used for PairSplitter which should be redesigned.
-    wcfSpecialSubControl     // Only set by PairSplitterSide.
+    wcfSpecialSubControl,    // Only set by PairSplitterSide.
+    wcfDeferShowing          // Handle creation allowed, but showing is deferred.
     );
   TWinControlFlags = set of TWinControlFlag;
 

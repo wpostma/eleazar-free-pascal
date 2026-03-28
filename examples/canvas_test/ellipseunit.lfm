@@ -1,5 +1,6 @@
 object frmEllipse: TfrmEllipse
   Left = 290
+  Position = poDefault
   Height = 307
   Top = 197
   Width = 433

@@ -49,7 +49,7 @@ type
   // form position policies:
   TPosition = (
     poDesigned,        // use bounds from the designer (read from stream)
-    poDefault,         // LCL decision (normally window manager decides)
+    poDefault,         // center on main form's monitor (primary monitor if no main form)
     poDefaultPosOnly,  // designed size and LCL position
     poDefaultSizeOnly, // designed position and LCL size
     poScreenCenter,    // center form on screen (depends on DefaultMonitor)

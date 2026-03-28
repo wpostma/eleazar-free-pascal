@@ -1,5 +1,6 @@
 object frmShapedWindow: TfrmShapedWindow
   Left = 290
+  Position = poDefault
   Height = 200
   Top = 171
   Width = 200

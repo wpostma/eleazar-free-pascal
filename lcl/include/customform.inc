@@ -1012,13 +1012,78 @@ end;
   procedure TCustomForm.EndFormUpdate;
  ------------------------------------------------------------------------------}
 procedure TCustomForm.EndFormUpdate;
+
+  procedure DeferShowingRecursive(AWinControl: TWinControl; ADefer: Boolean);
+  var
+    i: Integer;
+  begin
+    if ADefer then
+      Include(AWinControl.FWinControlFlags, wcfDeferShowing)
+    else
+      Exclude(AWinControl.FWinControlFlags, wcfDeferShowing);
+    for i := 0 to AWinControl.ControlCount - 1 do
+      if AWinControl.Controls[i] is TWinControl then
+        DeferShowingRecursive(TWinControl(AWinControl.Controls[i]), ADefer);
+  end;
+
 begin
   dec(FFormUpdateCount);
   if FFormUpdateCount = 0 then
   begin
+    {$IFDEF DEBUG_LCL}
+    WriteLn(StdErr, '[EndFormUpdate] BEGIN ', Name, ':', ClassName,
+      ' Visible=', (fsVisible in FFormState),
+      ' Handle=', HandleAllocated,
+      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height,
+      ' Children=', ControlCount);
+    {$ENDIF}
     FormEndUpdated;
-    Visible := (fsVisible in FFormState);
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.BeginFormUpdate'){$ENDIF};
+
+    // Phase 1: Set visible flag, but defer actual showing.
+    // This allows handle creation and auto-sizing to proceed
+    // without triggering gtk_widget_show on a half-built form.
+    {$IFDEF DEBUG_LCL}
+    WriteLn(StdErr, '[EndFormUpdate] Phase1:DeferShowing ', Name, ':', ClassName);
+    {$ENDIF}
+    DeferShowingRecursive(Self, True);
+    try
+      Visible := (fsVisible in FFormState);
+      // Phase 2: Enable auto-sizing — computes bounds, creates handles,
+      // realizes bounds. Showing is blocked by wcfDeferShowing.
+      {$IFDEF DEBUG_LCL}
+      WriteLn(StdErr, '[EndFormUpdate] Phase2:AutoSize ', Name, ':', ClassName,
+        ' Handle=', HandleAllocated);
+      {$ENDIF}
+      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.BeginFormUpdate'){$ENDIF};
+      {$IFDEF DEBUG_LCL}
+      WriteLn(StdErr, '[EndFormUpdate] Phase2:Done ', Name, ':', ClassName,
+        ' Handle=', HandleAllocated,
+        ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
+      {$ENDIF}
+    finally
+      // Phase 3: Clear the defer flag and allow showing.
+      {$IFDEF DEBUG_LCL}
+      WriteLn(StdErr, '[EndFormUpdate] Phase3:ClearDefer ', Name, ':', ClassName);
+      {$ENDIF}
+      DeferShowingRecursive(Self, False);
+    end;
+
+    // Phase 4: Now that everything is composed and sized, show.
+    // UpdateShowing will call gtk_widget_show for the first time.
+    {$IFDEF DEBUG_LCL}
+    WriteLn(StdErr, '[EndFormUpdate] Phase4:Show ', Name, ':', ClassName,
+      ' Visible=', Visible,
+      ' Handle=', HandleAllocated,
+      ' Showing=', Showing,
+      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
+    {$ENDIF}
+    if Visible and HandleAllocated then
+      UpdateShowing;
+    {$IFDEF DEBUG_LCL}
+    WriteLn(StdErr, '[EndFormUpdate] END ', Name, ':', ClassName,
+      ' Showing=', Showing,
+      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
+    {$ENDIF}
   end;
 end;
 
@@ -1329,8 +1394,23 @@ begin
       end;
     end;
     poDefault, poDefaultPosOnly:
-      if HandleAllocated then // get current widgetset position
-        GetWindowRelativePosition(Handle,X,Y);
+    begin
+      // Center on the main form's monitor work area.
+      // Falls back to primary monitor if no main form yet.
+      if Assigned(Application.MainForm) and (Application.MainForm <> Self) then
+        m := Application.MainForm.Monitor
+      else
+        m := Screen.PrimaryMonitor;
+      if Assigned(m) then
+        MonitorRect := m.WorkareaRect
+      else
+        MonitorRect := Screen.WorkAreaRect;
+      X := MonitorRect.Left + (MonitorRect.Width - RealRect.Width) div 2;
+      Y := MonitorRect.Top + (MonitorRect.Height - RealRect.Height) div 2;
+      // clamp to work area
+      X := Max(MonitorRect.Left, Min(MonitorRect.Right - RealRect.Width, X));
+      Y := Max(MonitorRect.Top, Min(MonitorRect.Bottom - RealRect.Height, Y));
+    end;
     poDesigned, poDefaultSizeOnly: ;
   end;
 
@@ -2799,6 +2879,9 @@ end;
 procedure TCustomForm.BeginFormUpdate;
 begin
   inc(FFormUpdateCount);
+  {$IFDEF DEBUG_LCL}
+  WriteLn(StdErr, '[TCustomForm.BeginFormUpdate] ', Name, ':', ClassName, ' Count=', FFormUpdateCount);
+  {$ENDIF}
   if FFormUpdateCount=1 then
     DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.BeginFormUpdate'){$ENDIF};
 end;

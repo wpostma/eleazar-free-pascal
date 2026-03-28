@@ -45,7 +45,7 @@ uses
   LCLIntf,
 {$ENDIF}
   // LazUtils
-  LazFileCache,
+  LazLoggerBase, LazFileCache,
   // BuildIntf
   ComponentReg,
   // IDEIntf
@@ -438,7 +438,8 @@ begin
       begin
         if ANewHeight <= 0 then
           ANewHeight := CalcMainIDEHeight;
-        IDEDockMaster.AdjustMainIDEWindowHeight(Self, True, ANewHeight)
+        if ANewHeight > 0 then
+          IDEDockMaster.AdjustMainIDEWindowHeight(Self, True, ANewHeight);
       end
       else
         IDEDockMaster.AdjustMainIDEWindowHeight(Self, False, 0);
@@ -448,15 +449,15 @@ begin
       begin
         if ANewHeight <= 0 then
           ANewHeight := CalcMainIDEHeight;
+        if ANewHeight <= 0 then Exit; // components not ready yet, don't touch constraints
         Inc(ANewHeight, CalcNonClientHeight);
-        {$IFnDEF LCLGtk3}
-        if ANewHeight <> Constraints.MaxHeight then
-        begin
-          Constraints.MaxHeight := ANewHeight;
-          Constraints.MinHeight := ANewHeight;
-        end;
-        {$ENDIF}
-        ClientHeight := ANewHeight;
+        // Do NOT set Constraints.MinHeight/MaxHeight. That sets
+        // WM_NORMAL_HINTS min_size/max_size which makes Mutter (and
+        // other EWMH-compliant WMs) treat the window as a fixed-size
+        // panel and fight the user during drags. Just set ClientHeight
+        // and let the LCL auto-sizing handle it internally.
+        if ClientHeight <> ANewHeight then
+          ClientHeight := ANewHeight;
       end else
       if Constraints.MaxHeight <> 0 then
       begin
@@ -625,6 +626,7 @@ constructor TMainIDEBar.Create(TheOwner: TComponent);
 begin
   // This form has no resource => must be constructed using CreateNew
   inherited CreateNew(TheOwner, 1);
+  DebugLn('(mainbar) [TMainIDEBar.Create] after CreateNew Bounds=',dbgs(BoundsRect));
   AllowDropFiles:=true;
   Scaled:=true;
   OnDropFiles:=@MainIDEBarDropFiles;
@@ -797,14 +799,11 @@ end;
 
 procedure TMainIDEBar.Resizing(State: TWindowState);
 begin
-  if LazarusIDE.IDEStarted then
-    case State of
-      wsMaximized, wsNormal: begin
-        //DebugLn('TMainIDEBar.Resizing: Setting main IDE height');
-        DoSetMainIDEHeight(State = wsMaximized);
-      end;
-    end;
-
+  // Never adjust height synchronously during a resize/move signal.
+  // GTK fires size-allocate on every pixel of a drag. Mutating geometry
+  // here causes feedback loops. Instead, just let the inherited handler
+  // track state — height adjustment happens via SetMainIDEHeight which
+  // is called from appropriate places (InitPaletteAndCoolBar, etc).
   inherited Resizing(State);
 end;
 

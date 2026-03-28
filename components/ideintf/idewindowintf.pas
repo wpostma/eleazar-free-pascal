@@ -1253,10 +1253,14 @@ end;
 
 function TSimpleWindowLayout.ValidateAndSetCoordinates(const aForce: Boolean
   ): Boolean;
+const
+  MinEdgeDistance = 200; // never closer than 200px to any screen edge
 var
-  i: Integer;
   NewBounds: TRect;
+  WorkArea: TRect;
+  aMonitor: TMonitor;
   xForm: TCustomForm;
+  w, h, MaxW, MaxH: Integer;
 begin
   Result := False;
   xForm := Form;
@@ -1265,41 +1269,58 @@ begin
   begin
     if not CustomCoordinatesAreValid then//default position
     begin
-      if not DefaultCoordinatesAreValid then//don't change the coordinates if default position is invalid
+      if not DefaultCoordinatesAreValid then begin
+        DebugLn('(idewindowintf) [ValidateAndSetCoordinates] ',FormID,' default coords invalid, skip');
         Exit;
-      NewBounds := Bounds(DefaultLeft, DefaultTop, DefaultWidth, DefaultHeight)
-    end else// explicit position
+      end;
+      NewBounds := Bounds(DefaultLeft, DefaultTop, DefaultWidth, DefaultHeight);
+      DebugLn('(idewindowintf) [ValidateAndSetCoordinates] ',FormID,' using defaults ',dbgs(NewBounds));
+    end else begin
       NewBounds := Bounds(Left, Top, Width, Height);
+      DebugLn('(idewindowintf) [ValidateAndSetCoordinates] ',FormID,' using saved ',dbgs(NewBounds));
+    end;
+
+    // Use primary monitor work area, not full desktop span
+    aMonitor := Screen.PrimaryMonitor;
+    if aMonitor <> nil then
+      WorkArea := aMonitor.WorkareaRect
+    else begin
+      WorkArea.Left := Screen.DesktopLeft;
+      WorkArea.Top := Screen.DesktopTop;
+      WorkArea.Right := Screen.DesktopLeft + Screen.DesktopWidth;
+      WorkArea.Bottom := Screen.DesktopTop + Screen.DesktopHeight;
+    end;
 
     // set minimum size
-    if NewBounds.Right - NewBounds.Left < 60 then
-      NewBounds.Right := NewBounds.Left + 60;
-    if NewBounds.Bottom - NewBounds.Top < 60 then
-      NewBounds.Bottom := NewBounds.Top + 60;
+    w := NewBounds.Right - NewBounds.Left;
+    h := NewBounds.Bottom - NewBounds.Top;
+    if w < 60 then w := 60;
+    if h < 60 then h := 60;
 
-    // Move to visible area :
-    // window is out at left side of screen
-    if NewBounds.Right < Screen.DesktopLeft + 60 then
-      Types.OffsetRect(NewBounds, Screen.DesktopLeft + 60 - NewBounds.Right, 0);
+    // clamp size: never wider/taller than work area minus margins
+    MaxW := (WorkArea.Right - WorkArea.Left) - MinEdgeDistance;
+    MaxH := (WorkArea.Bottom - WorkArea.Top) - MinEdgeDistance;
+    if w > MaxW then w := MaxW;
+    if h > MaxH then h := MaxH;
+    NewBounds.Right := NewBounds.Left + w;
+    NewBounds.Bottom := NewBounds.Top + h;
 
-    // window is out above the screen
-    if NewBounds.Bottom < Screen.DesktopTop+60 then
-      Types.OffsetRect(NewBounds, 0, Screen.DesktopTop + 60 - NewBounds.Bottom);
+    // enforce minimum distance from all edges
+    // push right if too close to left edge
+    if NewBounds.Left < WorkArea.Left then
+      Types.OffsetRect(NewBounds, WorkArea.Left - NewBounds.Left, 0);
+    // push down if too close to top edge
+    if NewBounds.Top < WorkArea.Top then
+      Types.OffsetRect(NewBounds, 0, WorkArea.Top - NewBounds.Top);
+    // push left if too close to right edge
+    if NewBounds.Right > WorkArea.Right then
+      Types.OffsetRect(NewBounds, WorkArea.Right - NewBounds.Right, 0);
+    // push up if too close to bottom edge
+    if NewBounds.Bottom > WorkArea.Bottom then
+      Types.OffsetRect(NewBounds, 0, WorkArea.Bottom - NewBounds.Bottom);
 
-    // window is out at right side of screen, i = right edge of screen - 60
-    i := Screen.DesktopWidth + Screen.DesktopLeft - 60;
-    if NewBounds.Left > i then begin
-      NewBounds.Left := i;
-      NewBounds.Right := NewBounds.Right + i - NewBounds.Left;
-    end;
-
-    // window is out below the screen, i = bottom edge of screen - 60
-    i := Screen.DesktopHeight + Screen.DesktopTop - 60;
-    if NewBounds.Top > i then begin
-      NewBounds.Top := i;
-      NewBounds.Bottom := NewBounds.Bottom + i - NewBounds.Top;
-    end;
-
+    DebugLn('(idewindowintf) [ValidateAndSetCoordinates] ',FormID,
+      ' final=',dbgs(NewBounds),' WorkArea=',dbgs(WorkArea));
     if xForm.WindowState = wsNormal then
       xForm.SetBounds(NewBounds.Left, NewBounds.Top,
                       NewBounds.Right - NewBounds.Left,
@@ -2333,8 +2354,16 @@ begin
 end;
 
 function TIDEWindowCreatorList.GetScreenrectForDefaults: TRect;
+var
+  aMonitor: TMonitor;
 begin
-  Result:=Screen.WorkAreaRect;
+  // Use primary monitor work area, not the full desktop span across all monitors.
+  // Screen.WorkAreaRect spans all monitors which produces absurd default sizes.
+  aMonitor := Screen.PrimaryMonitor;
+  if aMonitor <> nil then
+    Result := aMonitor.WorkareaRect
+  else
+    Result := Screen.WorkAreaRect;
   if (Result.Right-Result.Left<10)
   or (Result.Bottom-Result.Top<10) then begin
     // screen not recognized

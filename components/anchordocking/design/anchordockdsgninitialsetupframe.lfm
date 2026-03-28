@@ -1,91 +1,118 @@
 object AnchorDockSetupFrame: TAnchorDockSetupFrame
   Left = 0
-  Height = 240
+  Height = 400
   Top = 0
-  Width = 320
-  ChildSizing.LeftRightSpacing = 2
-  ChildSizing.TopBottomSpacing = 2
-  ChildSizing.ControlsPerLine = 1
-  ClientHeight = 240
-  ClientWidth = 320
+  Width = 600
+  ClientHeight = 400
+  ClientWidth = 600
   TabOrder = 0
   DesignLeft = 366
   DesignTop = 286
   object rbMulti: TRadioButton
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 2
-    Height = 17
-    Top = 2
-    Width = 316
-    Anchors = [akTop, akLeft, akRight]
+    Left = 8
+    Height = 22
+    Top = 8
+    Width = 260
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    Caption = 'rbMulti'
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 0
     OnChange = rbMultiChange
   end
-  object lbMulti: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = rbMulti
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 20
-    Height = 15
-    Top = 19
-    Width = 298
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 20
-    Caption = 'lbMulti'
-    WordWrap = True
-    OnClick = lbMultiClick
-  end
   object rbSingle: TRadioButton
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lbMulti
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 2
-    Height = 17
-    Top = 34
-    Width = 316
-    Anchors = [akTop, akLeft, akRight]
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    Left = 310
+    Height = 22
+    Top = 8
+    Width = 260
+    BorderSpacing.Top = 8
+    Caption = 'rbSingle'
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 1
     OnChange = rbMultiChange
   end
-  object lbSingle: TLabel
-    AnchorSideLeft.Control = Owner
+  object imgClassic: TImage
+    AnchorSideLeft.Control = rbMulti
+    AnchorSideTop.Control = rbMulti
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 280
+    Top = 36
+    Width = 270
+    BorderSpacing.Top = 6
+    Proportional = True
+    Stretch = True
+    OnClick = lbMultiClick
+  end
+  object imgModern: TImage
+    AnchorSideLeft.Control = rbSingle
     AnchorSideTop.Control = rbSingle
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
+    Left = 310
+    Height = 280
+    Top = 36
+    Width = 270
+    BorderSpacing.Top = 6
+    Proportional = True
+    Stretch = True
+    OnClick = lbSingleClick
+  end
+  object lbMulti: TLabel
+    AnchorSideLeft.Control = imgClassic
+    AnchorSideTop.Control = imgClassic
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = imgClassic
     AnchorSideRight.Side = asrBottom
-    Left = 20
+    Left = 8
     Height = 15
-    Top = 51
-    Width = 298
+    Top = 322
+    Width = 270
+    Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 20
+    BorderSpacing.Top = 6
+    Caption = 'lbMulti'
+    WordWrap = True
+    OnClick = lbMultiClick
+  end
+  object lbSingle: TLabel
+    AnchorSideLeft.Control = imgModern
+    AnchorSideTop.Control = imgModern
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = imgModern
+    AnchorSideRight.Side = asrBottom
+    Left = 310
+    Height = 15
+    Top = 322
+    Width = 270
+    Alignment = taCenter
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 6
     Caption = 'lbSingle'
     WordWrap = True
     OnClick = lbSingleClick
   end
   object lbInfo: TLabel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lbSingle
+    AnchorSideTop.Control = lbMulti
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 2
+    Left = 8
     Height = 15
-    Top = 72
-    Width = 316
+    Top = 348
+    Width = 584
+    Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 6
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 8
     Caption = 'lbInfo'
     WordWrap = True
   end
@@ -95,13 +122,15 @@ object AnchorDockSetupFrame: TAnchorDockSetupFrame
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 2
+    Left = 8
     Height = 15
-    Top = 88
-    Width = 316
+    Top = 366
+    Width = 584
     Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 1
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 8
     Caption = 'lbInfo1'
     WordWrap = True
   end

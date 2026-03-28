@@ -15,6 +15,8 @@ type
   { TDockedFormEditSetupFrame }
 
   TDockedFormEditSetupFrame = class(TFrame)
+    imgFloat: TImage;
+    imgDocked: TImage;
     lbInfo: TLabel;
     lbInfo1: TLabel;
     lbFloat: TLabel;

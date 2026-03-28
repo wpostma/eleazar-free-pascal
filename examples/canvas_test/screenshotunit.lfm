@@ -1,5 +1,6 @@
 object frmScreenshot: TfrmScreenshot
   Left = 291
+  Position = poDefault
   Height = 240
   Top = 152
   Width = 320

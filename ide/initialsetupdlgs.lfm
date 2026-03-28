@@ -1,12 +1,12 @@
 object InitialSetupDialog: TInitialSetupDialog
   AnchorSideBottom.Side = asrBottom
   Left = 298
-  Height = 520
-  Top = 241
-  Width = 640
+  Height = 676
+  Top = 180
+  Width = 832
   Caption = 'InitialSetupDialog'
-  ClientHeight = 520
-  ClientWidth = 640
+  ClientHeight = 676
+  ClientWidth = 832
   KeyPreview = True
   Position = poScreenCenter
   LCLVersion = '4.99.0.0'

@@ -1,5 +1,6 @@
 object frmBrush: TfrmBrush
   Left = 290
+  Position = poDefault
   Height = 386
   Top = 171
   Width = 400

@@ -7215,8 +7215,11 @@ begin
   if GtkWidgetIsA(aWidget,GTK_TYPE_WINDOW) then begin
     GdkWindow:=GetControlWindow(aWidget);
     if (GdkWindow<>nil) and (GTK_WIDGET_MAPPED(aWidget)) then begin
-      // window is mapped = window manager has put the window somewhere
-      gdk_window_get_root_origin(GdkWindow, @GtkLeft, @GtkTop);
+      // Use gdk_window_get_position instead of gdk_window_get_root_origin.
+      // gdk_window_get_root_origin does a synchronous XGetWindowProperty
+      // round-trip for _NET_FRAME_EXTENTS which blocks forever if called
+      // during a size-allocate callback before the WM has decorated the window.
+      gdk_window_get_position(GdkWindow, @GtkLeft, @GtkTop);
       Left := GtkLeft;
       Top := GtkTop;
     end else begin

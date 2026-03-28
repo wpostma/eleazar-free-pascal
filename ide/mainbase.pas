@@ -895,6 +895,9 @@ begin
 end;
 
 procedure TMainIDEBase.ShowMainIDEBar(Center: boolean);
+const
+  MinIDEWidth = 600;
+  MinIDEHeight = 0; // toolbar bar — height determined by content, not minimum
 var
   NewBounds, WorkArea: TRect;
   aMonitor: TMonitor;
@@ -902,14 +905,29 @@ var
 begin
   debugln(['TMainIDEBase.ShowMainIDEBar Center=',Center]);
   NewBounds:=MainIDEBar.BoundsRect;
+  debugln(['(mainbase) [ShowMainIDEBar] initial Bounds=',dbgs(NewBounds)]);
   aMonitor:=MainIDEBar.Monitor;
   if aMonitor=nil then
     aMonitor:=Screen.PrimaryMonitor;
   WorkArea:=aMonitor.WorkareaRect;
 
+  debugln(['(mainbase) [ShowMainIDEBar] WorkArea=',dbgs(WorkArea),' Monitor=',aMonitor.MonitorNum]);
+
   // for experimental or buggy widgetsets: sanity check workarea
   WorkArea.Right:=Max(WorkArea.Right,WorkArea.Left+400);
   WorkArea.Bottom:=Max(WorkArea.Bottom,WorkArea.Top+400);
+
+  // enforce minimum IDE size: 1280x1024
+  if (NewBounds.Right - NewBounds.Left) < MinIDEWidth then
+    NewBounds.Right := NewBounds.Left + MinIDEWidth;
+  if (NewBounds.Bottom - NewBounds.Top) < MinIDEHeight then
+    NewBounds.Bottom := NewBounds.Top + MinIDEHeight;
+
+  // clamp to work area
+  if (NewBounds.Right - NewBounds.Left) > (WorkArea.Right - WorkArea.Left) then
+    NewBounds.Right := NewBounds.Left + (WorkArea.Right - WorkArea.Left);
+  if (NewBounds.Bottom - NewBounds.Top) > (WorkArea.Bottom - WorkArea.Top) then
+    NewBounds.Bottom := NewBounds.Top + (WorkArea.Bottom - WorkArea.Top);
 
   if NewBounds.Left<WorkArea.Left then begin
     // move right
@@ -933,6 +951,7 @@ begin
     OffsetRect(NewBounds,x-NewBounds.Left,y-NewBounds.Top);
   end;
 
+  debugln(['(mainbase) [ShowMainIDEBar] final Bounds=',dbgs(NewBounds)]);
   MainIDEBar.BoundsRect:=NewBounds;
   MainIDEBar.WindowState:=wsNormal;
   MainIDEBar.BringToFront;

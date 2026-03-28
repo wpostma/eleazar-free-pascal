@@ -1,5 +1,6 @@
 object frmFont: TfrmFont
   Left = 290
+  Position = poDefault
   Height = 600
   Top = 171
   Width = 600

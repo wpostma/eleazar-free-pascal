@@ -1613,7 +1613,8 @@ begin
   Application.CreateForm(TMainIDEBar,MainIDEBar);
   MainIDEBar.Name := NonModalIDEWindowNames[nmiwMainIDE];
   FormCreator:=IDEWindowCreators.Add(MainIDEBar.Name);
-  FormCreator.Right:='100%';
+  FormCreator.Left:='12%';
+  FormCreator.Right:='88%';
   FormCreator.Bottom:='+90';
   Layout:=IDEWindowCreators.SimpleLayoutStorage.ItemByFormID(MainIDEBar.Name);
   if not (Layout.WindowState in [iwsNormal,iwsMaximized]) then
@@ -2245,7 +2246,7 @@ begin
   IDECmdScopeObjectInspectorOnly.AddWindowClass(TObjectInspectorDlg);
 
   IDEWindowCreators.Add(DefaultObjectInspectorName,nil,@CreateIDEWindow,
-   '0','120','+230','-120','',alNone,false,@GetLayoutHandler);
+   '10','120','+230','-120','',alNone,false,@GetLayoutHandler);
 
   ShowAnchorDesigner:=@mnuViewAnchorEditorClicked;
   ShowTabOrderEditor:=@mnuViewTabOrderClicked;

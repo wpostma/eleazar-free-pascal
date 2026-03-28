@@ -1,90 +1,118 @@
 object DockedFormEditSetupFrame: TDockedFormEditSetupFrame
   Left = 0
-  Height = 240
+  Height = 400
   Top = 0
-  Width = 320
-  ChildSizing.LeftRightSpacing = 2
-  ChildSizing.TopBottomSpacing = 2
-  ClientHeight = 240
-  ClientWidth = 320
+  Width = 600
+  ClientHeight = 400
+  ClientWidth = 600
   TabOrder = 0
   DesignLeft = 348
   DesignTop = 3
   object rbFloat: TRadioButton
     AnchorSideLeft.Control = Owner
     AnchorSideTop.Control = Owner
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 2
-    Height = 17
-    Top = 2
-    Width = 316
-    Anchors = [akTop, akLeft, akRight]
+    Left = 8
+    Height = 22
+    Top = 8
+    Width = 260
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 8
+    Caption = 'rbFloat'
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 0
     OnChange = rbDockedChange
   end
-  object lbFloat: TLabel
-    AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = rbFloat
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 20
-    Height = 15
-    Top = 19
-    Width = 298
-    Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 20
-    Caption = 'lbFloat'
-    WordWrap = True
-    OnClick = lbFloatClick
-  end
   object rbDocked: TRadioButton
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lbFloat
-    AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
-    AnchorSideRight.Side = asrBottom
-    Left = 2
-    Height = 17
-    Top = 34
-    Width = 316
-    Anchors = [akTop, akLeft, akRight]
+    AnchorSideLeft.Side = asrCenter
+    AnchorSideTop.Control = Owner
+    Left = 310
+    Height = 22
+    Top = 8
+    Width = 260
+    BorderSpacing.Top = 8
+    Caption = 'rbDocked'
     Font.Style = [fsBold]
     ParentFont = False
     TabOrder = 1
     OnChange = rbDockedChange
   end
-  object lbDocked: TLabel
-    AnchorSideLeft.Control = Owner
+  object imgFloat: TImage
+    AnchorSideLeft.Control = rbFloat
+    AnchorSideTop.Control = rbFloat
+    AnchorSideTop.Side = asrBottom
+    Left = 8
+    Height = 280
+    Top = 36
+    Width = 270
+    BorderSpacing.Top = 6
+    Proportional = True
+    Stretch = True
+    OnClick = lbFloatClick
+  end
+  object imgDocked: TImage
+    AnchorSideLeft.Control = rbDocked
     AnchorSideTop.Control = rbDocked
     AnchorSideTop.Side = asrBottom
-    AnchorSideRight.Control = Owner
+    Left = 310
+    Height = 280
+    Top = 36
+    Width = 270
+    BorderSpacing.Top = 6
+    Proportional = True
+    Stretch = True
+    OnClick = lbDockedClick
+  end
+  object lbFloat: TLabel
+    AnchorSideLeft.Control = imgFloat
+    AnchorSideTop.Control = imgFloat
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = imgFloat
     AnchorSideRight.Side = asrBottom
-    Left = 20
+    Left = 8
     Height = 15
-    Top = 51
-    Width = 298
+    Top = 322
+    Width = 270
+    Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Left = 20
+    BorderSpacing.Top = 6
+    Caption = 'lbFloat'
+    WordWrap = True
+    OnClick = lbFloatClick
+  end
+  object lbDocked: TLabel
+    AnchorSideLeft.Control = imgDocked
+    AnchorSideTop.Control = imgDocked
+    AnchorSideTop.Side = asrBottom
+    AnchorSideRight.Control = imgDocked
+    AnchorSideRight.Side = asrBottom
+    Left = 310
+    Height = 15
+    Top = 322
+    Width = 270
+    Alignment = taCenter
+    Anchors = [akTop, akLeft, akRight]
+    BorderSpacing.Top = 6
     Caption = 'lbDocked'
     WordWrap = True
     OnClick = lbDockedClick
   end
   object lbInfo: TLabel
     AnchorSideLeft.Control = Owner
-    AnchorSideTop.Control = lbDocked
+    AnchorSideTop.Control = lbFloat
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 2
+    Left = 8
     Height = 15
-    Top = 72
-    Width = 316
+    Top = 348
+    Width = 584
+    Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 6
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 10
+    BorderSpacing.Right = 8
     Caption = 'lbInfo'
     WordWrap = True
   end
@@ -94,13 +122,15 @@ object DockedFormEditSetupFrame: TDockedFormEditSetupFrame
     AnchorSideTop.Side = asrBottom
     AnchorSideRight.Control = Owner
     AnchorSideRight.Side = asrBottom
-    Left = 2
+    Left = 8
     Height = 15
-    Top = 88
-    Width = 316
+    Top = 366
+    Width = 584
     Alignment = taCenter
     Anchors = [akTop, akLeft, akRight]
-    BorderSpacing.Top = 1
+    BorderSpacing.Left = 8
+    BorderSpacing.Top = 3
+    BorderSpacing.Right = 8
     Caption = 'lbInfo1'
     WordWrap = True
   end
