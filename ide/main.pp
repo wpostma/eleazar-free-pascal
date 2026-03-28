@@ -1532,7 +1532,9 @@ begin
       exit;
     end;
     DebuggerOptions.Save; // before environment
+    debugln(['[TMainIDE] Saving environment options. FPCSrcDir="',EnvironmentOptions.FPCSourceDirectory,'"']);
     EnvironmentOptions.Save(true);
+    debugln(['[TMainIDE] Environment options saved.']);
     if OldLazDir<>EnvironmentOptions.LazarusDirectory then begin
       // fetch new translations
       CollectTranslations(EnvironmentOptions.GetParsedLazarusDirectory);
@@ -1617,8 +1619,11 @@ begin
   FormCreator.Right:='88%';
   FormCreator.Bottom:='+90';
   Layout:=IDEWindowCreators.SimpleLayoutStorage.ItemByFormID(MainIDEBar.Name);
-  if not (Layout.WindowState in [iwsNormal,iwsMaximized]) then
-    Layout.WindowState:=iwsNormal;
+  if (Layout.WindowState = iwsNormal) and (Layout.Width > 0) and (Layout.Height > 0)
+    and (Layout.Width >= 1280) and (Layout.Height >= 1024) then
+    // user saved a sane position — keep it
+  else
+    Layout.WindowState:=iwsMaximized;
   if IDEDockMaster<>nil then
     IDEDockMaster.MakeIDEWindowDockSite(MainIDEBar);
 
@@ -1689,6 +1694,43 @@ begin
   HelpBoss.LoadHelpOptions;
 end;
 
+procedure DumpATree(AControl: TControl);
+
+  procedure DumpChildren(C: TControl; Indent: string);
+  var
+    i: Integer;
+    WC: TWinControl;
+  begin
+    debugln(Indent, C.Name, ':', C.ClassName,
+      ' ', dbgs(C.Width), 'x', dbgs(C.Height),
+      ' @', dbgs(C.Left), ',', dbgs(C.Top),
+      ' Align=', dbgs(ord(C.Align)),
+      ' Vis=', dbgs(C.Visible));
+    if C is TWinControl then begin
+      WC := TWinControl(C);
+      for i := 0 to WC.ControlCount-1 do
+        DumpChildren(WC.Controls[i], Indent + '  ');
+    end;
+  end;
+
+var
+  P: TControl;
+begin
+  // Walk up to root
+  debugln('[DumpATree] === Parents (bottom-up) ===');
+  P := AControl.Parent;
+  while P <> nil do begin
+    debugln('  ^ ', P.Name, ':', P.ClassName,
+      ' ', dbgs(P.Width), 'x', dbgs(P.Height),
+      ' @', dbgs(P.Left), ',', dbgs(P.Top),
+      ' Align=', dbgs(ord(P.Align)));
+    P := P.Parent;
+  end;
+  // Dump self and children
+  debugln('[DumpATree] === Tree (top-down) ===');
+  DumpChildren(AControl, '');
+end;
+
 procedure TMainIDE.StartIDE;
 begin
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.StartIDE START');{$ENDIF}
@@ -1714,6 +1756,22 @@ begin
   MainIDEBar.InitPaletteAndCoolBar;
   // make sure the main IDE bar is always shown
   IDEWindowCreators.ShowForm(MainIDEBar,false);
+  // In docked mode, maximize by default — the dock layout fills the window.
+  // In undocked mode, the toolbar is a strip, don't maximize.
+  if Assigned(IDEDockMaster) and (MainIDEBar.WindowState <> wsMaximized) then begin
+    debugln('[TMainIDE.StartIDE] Maximizing docked main window');
+    MainIDEBar.WindowState := wsMaximized;
+  end;
+  // Set the toolbar height once — this adjusts the splitter between the
+  // toolbar and the dock site so the toolbar takes only what it needs.
+  MainIDEBar.SetMainIDEHeight;
+  // Debug: dump MainIDEBar and dock hierarchy
+  debugln('[StartIDE] MainIDEBar: ',dbgs(MainIDEBar.BoundsRect),
+    ' WinState=',dbgs(ord(MainIDEBar.WindowState)),
+    ' Children=',dbgs(MainIDEBar.ControlCount),
+    ' Parent=',dbgSName(MainIDEBar.Parent),
+    ' HostDockSite=',dbgSName(MainIDEBar.HostDockSite));
+  DumpATree(MainIDEBar);
   DebugBoss.UpdateButtonsAndMenuItems; // Disable Stop-button (and some others).
   SetupStartProject;                   // Now load a project
   if Project1=nil then begin

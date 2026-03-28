@@ -2735,32 +2735,38 @@ begin
   try
 
     // close all unneeded and wrongly allocated forms/controls (not helper controls like splitters)
+    DebugLn('[DockMaster.FullRestoreLayout] START Root=',Tree.Root.Name,
+      ' Children=',dbgs(Tree.Root.Count),
+      ' Scale=',dbgs(Scale));
     MarkCorrectlyLocatedControl(Tree);
-    if not CloseUnneededAndWronglyLocatedControls(Tree) then exit;
+    if not CloseUnneededAndWronglyLocatedControls(Tree) then begin
+      DebugLn('[DockMaster.FullRestoreLayout] CloseUnneeded FAILED');
+      exit;
+    end;
 
     BeginUpdate;
     try
       // create all needed forms/controls (not helper controls like splitters)
-      if not CreateNeededControls(Tree,true,ControlNames) then exit;
+      if not CreateNeededControls(Tree,true,ControlNames) then begin
+        DebugLn('[DockMaster.FullRestoreLayout] CreateNeededControls FAILED');
+        exit;
+      end;
 
       // simplify layouts
       ControlNames.Sort;
-      {$IFDEF VerboseAnchorDockRestore}
-      debugln(['TAnchorDockMaster.FullRestoreLayout controls: ']);
-      debugln(ControlNames.Text);
-      {$ENDIF}
+      DebugLn('[DockMaster.FullRestoreLayout] Controls(',dbgs(ControlNames.Count),'): ',
+        ControlNames.CommaText);
       // if some forms/controls could not be created the layout needs to be adapted
       Tree.Root.Simplify(ControlNames,false);
 
       // reuse existing sites to reduce flickering
       MapTreeToControls(Tree);
-      {$IFDEF VerboseAnchorDockRestore}
-      fTreeNameToDocker.WriteDebugReport('TAnchorDockMaster.FullRestoreLayout Map');
-      {$ENDIF}
 
       // create sites, move controls
+      DebugLn('[DockMaster.FullRestoreLayout] RestoreLayout...');
       RestoreLayout(Tree,Scale);
       SetMinimizedState(Tree);
+      DebugLn('[DockMaster.FullRestoreLayout] RestoreLayout done');
     finally
       EndUpdate;
     end;

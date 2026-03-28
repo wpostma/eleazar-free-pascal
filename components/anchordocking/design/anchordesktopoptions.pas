@@ -316,8 +316,37 @@ begin
 end;
 
 function TAnchorDesktopOpt.RestoreDesktop: Boolean;
+var
+  WorkArea: TRect;
+  aMonitor: TMonitor;
+  W, H: Integer;
 begin
+  // Check if we have a sane work area to restore into
+  aMonitor := Screen.PrimaryMonitor;
+  if aMonitor <> nil then
+    WorkArea := aMonitor.WorkareaRect
+  else
+    WorkArea := Screen.WorkAreaRect;
+  W := WorkArea.Right - WorkArea.Left;
+  H := WorkArea.Bottom - WorkArea.Top;
+  DebugLn('[AnchorDesktop.RestoreDesktop] WorkArea=',dbgs(W),'x',dbgs(H),
+    ' Tree nodes=',dbgs(FTree.Root.Count),' Root=',FTree.Root.Name);
+
+  if (W < 1280) or (H < 1024) then begin
+    DebugLn('[AnchorDesktop.RestoreDesktop] WorkArea too small (',
+      dbgs(W),'x',dbgs(H),') — skipping restore, loading default');
+    LoadLayoutFromRessource;
+  end;
+
   Result := DockMaster.FullRestoreLayout(FTree,True);
+  if not Result then begin
+    DebugLn('[AnchorDesktop.RestoreDesktop] FullRestoreLayout FAILED — loading default layout');
+    LoadLayoutFromRessource;
+    Result := DockMaster.FullRestoreLayout(FTree,True);
+    if not Result then
+      DebugLn('[AnchorDesktop.RestoreDesktop] Default layout also FAILED');
+  end;
+  DebugLn('[AnchorDesktop.RestoreDesktop] done, Result=',dbgs(Result));
 end;
 
 { TAnchorDockGlobalOptions }

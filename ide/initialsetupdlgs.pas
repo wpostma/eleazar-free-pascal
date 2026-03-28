@@ -805,8 +805,11 @@ begin
   if s<>'' then
     EnvironmentOptions.CompilerFilename:=s;
   s:=FPCSrcDirComboBox.Text;
-  if s<>'' then
+  debugln(['[InitialSetup.StartIDE] FPCSrcDir combo="',s,'"']);
+  if s<>'' then begin
     EnvironmentOptions.FPCSourceDirectory:=s;
+    debugln(['[InitialSetup.StartIDE] Set FPCSourceDirectory="',s,'" Parsed="',EnvironmentOptions.GetParsedFPCSourceDirectory,'"']);
+  end;
   s:=MakeExeComboBox.Text;
   if s<>'' then
     EnvironmentOptions.MakeFilename:=s;
