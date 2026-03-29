@@ -66,9 +66,9 @@ begin
     Result.TransparentMode := tmFixed;
     Result.TransparentColor := Result.Canvas.Pixels[0, Result.Height-1];
   end;
-  if Result=nil then
-    DebugLn(['[GetDefaultGlyph] MISSING "', ResourceName, '" (base="', OrigName,
-      '" scale=', ScalePercent, ' ignore=', IgnoreMissingResource, ')']);
+  //if Result=nil then
+  //  DebugLn(['[GetDefaultGlyph] MISSING "', ResourceName, '" (base="', OrigName,
+  //    '" scale=', ScalePercent, ' ignore=', IgnoreMissingResource, ')']);
   if (Result=nil) and not IgnoreMissingResource then
     raise EResNotFound.CreateFmt(SResNotFound,[ResourceName]);
 end;

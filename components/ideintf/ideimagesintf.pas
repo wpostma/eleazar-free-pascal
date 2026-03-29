@@ -62,8 +62,8 @@ type
     procedure AssignImage(const ASpeedButton: TCustomSpeedButton; ImageName: String;
       ImageSize: Integer = 16);
 
-    function LoadImage(ImageName: String; ImageSize: Integer = 24): Integer;
-    function GetImageIndex(ImageName: String; ImageSize: Integer = 24): Integer;
+    function LoadImage(ImageName: String; ImageSize: Integer = 16): Integer;
+    function GetImageIndex(ImageName: String; ImageSize: Integer = 16): Integer;
 
     (* Images_nn
        Each list contains images according to their default size at 96 PPI.
@@ -132,8 +132,8 @@ begin
     Result := 150
   else
     Result := Round(ScreenInfo.PixelsPerInchX/96) * 100;
-  DebugLn(['[TIDEImages.GetScalePercent] ScreenPPI=', ScreenInfo.PixelsPerInchX,
-    ' -> ScalePercent=', Result]);
+  //DebugLn(['[TIDEImages.GetScalePercent] ScreenPPI=', ScreenInfo.PixelsPerInchX,
+  //  ' -> ScalePercent=', Result]);
 end;
 
 destructor TIDEImages.Destroy;
@@ -182,8 +182,8 @@ begin
     Result := CreateBitmapFromLazarusResource(ResHandle)
   else
     Result := CreateBitmapFromResourceName(HInstance, ImageName);
-  if Result = nil then
-    DebugLn(['[TIDEImages.CreateBitmapFromRes] MISSING "', ImageName, '"']);
+  //if Result = nil then
+  //  DebugLn(['[TIDEImages.CreateBitmapFromRes] MISSING "', ImageName, '"']);
 end;
 
 class function TIDEImages.CreateBestBitmapForScalingFromRes(const ImageName: string;
@@ -191,27 +191,17 @@ class function TIDEImages.CreateBestBitmapForScalingFromRes(const ImageName: str
 begin
   aBitmap := nil;
   Result := aDefScale;
-  DebugLn(['[IDEImages.BestBitmapForScaling] "', ImageName, '" targetScale=', aDefScale]);
   while (Result > 100) do
   begin
     aBitmap := CreateBitmapFromRes(ImageName+'_'+IntToStr(Result));
     if aBitmap<>nil then
-    begin
-      DebugLn(['  -> found at "', ImageName, '_', Result, '" ',
-        aBitmap.Width, 'x', aBitmap.Height]);
       Exit;
-    end;
     if (Result>300) and ((Result div 100) mod 2 = 1) then
       Result := Result + 100;
     Result := Result div 2;
   end;
   aBitmap := CreateBitmapFromRes(ImageName);
   Result := 100;
-  if aBitmap <> nil then
-    DebugLn(['  -> fell back to base "', ImageName, '" ',
-      aBitmap.Width, 'x', aBitmap.Height])
-  else
-    DebugLn(['  ** COMPLETELY MISSING "', ImageName, '" (no resolution at all)']);
   if (aBitmap is TBitmap) and (aBitmap.PixelFormat in [pf1bit..pf24bit]) then
   begin
     aBitmap.TransparentColor := aBitmap.Canvas.Pixels[0, aBitmap.Height-1];
