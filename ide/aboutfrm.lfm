@@ -52,7 +52,7 @@ object AboutForm: TAboutForm
         Top = 127
         Width = 54
         Alignment = taCenter
-        BorderSpacing.Top = 115
+        BorderSpacing.Top = 170
         BorderSpacing.Around = 6
         Caption = 'Version #:'
         Font.Color = clSilver
