@@ -1146,14 +1146,23 @@ begin
     RoundToInt(gdk_screen_get_resolution(gdk_screen_get_default));
   ScreenInfo.PixelsPerInchY :=
     ScreenInfo.PixelsPerInchX;
+  DebugLn(['[GTK2.AppInit] gdk_screen_get_resolution=',
+    FloatToStr(gdk_screen_get_resolution(gdk_screen_get_default)),
+    ' -> PixelsPerInchX=', ScreenInfo.PixelsPerInchX]);
   if ScreenInfo.PixelsPerInchX <= 0 then
   begin
     ScreenInfo.PixelsPerInchX :=
       RoundToInt(gdk_screen_width / (GetScreenWidthMM / 25.4));
     ScreenInfo.PixelsPerInchY :=
       RoundToInt(gdk_screen_height / (GetScreenHeightMM / 25.4));
+    DebugLn(['[GTK2.AppInit] gdk fallback: screenPx=', gdk_screen_width,
+      ' screenMM=', GetScreenWidthMM,
+      ' -> PPI=', ScreenInfo.PixelsPerInchX]);
   end;
   ScreenInfo.ColorDepth := gdk_visual_get_system^.depth;
+  DebugLn(['[GTK2.AppInit] FINAL ScreenInfo: PPI_X=', ScreenInfo.PixelsPerInchX,
+    ' PPI_Y=', ScreenInfo.PixelsPerInchY,
+    ' ColorDepth=', ScreenInfo.ColorDepth]);
 end;
 
 procedure TGtk2WidgetSet.AppBringToFront;

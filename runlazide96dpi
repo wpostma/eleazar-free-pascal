@@ -2,6 +2,9 @@
 
 rm -rf ~/.lazarus
 
-export GDK_DPI_SCALE=1.0  
+# GTK2 reads DPI from Xft.dpi in X resources, NOT from GDK_DPI_SCALE (GTK3+ only)
+echo 'Xft.dpi: 96' | xrdb -merge
+
+export GDK_DPI_SCALE=1.0
 export GDK_SCALE=1.0
 ./lazarus --no-splash-screen --debug-log=/tmp/laz.log

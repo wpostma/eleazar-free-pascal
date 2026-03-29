@@ -46,7 +46,9 @@ function GetDefaultGlyph(ResourceName: string; ScalePercent: Integer;
   IgnoreMissingResource: Boolean): TCustomBitmap;
 var
   LRes: TLResource;
+  OrigName: string;
 begin
+  OrigName := ResourceName;
   if ScalePercent<>100 then
     ResourceName := ResourceName+'_'+IntToStr(ScalePercent);
 
@@ -64,6 +66,12 @@ begin
     Result.TransparentMode := tmFixed;
     Result.TransparentColor := Result.Canvas.Pixels[0, Result.Height-1];
   end;
+  if Result<>nil then
+    DebugLn(['[GetDefaultGlyph] FOUND "', ResourceName, '" scale=', ScalePercent,
+      ' size=', Result.Width, 'x', Result.Height])
+  else
+    DebugLn(['[GetDefaultGlyph] MISSING "', ResourceName, '" (base="', OrigName,
+      '" scale=', ScalePercent, ' ignore=', IgnoreMissingResource, ')']);
   if (Result=nil) and not IgnoreMissingResource then
     raise EResNotFound.CreateFmt(SResNotFound,[ResourceName]);
 end;
@@ -1924,6 +1932,7 @@ function TCustomImageList.GetWidthForPPI(AImageWidth,
 var
   Factor: Integer;
   idx: Integer;
+  ExactWidth: Integer;
 begin
   if AImageWidth<=0 then
     AImageWidth := FWidth;
@@ -1931,16 +1940,22 @@ begin
   if not FScaled then
     Result := AImageWidth
   else begin
-    Result := AImageWidth * APPI div 96;
-    if not FData.Find(Result, idx) then begin
+    ExactWidth := AImageWidth * APPI div 96;
+    if FData.Find(ExactWidth, idx) then
+      Result := ExactWidth
+    else begin
       if APPI <= 120 then
-        Factor := 100 // 100-125% (96-120 DPI): no scaling
+        Factor := 100
       else
       if APPI <= 168 then
-        Factor := 150 // 126%-175% (144-168 DPI): 150% scaling
+        Factor := 150
       else
-        Factor := Round(APPI/96) * 100; // 200, 300, 400, ...
+        Factor := Round(APPI/96) * 100;
       Result := AImageWidth * Factor div 100;
+      DebugLn(['[GetWidthForPPI] baseWidth=', AImageWidth, ' PPI=', APPI,
+        ' exactWidth=', ExactWidth, ' not registered -> band factor=', Factor,
+        ' result=', Result,
+        ' registeredCount=', FData.Count]);
     end;
   end;
 
@@ -2845,13 +2860,20 @@ begin
     Result := TEntry(ANode.Data).ImageIndex
   else
   begin
+    DebugLn(['[TLCLGlyphs.GetImageIndex] loading "', AResourceName,
+      '" resolutions=', Length(FLoadResolutions),
+      ' baseWidth=', Width]);
     Result := -1;
     FirstLoadedResolutionI := Low(FLoadResolutions)-1;
     for I := High(FLoadResolutions) downto Low(FLoadResolutions) do // start with the biggest one
     begin
+      DebugLn(['  trying resolution[', I, '] width=', FLoadResolutions[I].Width,
+        ' scaleSuffix=', FLoadResolutions[I].ScaleSuffix]);
       Result := AddNewBtnImage(FLoadResolutions[I]);
       if Result>=0 then
       begin
+        DebugLn(['  -> first loaded at resolution[', I, '] width=',
+          FLoadResolutions[I].Width, ' idx=', Result]);
         FirstLoadedResolutionI := I;
         break;
       end;
@@ -2861,8 +2883,12 @@ begin
       for I := FirstLoadedResolutionI-1 downto Low(FLoadResolutions) do // load the smaller ones
         AddBtnImageRes(Result, FLoadResolutions[I]);
     end else
-    if FMissingResources in [gmrAllMustExist, gmrOneMustExist] then
-      raise EResNotFound.CreateFmt(SResNotFound,[AResourceName]);
+    begin
+      DebugLn(['  ** NO RESOLUTION FOUND for "', AResourceName,
+        '" missingPolicy=', Ord(FMissingResources)]);
+      if FMissingResources in [gmrAllMustExist, gmrOneMustExist] then
+        raise EResNotFound.CreateFmt(SResNotFound,[AResourceName]);
+    end;
 
     E := TEntry.Create;
     E.GlyphName := AResourceName;
