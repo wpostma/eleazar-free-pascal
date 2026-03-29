@@ -1252,17 +1252,31 @@ procedure TApplication.HandleException(Sender: TObject);
 var
   i: LongInt;
   Skip: Boolean;
+
+
+  procedure LogExceptionWithStack(const ATag: string);
+  begin
+    if ExceptObject is Exception then
+      DebugLn(['[HandleException][', ATag, '] counter=', FExceptionCounter,
+        ' class=', ExceptObject.ClassName,
+        ' msg="', Exception(ExceptObject).Message, '"'])
+    else
+      DebugLn(['[HandleException][', ATag, '] counter=', FExceptionCounter,
+        ' ExceptObject=', dbgs(ExceptObject)]);
+    DumpExceptionBackTrace;
+  end;
+
 begin
   if Self = nil then
     Exit;
   if FExceptionCounter>1 then
   begin
-    // multiple exception circle, just exit
+    LogExceptionWithStack('TRIPLE');
     Exit;
   end;
   if FExceptionCounter=1 then
   begin
-    // there was an exception during showing the exception -> break the circle
+    LogExceptionWithStack('CIRCULAR-HALT');
     Inc(FExceptionCounter);
     if ExceptObject is Exception then
     begin
@@ -1274,6 +1288,7 @@ begin
     HaltingProgram:=true;
     Halt;
   end;
+  LogExceptionWithStack('FIRST');
   Inc(FExceptionCounter);
   
   if StopOnException then

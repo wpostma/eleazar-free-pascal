@@ -211,45 +211,51 @@ use-after-free segfault.
 
 ---
 
-## The Code That Was Reverted
+## The Code — And The Misdiagnosis
+
+**Initial (wrong) fix:** Comment out the `DisableAutoSizing`/
+`EnableAutoSizing` pair in `DoSetMainIDEHeight`.
+
+**Corrected understanding:** The pair is fine. It was written by Juha
+(lazarus-ide.org core maintainer) and is the standard LCL batching
+pattern. It works correctly when `DoSetMainIDEHeight` is called from
+safe contexts: `SetMainIDEHeight`, `InitPaletteAndCoolBar`,
+`MainSplitterMoved`, etc.
+
+**The actual bug** was that the *original upstream code* called
+`DoSetMainIDEHeight` from inside `TMainIDEBar.Resizing` — which sits
+on the GTK `size-allocate` callback chain. In THAT context,
+`EnableAutoSizing` → `DoAllAutoSize` → `RealizeBoundsRecursive` sends
+bounds to GTK, GTK fires `size-allocate` back, and the loop begins.
+
+**The real fix** (commit `c7de5ca758`) was to remove the call from
+`Resizing` entirely:
 
 ```pascal
-// ide/mainbar.pas — DoSetMainIDEHeight
-// BEFORE (causes the crash):
-  DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
-  try
-    ... height modification code ...
-  finally
-    EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
-  end;
-
-// AFTER (fix: remove the DisableAutoSizing/EnableAutoSizing pair):
-  //DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight'); // causes re-entrant GTK size-allocate loop
-  //try
-    ... height modification code ...
-  //finally
-  //  EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
-  //end;
+procedure TMainIDEBar.Resizing(State: TWindowState);
+begin
+  // Never adjust height synchronously during a resize/move signal.
+  inherited Resizing(State);
+end;
 ```
 
-The `try..finally` was not the problem. It was technically correct
-exception-safety. The problem is that `EnableAutoSizing` triggers
-`DoAllAutoSize`, which sends bounds to GTK, which fires `size-allocate`
-back into the LCL, which re-enters sizing. The `DisableAutoSizing`/
-`EnableAutoSizing` pair must NOT be used inside a method that is itself
-called from the size-allocate → WMSize → Resizing → chain.
+With `Resizing` neutered, the `DisableAutoSizing`/`EnableAutoSizing`
+pair in `DoSetMainIDEHeight` is safe and has been **restored**. The
+crash documented here occurred during a transitional state where the
+refactor in commit `cdb7d19b47` (changing the `DisableAutoSizing`
+signature) accidentally re-enabled the pair while also being called
+from inside the signal handler chain.
 
 ---
 
-## The Irony
+## The Real Problem: Calling Context, Not The Function
 
-The `DisableAutoSizing`/`EnableAutoSizing` pair was added to
-`DoSetMainIDEHeight` as a "proper fix" for layout batching — the idea
-being: disable auto-sizing, make several changes, then re-enable so they
-all take effect at once. This is the correct pattern in most LCL code.
+The `DisableAutoSizing`/`EnableAutoSizing` pair in `DoSetMainIDEHeight`
+was written by Juha and is the correct LCL batching pattern. The pair
+itself is not the bug.
 
-But `DoSetMainIDEHeight` is not "most LCL code." It is called from
-within the GTK `size-allocate` callback chain:
+The bug is **who calls `DoSetMainIDEHeight`**. The upstream code had
+`Resizing` calling it:
 
 ```
 GTK size-allocate
@@ -259,8 +265,8 @@ GTK size-allocate
         → TMainIDEBar.WndProc
           → TCustomForm.WMSize
             → TMainIDEBar.Resizing
-              → DoSetMainIDEHeight     ← we are HERE
-                → EnableAutoSizing     ← this fires DoAllAutoSize
+              → DoSetMainIDEHeight     ← called from signal handler!
+                → EnableAutoSizing     ← fires DoAllAutoSize
                   → RealizeBoundsRecursive
                     → GTK size-allocate  ← re-entrant!
 ```
@@ -268,9 +274,17 @@ GTK size-allocate
 You cannot call `EnableAutoSizing` (and thus `DoAllAutoSize`) from
 inside a GTK signal handler that is itself triggered by sizing. The
 `DoAllAutoSize` will send bounds back to GTK, GTK will fire
-`size-allocate` again, and you have unbounded recursion. The "proper"
-pattern (`DisableAutoSizing`/`try`/`finally`/`EnableAutoSizing`) is
-actively dangerous here.
+`size-allocate` again, and you have unbounded recursion.
+
+**The fix is not to remove the pair — it's to ensure `DoSetMainIDEHeight`
+is never called from `Resizing` (or any other GTK signal handler path).**
+
+This is a classic instance of the "Protocols Between Objects Without
+Contracts" problem from `lazarus-antipatterns.md` §0: a function that
+is safe in one calling context and deadly in another, with nothing in
+the API to distinguish them. Juha solved the batching problem. Someone
+called it from the wrong place. Everyone spent days debugging the
+resulting explosion instead of the one-line root cause.
 
 ---
 

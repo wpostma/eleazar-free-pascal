@@ -1,256 +1,152 @@
-# DisableAutoSizing/EnableAutoSizing Bug Report
+# DisableAutoSizing / BeginFormUpdate: Missing Guards and Misuse
 
-## Summary
-Found **critical bugs** in LCL components where `DisableAutoSizing` is called without proper exception safety using `try..finally` blocks.
+Two classes of bug involving counter-based lock pairs in the LCL:
 
----
+1. **Missing `try..finally`** — if an exception fires between Disable
+   and Enable, the lock count is permanently stuck and the control tree
+   silently stops laying out. Four instances found, all fixed.
 
-## FORM UPDATE PAIR: BeginFormUpdate / EndFormUpdate
+2. **Wrong calling context** — `DisableAutoSizing`/`EnableAutoSizing`
+   is safe in normal code but deadly inside GTK `size-allocate` signal
+   handlers. `EnableAutoSizing` calls `DoAllAutoSize` →
+   `RealizeBoundsRecursive` → GTK fires `size-allocate` back → infinite
+   recursion. See [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md).
 
-Related pair with similar exception safety issues.
-
-**Purpose:** Similar to DisableAutoSizing/EnableAutoSizing but for entire form construction. Prevents child controls from being shown and sized before the form construction is complete.
-
-**Classes:** `TCustomForm` and descendants
-
-**Implementation:** `FFormUpdateCount` counter-based locking (customform.inc:2879-2889)
-
----
-
-### 3. **TCustomDockForm.Create** (customdockform.inc:56-66) - FORM UPDATE PAIR
-
-**Location:** [customdockform.inc](customdockform.inc#L56)
-
-**Bug:**
-```pascal
-constructor TCustomDockForm.Create(TheOwner: TComponent);
-begin
-  BeginFormUpdate;  // LINE 58
-
-  CreateNew(TheOwner,0);    // ⚠️ CAN THROW EXCEPTION
-  AutoScroll := False;
-  BorderStyle := bsSizeToolWin;
-  DockSite := True;
-  FormStyle := fsStayOnTop;
-  EndFormUpdate;  // LINE 64 - MAY NOT REACH
-end;
-```
-
-**Problem:**
-- If `CreateNew()` or any property assignment throws exception, `EndFormUpdate` is never called
-- `FFormUpdateCount` remains > 0 permanently
-- Form stays in "under construction" state
-- Child controls never get sized/shown properly
-- Higher severity than DisableAutoSizing because it affects entire form initialization
-
-**Impact:** CRITICAL - Form becomes unusable
-
-**Fix:** Add try..finally
-```pascal
-constructor TCustomDockForm.Create(TheOwner: TComponent);
-begin
-  BeginFormUpdate;
-  try
-    CreateNew(TheOwner,0);
-    AutoScroll := False;
-    BorderStyle := bsSizeToolWin;
-    DockSite := True;
-    FormStyle := fsStayOnTop;
-  finally
-    EndFormUpdate;
-  end;
-end;
-```
+**Related documents:**
+- [lazarus-antipatterns.md](lazarus-antipatterns.md) §1 (resize recursion),
+  §8 (DisableAutoSizing architecture critique)
+- [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md) (full crash autopsy)
 
 ---
 
-### 4. **TCalculatorForm.Create** (calcform.pas:676-682) - FORM UPDATE PAIR
+## The Two Lock Pairs
 
-**Location:** [calcform.pas](calcform.pas#L676)
+### DisableAutoSizing / EnableAutoSizing
 
-**Bug:**
-```pascal
-constructor TCalculatorForm.Create(AOwner: TComponent; ALayout: TCalculatorLayout);
-begin
-  BeginFormUpdate;
+**Purpose:** Batch multiple layout changes. Increments
+`FAutoSizingLockCount`; when it reaches 1, propagates to Parent.
+`EnableAutoSizing` decrements; when it reaches 0, calls `DoAllAutoSize`
+(if no Parent) or propagates Enable to Parent.
 
-  inherited CreateNew(AOwner, 0);  // ⚠️ CAN THROW EXCEPTION
-  InitForm(ALayout);                 // ⚠️ CAN THROW EXCEPTION
-  EndFormUpdate;  // MAY NOT REACH
-end;
-```
+**Implementation:** `control.inc` (`TControl.DisableAutoSizing`,
+`TControl.EnableAutoSizing`)
 
-**Problem:**
-- If `CreateNew()` or `InitForm()` throws exception, `EndFormUpdate` is never called
-- `FFormUpdateCount` remains > 0 permanently
-- Form initialization state is broken
-- Same critical impact as TCustomDockForm
+**Danger:** A stuck lock silently disables all auto-sizing for the
+control and its entire parent chain. No error, no warning. The form
+just never lays out correctly.
 
-**Impact:** CRITICAL - Form becomes unusable
+### BeginFormUpdate / EndFormUpdate
 
-**Fix:** Add try..finally
-```pascal
-constructor TCalculatorForm.Create(AOwner: TComponent; ALayout: TCalculatorLayout);
-begin
-  BeginFormUpdate;
-  try
-    inherited CreateNew(AOwner, 0);
-    InitForm(ALayout);
-  finally
-    EndFormUpdate;
-  end;
-end;
-```
+**Purpose:** Defer child control sizing/showing during form
+construction. `FFormUpdateCount` counter-based.
+
+**Implementation:** `customform.inc:2879-2889`
+
+**Danger:** If stuck > 0, form stays in "under construction" state.
+Child controls never get sized or shown.
 
 ---
 
-## CRITICAL BUGS (Missing try..finally guards) - ORIGINAL LIST
+## Bug #1: TCustomButtonPanel.DoShowButtons
 
-### 1. **TCustomButtonPanel.DoShowButtons** (buttonpanel.pas:193-216)
+**File:** `lcl/buttonpanel.pas:188-220`
+**Status:** FIXED
 
-**Location:** [buttonpanel.pas](buttonpanel.pas#L188)
-
-**Bug:**
+**Was:**
 ```pascal
-procedure TCustomButtonPanel.DoShowButtons;
-var
-  btn: TPanelButton;
-  aButton: TPanelBitBtn;
+DisableAutoSizing('TCustomButtonPanel.DoShowButtons');
+for btn := Low(btn) to High(btn) do
 begin
-  DisableAutoSizing('TCustomButtonPanel.DoShowButtons');  // LINE 193
-
-  for btn := Low(btn) to High(btn) do
-  begin
-    if FButtons[btn] = nil
-    then CreateButton(btn);  // ⚠️ CAN THROW EXCEPTION
-    // ...
-  end;
-
-  UpdateButtonOrder;
-  UpdateButtonLayout;
-  EnableAutoSizing('TCustomButtonPanel.DoShowButtons');  // LINE 216 - MAY NOT REACH
+  if FButtons[btn] = nil
+  then CreateButton(btn);  // can throw
+  ...
 end;
+UpdateButtonOrder;
+UpdateButtonLayout;
+EnableAutoSizing('TCustomButtonPanel.DoShowButtons');  // may not reach
 ```
 
-**Problem:**
-- If `CreateButton(btn)` throws an exception, `EnableAutoSizing` is never called
-- `FAutoSizingLockCount` remains > 0 permanently
-- Component stops auto-sizing for the rest of its lifetime
-- Parent component also remains locked
-
-**Impact:** HIGH - Component layout breaks
-
-**Fix:** Add try..finally
+**Now:**
 ```pascal
-procedure TCustomButtonPanel.DoShowButtons;
-begin
-  DisableAutoSizing('TCustomButtonPanel.DoShowButtons');
-  try
-    for btn := Low(btn) to High(btn) do
-    begin
-      if FButtons[btn] = nil
-      then CreateButton(btn);
-      // ...
-    end;
-    UpdateButtonOrder;
-    UpdateButtonLayout;
-  finally
-    EnableAutoSizing('TCustomButtonPanel.DoShowButtons');
-  end;
-end;
-```
-
----
-
-### 2. **TCustomButtonPanel.DoShowGlyphs** (buttonpanel.pas:233-243)
-
-**Location:** [buttonpanel.pas](buttonpanel.pas#L228)
-
-**Bug:**
-```pascal
-procedure TCustomButtonPanel.DoShowGlyphs;
-var
-  btn: TPanelButton;
-begin
-  DisableAutoSizing('TCustomButtonPanel.DoShowGlyphs');  // LINE 233
-
-  for btn := Low(btn) to High(btn) do
-  begin
-    if FButtons[btn] = nil then Continue;
-    if btn in FShowGlyphs then 
-      FButtons[btn].GlyphShowMode := gsmApplication  // ⚠️ CAN THROW
-    else
-      FButtons[btn].GlyphShowMode := gsmNever;
-  end;
-  EnableAutoSizing('TCustomButtonPanel.DoShowGlyphs');  // LINE 243 - MAY NOT REACH
-end;
-```
-
-**Problem:**
-- Assignment to `GlyphShowMode` could throw exceptions (memory, invalid state)
-- `EnableAutoSizing` may never be called
-- Same deadlock effect as DoShowButtons
-
-**Impact:** HIGH - Component layout breaks
-
-**Fix:** Add try..finally guard
-
----
-
-## CORRECT IMPLEMENTATIONS (Reference)
-
-These implementations show the proper pattern:
-
-### ✓ TCustomButtonPanel.UpdateButtonSize (buttonpanel.pas:389-405)
-
-```pascal
-DisableAutoSizing('TCustomButtonPanel.UpdateButtonSize');
+DisableAutoSizing('TCustomButtonPanel.DoShowButtons');
 try
-  for btn in FButtons do
-  begin
-    if btn = nil then Continue;
-    // ... risky operations ...
-  end;
+  ...
 finally
-  EnableAutoSizing('TCustomButtonPanel.UpdateButtonSize');
-end;
-```
-
-### ✓ TCustomButtonPanel.SetAlign (buttonpanel.pas:411-418)
-
-```pascal
-DisableAutoSizing('TCustomButtonPanel.SetAlign');
-try
-  inherited SetAlign(Value);
-  UpdateButtonLayout;
-  UpdateBevel;
-  UpdateSizes;
-finally
-  EnableAutoSizing('TCustomButtonPanel.SetAlign');
-end;
-```
-
-### ✓ TCustomButtonPanel.SetShowBevel (buttonpanel.pas:473-481)
-
-```pascal
-DisableAutoSizing('TCustomButtonPanel.SetShowBevel');
-try
-  FBevel := TBevel.Create(Self);  // ⚠️ Risky
-  FBevel.Parent := Self;
-  FBevel.Name   := 'Bevel';
-  UpdateBevel;
-finally
-  EnableAutoSizing('TCustomButtonPanel.SetShowBevel');
+  EnableAutoSizing('TCustomButtonPanel.DoShowButtons');
 end;
 ```
 
 ---
 
-## ADDITIONAL CONCERNS
+## Bug #2: TCustomButtonPanel.DoShowGlyphs
 
-### Conditional DisableAutoSizing/EnableAutoSizing
+**File:** `lcl/buttonpanel.pas:228-244`
+**Status:** FIXED
 
-**Pattern found in coolbar.inc (lines 685-691):**
+Same pattern — `GlyphShowMode` assignment between unguarded
+Disable/Enable. Wrapped in `try..finally`.
+
+---
+
+## Bug #3: TCustomDockForm.Create
+
+**File:** `lcl/include/customdockform.inc:56-66`
+**Status:** FIXED
+
+`BeginFormUpdate` before `CreateNew` + property assignments, with
+`EndFormUpdate` after. If `CreateNew` throws, form stuck in update mode.
+Wrapped in `try..finally`.
+
+---
+
+## Bug #4: TCalculatorForm.Create
+
+**File:** `lcl/forms/calcform.pas:676-682`
+**Status:** FIXED
+
+`BeginFormUpdate` before `CreateNew` + `InitForm`, with `EndFormUpdate`
+after. Same problem, same fix.
+
+---
+
+## Bug #5: Calling DisableAutoSizing from GTK Signal Handlers
+
+**File:** `ide/mainbar.pas` — `DoSetMainIDEHeight`
+**Status:** FIXED (by removing the call from `Resizing`, not by
+removing the pair)
+
+The upstream code called `DoSetMainIDEHeight` from
+`TMainIDEBar.Resizing`, which is on the GTK `size-allocate` callback
+chain. `DoSetMainIDEHeight` contains a correct
+`DisableAutoSizing`/`try`/`finally`/`EnableAutoSizing` pair (written
+by Juha). But when called from inside `size-allocate`:
+
+```
+Resizing → DoSetMainIDEHeight → EnableAutoSizing → DoAllAutoSize
+  → RealizeBoundsRecursive → GTK size-allocate → Resizing → ...
+```
+
+The height spirals to 32,000px, exceptions fire, and the IDE crashes
+during shutdown with a use-after-free in the Object Inspector.
+
+**The fix:** Remove the call from `Resizing`. The
+`DisableAutoSizing`/`EnableAutoSizing` pair in `DoSetMainIDEHeight`
+is correct and remains. `DoSetMainIDEHeight` is now only called from
+safe contexts (`SetMainIDEHeight`, `InitPaletteAndCoolBar`, etc.).
+
+**The lesson:** `DisableAutoSizing`/`EnableAutoSizing` must never be
+used inside the `gtksize_allocateCB` → `DeliverMessage` → `WndProc`
+call path. `EnableAutoSizing` calls `DoAllAutoSize` which sends bounds
+back to GTK, creating unbounded re-entrancy.
+
+See [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md) for the full
+200-frame GDB backtrace and three-layer crash analysis.
+
+---
+
+## Patterns Found But Safe
+
+### Conditional pair in coolbar.inc
 
 ```pascal
 if aCountM1 >= 0 then DisableAutoSizing('TCustomCoolBar.CalculateAndAlign');
@@ -264,151 +160,97 @@ finally
 end;
 ```
 
-**Status:** ✓ SAFE - Conditions match on both sides
+Conditions match on both sides. Safe.
 
----
-
-### Nested Control Disable/Enable (wincontrol.inc:6314-6369)
-
-**Pattern in InsertControl and Remove:**
+### Nested control Insert/Remove in wincontrol.inc
 
 ```pascal
 // InsertControl
 if AControl.FAutoSizingLockCount>0 then
-begin
   DisableAutoSizing('TControl.DisableAutoSizing');
-end;
 
-// Remove  
+// RemoveControl
 if AControl.FAutoSizingLockCount>0 then
-begin
   EnableAutoSizing('TControl.DisableAutoSizing');
+```
+
+Fragile — relies on symmetric Insert/Remove lifecycle. If a control is
+inserted but never removed, parent stays locked. If removed twice,
+underflow. Works in practice but has no safety net.
+
+---
+
+## Correct Pattern (Reference)
+
+```pascal
+DisableAutoSizing('ClassName.MethodName');
+try
+  // ... operations that may throw ...
+finally
+  EnableAutoSizing('ClassName.MethodName');
 end;
 ```
 
-**Status:** ⚠️ FRAGILE
-- Relies on symmetry between Insert/Remove calls
-- If control is inserted but never removed (memory leak scenario), parent remains locked
-- If Remove is somehow called twice, would cause underflow exception
-
-**Risk:** MEDIUM - Works in normal flow but fragile to lifecycle bugs
-
----
-
-## DEBUG SUPPORT
-
-The LCL has built-in debug checks when `{$DEFINE DebugDisableAutoSizing}` is enabled:
-
-From control.inc (5845-5856):
-```pascal
-{ Underflow check — always fatal }
-if FAutoSizingLockCount <= 0 then
-  raise ELayoutException.CreateFmt(
-    'TControl.EnableAutoSizing %s count=%d: missing DisableAutoSizing',
-    [DbgSName(Self), FAutoSizingLockCount]);
-```
-
-This means:
-- **If you call `EnableAutoSizing` without matching `DisableAutoSizing`:** Raises exception immediately
-- **If you call `DisableAutoSizing` without `EnableAutoSizing`:** The component silently deadlocks (no exception, just broken layout)
+**Additional rules:**
+1. The Reason string must always be provided (not behind `{$IFDEF}`)
+2. Never call from inside a GTK signal handler (`size-allocate`,
+   `configure-event`, etc.)
+3. One `DebugLn` per call — see `lazarus-antipatterns.md` §7b
 
 ---
 
-## CONSEQUENCES OF NOT FIXING
+## Consequences of a Stuck Lock
 
 When `FAutoSizingLockCount` remains > 0:
 
-1. `DoAllAutoSize()` never executes
-2. Child controls don't resize properly
-3. Layout becomes broken and frozen
-4. Parent is also affected (cascades up)
-5. **No error message** - silent deadlock
-6. Difficult to debug (appears to be a layout algorithm failure)
+1. `DoAllAutoSize` never executes on this control
+2. Child controls don't resize
+3. Layout freezes silently
+4. Parent chain is also locked (propagation)
+5. **No error message** — just broken layout
+6. Appears to be a layout algorithm failure, not a missing Enable call
+
+When `FFormUpdateCount` remains > 0:
+
+1. Form stays in "under construction" state
+2. `UpdateShowing` is blocked
+3. Child controls never become visible
+4. Form appears blank or partially drawn
 
 ---
 
-## RECOMMENDATION
+## Diagnostic Aids
 
-### Priority 1: Fix buttonpanel.pas
-- Wrap DoShowButtons (line 193) with try..finally
-- Wrap DoShowGlyphs (line 233) with try..finally
+### DebugDisableAutoSizing define
 
-### Priority 2: Audit entire codebase
-Search for all `DisableAutoSizing` calls without matching `finally`:
+Compile with `-dDebugDisableAutoSizing` to get `FAutoSizingLockReasons`
+tracking (a TStringList of reason strings). Useful for finding orphaned
+Disable calls but leaks memory for every mismatch.
+
+### HandleException logging
+
+`application.inc` now logs every exception that reaches
+`TApplication.HandleException` with class, message, and full
+`DumpExceptionBackTrace`:
+- `[HandleException][FIRST]` — original exception
+- `[HandleException][CIRCULAR-HALT]` — second exception (during error
+  dialog), triggers `Halt`
+- `[HandleException][TRIPLE]` — third+ exception, bails out
+
+This catches the case where a stuck auto-sizing lock causes a sizing
+exception, which then cascades through the modal dialog event loop into
+a circular exception and forced shutdown.
+
+---
+
+## Remaining Audit
+
+Search for unguarded pairs:
 
 ```bash
-grep -rn "DisableAutoSizing" /var/otherdev/lazarus/lcl \
-  --include="*.pp" --include="*.pas" --include="*.inc" | wc -l
+rg "DisableAutoSizing" lcl/ --include="*.pas" --include="*.pp" --include="*.inc" -l
 ```
 
-Then check each one for proper exception handling.
-
----
-
-## Files Involved
-
-- `/var/otherdev/lazarus/lcl/buttonpanel.pas` - 2 bugs
-- `/var/otherdev/lazarus/lcl/include/control.inc` - Implementation
-- `/var/otherdev/lazarus/lcl/include/wincontrol.inc` - Fragile pattern
-- `/var/otherdev/lazarus/lcl/include/coolbar.inc` - Conditional but safe
-
----
-
-## Test Case to Reproduce
-
-```pascal
-procedure TestDisableAutoSizingBug;
-var
-  Panel: TCustomButtonPanel;
-begin
-  Panel := TCustomButtonPanel.Create(nil);
-  try
-    Panel.Parent := Form1;
-    Panel.ShowButtons := [pbOK];
-    
-    // Simulate exception in button creation
-    // (would happen if theme engine fails, memory low, etc)
-    Panel.DoShowButtons;  // If CreateButton throws, AutoSizing stuck
-    
-    // Now try to resize - layout will be broken
-    Panel.Width := 400;  // Won't trigger AutoSize!
-  finally
-    Panel.Free;
-  end;
-end;
-```
-
----
-
-## FIXES APPLIED
-
-**✓ FIXED - March 28, 2026**
-
-Four bugs in LCL components have been corrected:
-
-### Fixed Bug #1: TCustomButtonPanel.DoShowButtons
-- **File:** `/var/otherdev/lazarus/lcl/buttonpanel.pas` (lines 188-220)
-- **Change:** Wrapped entire loop and update operations in `try..finally` block
-- **Status:** ✓ FIXED
-
-### Fixed Bug #2: TCustomButtonPanel.DoShowGlyphs  
-- **File:** `/var/otherdev/lazarus/lcl/buttonpanel.pas` (lines 228-244)
-- **Change:** Wrapped glyph mode assignments in `try..finally` block
-- **Status:** ✓ FIXED
-
-### Fixed Bug #3: TCustomDockForm.Create
-- **File:** `/var/otherdev/lazarus/lcl/include/customdockform.inc` (lines 56-66)
-- **Change:** Wrapped form configuration operations in `try..finally` block
-- **Status:** ✓ FIXED
-
-### Fixed Bug #4: TCalculatorForm.Create
-- **File:** `/var/otherdev/lazarus/lcl/forms/calcform.pas` (lines 676-682)
-- **Change:** Wrapped form construction and initialization in `try..finally` block
-- **Status:** ✓ FIXED
-
-All procedures now properly guarantee exception safety:
-1. Component/Form state cannot become deadlocked
-2. Update lock counts are always restored
-3. Parent components are not affected by child exceptions
-4. Matches the correct pattern already used in other LCL methods
-
+Then for each file, verify every `DisableAutoSizing` has a matching
+`EnableAutoSizing` inside a `try..finally`. Same for
+`BeginFormUpdate`/`EndFormUpdate`.
