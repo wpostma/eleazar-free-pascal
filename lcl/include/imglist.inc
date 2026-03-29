@@ -66,10 +66,7 @@ begin
     Result.TransparentMode := tmFixed;
     Result.TransparentColor := Result.Canvas.Pixels[0, Result.Height-1];
   end;
-  if Result<>nil then
-    DebugLn(['[GetDefaultGlyph] FOUND "', ResourceName, '" scale=', ScalePercent,
-      ' size=', Result.Width, 'x', Result.Height])
-  else
+  if Result=nil then
     DebugLn(['[GetDefaultGlyph] MISSING "', ResourceName, '" (base="', OrigName,
       '" scale=', ScalePercent, ' ignore=', IgnoreMissingResource, ')']);
   if (Result=nil) and not IgnoreMissingResource then
@@ -1952,10 +1949,6 @@ begin
       else
         Factor := Round(APPI/96) * 100;
       Result := AImageWidth * Factor div 100;
-      DebugLn(['[GetWidthForPPI] baseWidth=', AImageWidth, ' PPI=', APPI,
-        ' exactWidth=', ExactWidth, ' not registered -> band factor=', Factor,
-        ' result=', Result,
-        ' registeredCount=', FData.Count]);
     end;
   end;
 
@@ -2860,20 +2853,13 @@ begin
     Result := TEntry(ANode.Data).ImageIndex
   else
   begin
-    DebugLn(['[TLCLGlyphs.GetImageIndex] loading "', AResourceName,
-      '" resolutions=', Length(FLoadResolutions),
-      ' baseWidth=', Width]);
     Result := -1;
     FirstLoadedResolutionI := Low(FLoadResolutions)-1;
     for I := High(FLoadResolutions) downto Low(FLoadResolutions) do // start with the biggest one
     begin
-      DebugLn(['  trying resolution[', I, '] width=', FLoadResolutions[I].Width,
-        ' scaleSuffix=', FLoadResolutions[I].ScaleSuffix]);
       Result := AddNewBtnImage(FLoadResolutions[I]);
       if Result>=0 then
       begin
-        DebugLn(['  -> first loaded at resolution[', I, '] width=',
-          FLoadResolutions[I].Width, ' idx=', Result]);
         FirstLoadedResolutionI := I;
         break;
       end;
