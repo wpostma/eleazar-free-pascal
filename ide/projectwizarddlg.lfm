@@ -75,7 +75,7 @@ object ProjectWizardDialog: TProjectWizardDialog
     Anchors = [akLeft, akRight, akBottom]
     AutoSize = True
     BorderSpacing.Around = 11
-    Caption = 'Close Lazarus'
+    Caption = 'Close Eleazar'
     ModalResult = 1
     TabOrder = 5
     OnClick = btnCloseIDEClick

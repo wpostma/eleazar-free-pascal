@@ -45,17 +45,17 @@ resourcestring
   lisCompilerFilename = 'Compiler filename';
   lisShortFormOfTargetCPUParamTargetOSParamSubTargetPar = 'Short form of $'
     +'TargetCPU(Param)-$TargetOS(Param)-$SubTarget(Param). Subtarget is omitted if empty.';
-  lisLazarusLanguageID = 'Lazarus language ID (e.g. en, de, br, fi)';
-  lisLazarusLanguageName = 'Lazarus language name (e.g. english, deutsch)';
-  lisLazarusDirectory = 'Lazarus directory';
-  lisConfigDirectory = 'Lazarus config directory';
+  lisLazarusLanguageID = 'Eleazar language ID (e.g. en, de, br, fi)';
+  lisLazarusLanguageName = 'Eleazar language name (e.g. english, deutsch)';
+  lisLazarusDirectory = 'Eleazar directory';
+  lisConfigDirectory = 'Eleazar config directory';
   lisTestDirectory = 'Test directory';
   lisUserSHomeDirectory = 'User''s home directory';
   lisFreePascalSourceDirectory = 'Free Pascal source directory';
   dlgFilterFPCMessageFile = 'FPC message file';
   lisFPCFullVersionEG20701 = 'FPC version as one number (e.g. 20701)';
   lisFPCVersionEG222 = 'FPC Version (e.g. 2.2.2)';
-  lisLAZVer = 'Lazarus Version (e.g. 1.2.4)';
+  lisLAZVer = 'Eleazar Version (e.g. 1.2.4)';
   lisProjectVer = 'Project version';
   lisProjectMacroProperties = 'Project macro properties';
   lisnewProject = '(new project)';

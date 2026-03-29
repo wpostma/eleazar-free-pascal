@@ -1,3 +1,17 @@
+Eleazar
+=======
+
+**Eleazar** is a friendly fork of [Lazarus](https://www.lazarus-ide.org/), the
+Rapid Application Development Tool for Free Pascal. The name comes from the
+Hebrew original (אלעזר) that "Lazarus" derives from — meaning "God has helped."
+
+This fork is fully open source under the same license as Lazarus. Any fixes or
+improvements that the upstream Lazarus project finds useful are welcome to be
+merged back. The goal is to ship a polished, stable IDE while contributing
+improvements upstream wherever possible.
+
+---
+
 Welcome to Lazarus
 ==================
 

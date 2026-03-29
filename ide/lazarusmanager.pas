@@ -340,8 +340,8 @@ begin
           end else begin
             // the custom exe is older => let user choose
             MsgResult:=QuestionDlg{NOTE: Do not use IDEQuestionDialog!!!}(
-              'Multiple lazarus found',
-              'Which Lazarus should be started?'+LineEnding
+              'Multiple Eleazar found',
+              'Which Eleazar should be started?'+LineEnding
               +LineEnding
               +'The system default executable'+LineEnding
               +DefaultExe+LineEnding

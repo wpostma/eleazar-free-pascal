@@ -138,7 +138,7 @@ resourcestring
   // command line help
   lisThisHelpMessage = 'This help message.';
   lisPrimaryConfigDirectoryWhereLazarusStoresItsConfig = 'Primary config '+
-    'directory where Lazarus stores its config files. Default is "%s".';
+    'directory where Eleazar stores its config files. Default is "%s".';
   lisLazarusOptionsProjectFilename = 'lazarus [options] <project-filename>';
   lisIDEOptions = 'IDE Options:';
   lisCmdLineLCLInterfaceSpecificOptions = 'LCL Interface specific options:';
@@ -149,7 +149,7 @@ resourcestring
   lisOverrideLanguage = 'Override language. '+
     'For possible values see files in the "languages" directory. Example: "--language=de".';
   lisSecondaryConfigDirectoryWhereLazarusSearchesFor = 'Secondary config '+
-    'directory where Lazarus searches for config template files. Default is "%s".';
+    'directory where Eleazar searches for config template files. Default is "%s".';
   lisFileWhereDebugOutputIsWritten =
     'File where debug output is written to. Default is write to the console.';
   lisDebugLogCloseOptDescr =
@@ -197,7 +197,7 @@ resourcestring
   lisKMOpenRecentProject = 'Open recent project';
   lisFileHasNoProject = 'File has no project';
   lisTheFileIsNotALazarusProjectCreateANewProjectForThi =
-     'The file "%s" is not a Lazarus project.'
+     'The file "%s" is not a Lazarus/Eleazar project.'
     +'%sCreate a new project for this "%s"?';
   lisCreateProject = 'Create project';
   lisKMSaveProject = 'Save project';
@@ -486,14 +486,14 @@ resourcestring
   lisMenuConvertDFMtoLFM = 'Convert Binary DFM to LFM ...';
   lisMenuCheckLFM = 'Check LFM File in Editor';
   lisMenuDelphiConversion = 'Delphi Conversion';
-  lisMenuConvertDelphiUnit = 'Convert Delphi Unit to Lazarus Unit ...';
-  lisMenuConvertDelphiProject = 'Convert Delphi Project to Lazarus Project ...';
-  lisMenuConvertDelphiPackage = 'Convert Delphi Package to Lazarus Package ...';
+  lisMenuConvertDelphiUnit = 'Convert Delphi Unit to Eleazar Unit ...';
+  lisMenuConvertDelphiProject = 'Convert Delphi Project to Eleazar Project ...';
+  lisMenuConvertDelphiPackage = 'Convert Delphi Package to Eleazar Package ...';
   lisMenuConvertEncoding = 'Convert Encoding of Projects/Packages ...';
   lisConvertEncodingOfProjectsPackages = 'Convert encoding of projects/packages';
-  lisMenuBuildLazarus = 'Build Lazarus with Current Profile';
-  lisMenuBuildLazarusProf = 'Build Lazarus with Profile: %s';
-  lisMenuConfigureBuildLazarus = 'Configure "Build Lazarus" ...';
+  lisMenuBuildLazarus = 'Build Eleazar with Current Profile';
+  lisMenuBuildLazarusProf = 'Build Eleazar with Profile: %s';
+  lisMenuConfigureBuildLazarus = 'Configure "Build Eleazar" ...';
   lisManageSourceEditors = 'Manage Source Editors ...';
   lisSourceEditorWindowManager = 'Source Editor Window Manager';
   lisMEOther = 'Other tabs';
@@ -574,7 +574,7 @@ resourcestring
   lisConvertTargetSupportDelphi = 'Support Delphi';
   lisConvertTargetSupportDelphiHint = 'Use conditional compilation to support Delphi';
   lisConvertTargetSameDfmFile = 'Use the same DFM form file';
-  lisConvertTargetSameDfmFileHint = 'Same DFM file for Lazarus and Delphi instead of copying it to LFM';
+  lisConvertTargetSameDfmFileHint = 'Same DFM file for Eleazar and Delphi instead of copying it to LFM';
   lisKeepFileOpen = 'Keep converted files open in editor';
   lisKeepFileOpenHint = 'All project files will be open in editor after conversion';
   lisScanFilesInParentDir = 'Scan files in parent directory';
@@ -613,7 +613,7 @@ resourcestring
   //lisConvDelphiPackageNameExists = 'Package name already exists';
   lisConvDelphiProjOmittedUnit = 'Omitted unit %s from project';
   lisConvDelphiAddedPackageDependency = 'Added Package %s as a dependency.';
-  lisConvDelphiPackageRequired = 'Package %s is required but not installed in Lazarus! Install it later.';
+  lisConvDelphiPackageRequired = 'Package %s is required but not installed in Eleazar! Install it later.';
   lisConvDelphiThereIsAlreadyAPackage = 'There is already a package with the name "%s"';
   lisConvUnknownProps = 'Unknown properties';
   lisConvTypesToReplace = 'Types to replace';
@@ -704,9 +704,9 @@ resourcestring
   lisFileNotFoundDoYouWantToCreateIt = 'File "%s" not found.%sDo you want to create it?';
   lisProjectInfoFileDetected = 'Project info file detected';
   lisTheFileSeemsToBeTheProgramFileOfAnExistingLazarusP = 'The file %s seems '
-    +'to be the program file of an existing Lazarus Project.';
+    +'to be the program file of an existing Eleazar Project.';
   lisTheFileSeemsToBeAProgramCloseCurrentProject = 'The file "%s" seems to be a program.'
-    +'%sClose current project and create a new Lazarus project for this program?'
+    +'%sClose current project and create a new Eleazar project for this program?'
     +'%s"No" will load the file as normal source.';
   lisProgramDetected = 'Program detected';
   lisUnableToConvertTextFormDataOfFileIntoBinaryStream = 'Unable to convert '
@@ -780,9 +780,9 @@ resourcestring
   lisNoProgramFileSFound = 'No program file "%s" found.';
   lisNotNow = 'Not now';
   lisYouCanNotBuildLazarusWhileDebuggingOrCompiling = 'You cannot build '
-    +'Lazarus while debugging or compiling.';
+    +'Eleazar while debugging or compiling.';
   lisMajorChangesDetected = 'Major changes detected';
-  lisTheLazarusSourcesUse = 'The Lazarus sources use a different list of base '
+  lisTheLazarusSourcesUse = 'The Eleazar sources use a different list of base '
     +'packages.%sIt is recommended to compile the IDE clean using lazbuild.';
   lisCleanUpLazbuild = 'Clean up + lazbuild';
   lisLazbuild = 'lazbuild';
@@ -804,7 +804,7 @@ resourcestring
   lisDeleteAmbiguousFile = 'Delete ambiguous file?';
   lisAmbiguousFileFoundThisFileCanBeMistakenWithDelete = 'Ambiguous file '
     +'found: "%s"%sThis file can be mistaken with "%s"%sDelete the ambiguous file?';
-  lisLazarusEditorV = 'Lazarus IDE v%s';
+  lisLazarusEditorV = 'Eleazar IDE v%s';
   liscompiling = '%s (compiling ...)';
   lisdebugging = '%s (debugging ...)';
   lisRunning = '%s (running ...)';
@@ -813,7 +813,7 @@ resourcestring
     +'%sIf it belongs to your project, check search path in'
     +'%sProject -> Compiler Options -> Search Paths -> Other Unit Files.'
     +' If this file belongs to a package, check the appropriate package compiler'
-    +' options. If this file belongs to Lazarus, make sure compiling clean.'
+    +' options. If this file belongs to Eleazar, make sure compiling clean.'
     +' If the file belongs to FPC then check fpc.cfg.'
     +' If unsure, check Project -> CompilerOptions -> Test';
   lisNOTECouldNotCreateDefineTemplateForFreePascal = 'NOTE: Could not create '
@@ -841,7 +841,7 @@ resourcestring
   lisSavingFileAsLoosesCharactersAtLineColumn = 'Saving file "%s" as "%s" '
     +'looses characters at line %s, column %s.';
   lisNOTECouldNotCreateDefineTemplateForLazarusSources = 'NOTE: Could not '
-    +'create Define Template for Lazarus Sources';
+    +'create Define Template for Eleazar Sources';
   lisOwnerIsAlreadyUsedByTReaderTWriterPleaseChooseAnot = '''Owner'' is '
     +'already used by TReader/TWriter. Please choose another name.';
   lisDuplicateNameAComponentNamedAlreadyExistsInTheInhe = 'Duplicate name: A '
@@ -884,7 +884,7 @@ resourcestring
     +'method. Please fix the error shown in the message window.';
   lisStopDebugging = 'Stop Debugging?';
   lisStopTheDebugging = 'Stop the debugging?';
-  lisCannotFindLazarusStarter = 'Cannot find Lazarus starter:%s%s';
+  lisCannotFindLazarusStarter = 'Cannot find Eleazar starter:%s%s';
   lisFPCTooOld = 'FPC too old';
   lisTheProjectUsesFPCResourcesWhichRequireAtLeast = 'The project uses '
     +'FPC resources which require at least FPC 2.4';
@@ -975,7 +975,7 @@ resourcestring
   lisOpenPackageFile = 'Open Package File';
   lisSaveSpace = 'Save ';
   lisSelectDFMFiles = 'Select Delphi form files (*.dfm|*.fmx)';
-  lisChooseLazarusSourceDirectory = 'Choose Lazarus Directory';
+  lisChooseLazarusSourceDirectory = 'Choose Eleazar Directory';
   lisChooseCompilerExecutable = 'Choose compiler executable (%s)';
   lisChooseFPCSourceDir = 'Choose FPC source directory';
   lisChooseCompilerMessages = 'Choose compiler messages file';
@@ -991,14 +991,14 @@ resourcestring
   lisProjectSessionChanged = 'Project session changed';
   lisSaveSessionChangesToProject = 'Save session changes to project %s?';
 
-  lisAboutLazarus = 'About Lazarus';
+  lisAboutLazarus = 'About Eleazar';
   lisVersion = 'Version';
   lisVerToClipboard = 'Copy version information to clipboard';
   lisBuildDate = 'Build Date';
   lisFPCVersion = 'FPC Version: ';
   lisRevision = 'Revision: ';
   lisPrior = 'prior %s';
-  lisWelcomeToLazarusThereIsAlreadyAConfigurationFromVe = 'Welcome to Lazarus %s'
+  lisWelcomeToLazarusThereIsAlreadyAConfigurationFromVe = 'Welcome to Eleazar %s'
     +'%sThere is already a configuration from version %s in'
     +'%s%s';
   lisTheOldConfigurationWillBeUpgraded = 'The old configuration will be '
@@ -1006,7 +1006,7 @@ resourcestring
   lisTheConfigurationWillBeDowngradedConverted = 'The configuration will be '
     +'downgraded/converted.';
   lisIfYouWantToUseTwoDifferentLazarusVersionsYouMustSt = 'If you want to use '
-    +'two different Lazarus versions you must start the second Lazarus with '
+    +'two different Eleazar versions you must start the second Eleazar with '
     +'the command line parameter primary-config-path or pcp.'
     +'%sFor example:';
   lisUpgradeConfiguration = 'Upgrade configuration';
@@ -1014,17 +1014,17 @@ resourcestring
   lisDowngradeConfiguration = 'Downgrade configuration';
   lisDowngrade = 'Downgrade';
   lisAboutLazarusMsg =
-       'License: GPL/LGPL. See Lazarus and Free Pascal sources for license details.'
+       'Eleazar is a friendly fork of Lazarus. License: GPL/LGPL.'
       +'%s'
-      +'Lazarus is an IDE to create graphical and console applications '
+      +'Eleazar is an IDE to create graphical and console applications '
       +'with Free Pascal. Free Pascal is a Pascal and Object Pascal '
       +'compiler that runs on Windows, Linux, macOS, FreeBSD and more.'
       +'%s'
-      +'Lazarus is the missing part of the puzzle that will allow you to '
+      +'Eleazar is the missing part of the puzzle that will allow you to '
       +'develop programs for all of the above platforms in a Delphi-like '
       +'environment. The IDE is a RAD tool that includes a form designer.'
       +'%s'
-      +'As Lazarus is growing, we need more developers.';
+      +'As Eleazar is growing, we need more developers.';
   lisAboutNoContributors = 'Cannot find contributors list.';
   lisUnitNameAlreadyExistsCap = 'Unitname already in project';
   lisTheUnitAlreadyExists = 'The unit "%s" already exists.';
@@ -1165,9 +1165,9 @@ resourcestring
   lisAutoCompletionOff = 'Auto completion: off';
   lisSAMSelectNone = 'Select none';
   lisKMClassic = 'Classic';
-  lisKMLazarusDefault = 'Lazarus default';
+  lisKMLazarusDefault = 'Eleazar default';
   lisKMMacOSXApple = 'macOS, Apple style';
-  lisKMMacOSXLaz = 'macOS, Lazarus style';
+  lisKMMacOSXLaz = 'macOS, Eleazar style';
   lisKMDefaultToOSX = 'Default adapted to macOS';
   lisPEFilename = 'Filename:';
   lisPEUnitname = 'Unitname:';
@@ -1197,7 +1197,7 @@ resourcestring
   lisFilesNotInASCIINorUTF8Encoding = 'Files not in ASCII nor UTF-8 encoding';
   podAddPackageUnitToUsesSection = 'Add package unit to uses section';
   lisLPKCompatibilityModeCheckBox = 'Maximize compatibility of package file (LPK)';
-  lisLPKCompatibilityModeCheckBoxHint = 'Check this if you want to open your package in legacy (2.0 and older) Lazarus versions.';
+  lisLPKCompatibilityModeCheckBoxHint = 'Check this if you want to open your package in legacy (2.0 and older) Lazarus/Eleazar versions.';
   lisCodeBrowser = 'Code Browser';
 
   // IDE General options
@@ -1280,7 +1280,7 @@ resourcestring
   lisWindowMenuWithNameForDesignedForm = 'Window menu shows designed form''s name instead of caption';
   lisWindowMenuWithNameForDesignedFormHint = 'Useful especially if the caption is left empty.';
   lisTitleInTaskbarShowsForExampleProject1LpiLazarus = 'Show the custom IDE title ' +
-    'before the IDE''s name and other info in the title. Example: project1 - Lazarus.';
+    'before the IDE''s name and other info in the title. Example: project1 - Eleazar.';
 
   // Message window options
   lisWindowStaysOnTop = 'Window stays on top';
@@ -1312,8 +1312,8 @@ resourcestring
   dlgMaxRecentFiles = 'Max recent files';
   dlgMaxRecentProjs = 'Max recent project files';
   dlgMaxRecentHint = 'Value 0 means unlimited.';
-  dlgLazarusDir = 'Lazarus directory (default for all projects)';
-  lisLazarusDirHint = 'Lazarus sources. This path is relative to primary config directory (%s).';
+  dlgLazarusDir = 'Eleazar directory (default for all projects)';
+  lisLazarusDirHint = 'Eleazar sources. This path is relative to primary config directory (%s).';
   dlgFpcExecutable = 'Compiler executable (e.g. %s)';
   dlgFpcSrcPath = 'FPC source directory';
   dlgMakeExecutable = '"Make" executable';
@@ -1413,7 +1413,7 @@ resourcestring
   dlgOISpeedSettings = 'Speed settings';
   dlgOIItemHeight = 'Item height (0 = auto)';
   dlgHeightOfOnePropertyInGrid = 'Height of one property in the grid.';
-  dlgOIUseDefaultLazarusSettings = 'Use default Lazarus settings';
+  dlgOIUseDefaultLazarusSettings = 'Use default Eleazar settings';
   dlgOIUseDefaultDelphiSettings = 'Use default Delphi settings';
   lisShowComponentTreeInObjectInspector = 'Show component tree';
   lisShowsAllControlsInTreeHierarchy = 'Shows all controls in tree hierarchy.';
@@ -1447,14 +1447,14 @@ resourcestring
 
   // Ide Startup options
   dlgFileAssociationInOS = 'Opening Files from OS';
-  dlgLazarusInstances = 'Lazarus instances';
+  dlgLazarusInstances = 'Eleazar instances';
   dlgMultipleInstances_AlwaysStartNew = 'always start a new instance';
   dlgMultipleInstances_OpenFilesInRunning = 'open files in a running instance';
   dlgMultipleInstances_ForceSingleInstance = 'do not allow multiple instances';
-  dlgRunningInstanceModalError = 'The running Lazarus instance cannot accept any files.'
+  dlgRunningInstanceModalError = 'The running Eleazar instance cannot accept any files.'
     +sLineBreak+'Do you want to open them in a new IDE instance?'+sLineBreak+sLineBreak+'%s';
-  dlgForceUniqueInstanceModalError = 'The running Lazarus instance cannot accept any files.';
-  dlgRunningInstanceNotRespondingError = 'Lazarus instance is running but not responding.';
+  dlgForceUniqueInstanceModalError = 'The running Eleazar instance cannot accept any files.';
+  dlgRunningInstanceNotRespondingError = 'Eleazar instance is running but not responding.';
   dlgProjectToOpenOrCreate = 'Project to Open or Create';
   dlgQOpenLastPrj = 'Open last project and packages at start';
   dlgNewProjectType = 'New Project Type';
@@ -1474,17 +1474,17 @@ resourcestring
   dlgFilterHTML = 'HTML files';
   dlgFilterPrograms = 'Programs';
   dlgFilterExecutable = 'Executable';
-  dlgFilterLazarusFile = 'Lazarus file';
+  dlgFilterLazarusFile = 'Eleazar file';
   dlgFilterLazarusEditorFile = 'Editor file types';
-  dlgFilterLazarusUnit = 'Lazarus unit';
-  dlgFilterLazarusInclude = 'Lazarus include file';
-  dlgFilterLazarusProject = 'Lazarus project';
-  dlgFilterLazarusForm = 'Lazarus form';
-  dlgFilterLazarusPackage = 'Lazarus package';
-  dlgFilterLazarusProjectSource = 'Lazarus project source';
-  dlgFilterLazarusOtherFile = 'Lazarus other file';
-  dlgFilterLazarusSession = 'Lazarus session';
-  dlgFilterLazarusDesktopSettings = 'Lazarus Desktop Settings';
+  dlgFilterLazarusUnit = 'Eleazar unit';
+  dlgFilterLazarusInclude = 'Eleazar include file';
+  dlgFilterLazarusProject = 'Eleazar project';
+  dlgFilterLazarusForm = 'Eleazar form';
+  dlgFilterLazarusPackage = 'Eleazar package';
+  dlgFilterLazarusProjectSource = 'Eleazar project source';
+  dlgFilterLazarusOtherFile = 'Eleazar other file';
+  dlgFilterLazarusSession = 'Eleazar session';
+  dlgFilterLazarusDesktopSettings = 'Eleazar Desktop Settings';
   dlgFilterDelphiUnit = 'Delphi unit';
   dlgFilterDelphiProject = 'Delphi project';
   dlgFilterDelphiPackage = 'Delphi package';
@@ -1886,7 +1886,7 @@ resourcestring
   lisHeaderColors = 'Header colors';
   lisMsgColors = 'Message colors';
   lisSetAllColors = 'Set all colors:';
-  lisLazarusDefault = 'Lazarus Default';
+  lisLazarusDefault = 'Eleazar Default';
   dlgColorNotModified = 'Not modified';
   dlgPriorities = 'Priorities';
 
@@ -1902,7 +1902,7 @@ resourcestring
   lisPackageIsDesigntimeOnlySoItShouldOnlyBeCompiledInt = 'Package "%s" is '
     +'designtime only, so it should only be compiled into the IDE, and not '
     +'with the project settings.%sPlease use "Install" or "Tools / Build '
-    +'Lazarus" to build the IDE packages.';
+    +'Eleazar" to build the IDE packages.';
   lisCompileWithProjectSettings = 'Compile with project settings';
   lisCompileAndDoNotAskAgain = 'Compile and do not ask again';
   dlgMsgWinColorUrgentImportant = 'Important';
@@ -2575,7 +2575,7 @@ resourcestring
     +' correct:%s%s';
   lisTheFPCSourceDirectoryDoesNotLookCorrect = 'The FPC source directory "%s" '
     +'does not look correct:%s%s';
-  lisTheLazarusDirectoryDoesNotLookCorrect = 'The Lazarus directory "%s" does '
+  lisTheLazarusDirectoryDoesNotLookCorrect = 'The Eleazar directory "%s" does '
     +'not look correct:%s%s';
   lisTheFppkgConfigurationFileDoesNotLookCorrect = 'The Fppkg configuration file '
     +'"%s" does not look correct:%s%s';
@@ -2662,7 +2662,7 @@ resourcestring
   lisNote = 'Note';
   dlgPOUseLCLScaling = 'Use LCL scaling (Hi-DPI)';
   lisTheContainsAStarCharacterLazarusUsesThisAsNormalCh = 'The %s contains a '
-    +'star * character.%sLazarus uses this as normal character and does not '
+    +'star * character.%sEleazar uses this as normal character and does not '
     +'expand this as file mask.';
   lisDuplicateSearchPath = 'Duplicate search path';
   lisTheOtherSourcesContainsADirectoryWhichIsAlreadyInT = 'The "Other sources" '
@@ -2729,7 +2729,7 @@ resourcestring
   lisUpdateApplicationScaledStatement = 'Update Application.Scaled statement in main unit';
   lisIdeMaintainsScaledInMainUnit = 'The IDE maintains Application.Scaled (Hi-DPI) in main unit.';
   lisLPICompatibilityModeCheckBox = 'Maximize compatibility of project files (LPI and LPS)';
-  lisLPICompatibilityModeCheckBoxHint = 'Check this if you want to open your project in legacy (2.0 and older) Lazarus versions.';
+  lisLPICompatibilityModeCheckBoxHint = 'Check this if you want to open your project in legacy (2.0 and older) Lazarus/Eleazar versions.';
   lisProjectIsRunnable = 'Project is runnable';
   lisProjectIsRunnableHint = 'Generates a binary executable which can be run.';
   lisUseDesignTimePackages = 'Use design time packages';
@@ -2740,7 +2740,7 @@ resourcestring
   lisPutLrsFilesInOutputDirectory = 'Save .lrs files in the output directory';
   lisPutLrsFilesInOutputDirectoryHint = 'The resource will be available for FPC.';
   lisResourceTypeOfNewFiles = 'Resource type of project';
-  lisLrsIncludeFiles = 'Lazarus resources (.lrs) include files';
+  lisLrsIncludeFiles = 'Eleazar resources (.lrs) include files';
   lisAutomaticallyConvertLfmToLrs = 'Automatically convert .lfm files to .lrs resource files';
   lisFPCResources = 'FPC resources (.res)';
   lisDelphiCompatibleResources = 'Delphi compatible resources. Recommended.';
@@ -3408,7 +3408,7 @@ resourcestring
 
   // tools menu
   srkmecExtToolSettings           = 'External tools settings';
-  srkmecBuildLazarus              = 'Build Lazarus';
+  srkmecBuildLazarus              = 'Build Eleazar';
   srkmecExtTool                   = 'External tool %d';
   srkmecEnvironmentOptions        = 'IDE options';
   lisKMEditCodeTemplates          = 'Edit Code Templates';
@@ -3420,8 +3420,8 @@ resourcestring
   lisDesktops                     = 'Desktops ...';
   lisKMDiffEditorFiles            = 'Diff Editor Files';
   lisKMConvertDFMFileToLFM        = 'Convert DFM File to LFM';
-  lisKMConvertDelphiUnitToLazarusUnit = 'Convert Delphi Unit to Lazarus Unit';
-  lisKMConvertDelphiProjectToLazarusProject = 'Convert Delphi Project to Lazarus Project';
+  lisKMConvertDelphiUnitToLazarusUnit = 'Convert Delphi Unit to Eleazar Unit';
+  lisKMConvertDelphiProjectToLazarusProject = 'Convert Delphi Project to Eleazar Project';
   srkmecDiff                      = 'Diff';
   
   // help menu
@@ -3482,7 +3482,7 @@ resourcestring
   lisKMPauseProgram = 'Pause program';
   lisKMViewProjectOptions = 'View project options';
   lisKMExternalToolsSettings = 'External Tools settings';
-  lisKMConvertDelphiPackageToLazarusPackage = 'Convert Delphi package to Lazarus package';
+  lisKMConvertDelphiPackageToLazarusPackage = 'Convert Delphi package to Eleazar package';
   lisKMCopySelectedComponentsToClipboard = 'Copy selected components';
   lisKMCutSelectedComponentsToClipboard = 'Cut selected components';
   lisKMPasteComponentsFromClipboard = 'Paste Components';
@@ -3491,21 +3491,21 @@ resourcestring
   dlgUnitDepRefresh      = 'Refresh';
 
   // Build Lazarus dialog
-  lisConfirmLazarusRebuild = 'Do you want to rebuild Lazarus with profile: %s?';
+  lisConfirmLazarusRebuild = 'Do you want to rebuild Eleazar with profile: %s?';
   lisConfirmation = 'Confirmation';
   lisPkgTheProjectOverridesTheOutputDirectoryOfTheFollowin = 'The project '
     +'overrides the output directory of the following packages.'
     +'%sSee Project / Project Options (compiler options section) / Additions and Overrides'
     +'%s%s';
-  lisConfirmBuildAllProfiles = 'Lazarus will be rebuilt with the following profiles:%sContinue?';
+  lisConfirmBuildAllProfiles = 'Eleazar will be rebuilt with the following profiles:%sContinue?';
   lisNoBuildProfilesSelected = 'No profiles are selected to be built.';
-  lisCleanLazarusSource = 'Clean Lazarus Source';
+  lisCleanLazarusSource = 'Clean Eleazar Source';
   lisBuildIDE = 'Build IDE';
   lisMakeNotFound = 'Make not found';
   lisTheProgramMakeWasNotFoundThisToolIsNeededToBuildLa = 'The program "make" '
-    +'was not found.%sThis tool is needed to build Lazarus.';
+    +'was not found.%sThis tool is needed to build Eleazar.';
   lisIDE = 'IDE';
-  lisConfigureBuildLazarus = 'Configure "Build Lazarus"';
+  lisConfigureBuildLazarus = 'Configure "Build Eleazar"';
   lisLazBuildOptions = '&Options:';
   lisLazBuildTargetOS = 'Target OS:';
   lisLazBuildTargetCPU = 'Target CPU:';
@@ -3552,8 +3552,8 @@ resourcestring
   lisLazBuildShowOptionsAndDefinesForCommandLine = 'Show options and defines '
     +'for command line';
   lisLazBuildUpdateRevisionInfoInAboutLazarusDialog = 'Update revision info '
-    +'in "About Lazarus" dialog';
-  lisLazBuildRestartLazarusAutomatically = 'Restart Lazarus automatically after '+
+    +'in "About Eleazar" dialog';
+  lisLazBuildRestartLazarusAutomatically = 'Restart Eleazar automatically after '+
     'building the IDE (has no effect when building other parts)';
   lisLazBuildShowConfirmationDialogWhenBuilding = 'Show confirmation dialog when '+
     'building directly from Tools menu';
@@ -4301,10 +4301,10 @@ resourcestring
   lisUnitInPackage = '%s unit %s in package %s';
   lisPkgMangSkipThisPackage = 'Skip this package';
   lisPkgMangInvalidFileExtension = 'Invalid file extension';
-  lisPkgMangTheFileIsNotALazarusPackage = 'The file "%s" is not a Lazarus package.';
+  lisPkgMangTheFileIsNotALazarusPackage = 'The file "%s" is not an Eleazar package.';
   lisPkgMangInvalidPackageFilename = 'Invalid package filename';
   lisPkgMangThePackageFileNameInIsNotAValidLazarusPackageName = 'The package '
-    +'file name "%s" in%s"%s" is not a valid Lazarus package name.';
+    +'file name "%s" in%s"%s" is not a valid Eleazar package name.';
   lisPkgMangFileNotFound = 'File "%s" not found.';
   lisOpenFileAtCursor = 'Open file at cursor';
   lisPkgMangErrorReadingPackage = 'Error Reading Package';
@@ -4359,12 +4359,12 @@ resourcestring
     +'the package %s will automatically install the packages:';
   lisPkgMangInstallingThePackageWillAutomaticallyInstallThePac = 'Installing '
     +'the package %s will automatically install the package:';
-  lisPkgMangRebuildLazarus = 'Rebuild Lazarus?';
+  lisPkgMangRebuildLazarus = 'Rebuild Eleazar?';
   lisPkgMangThePackageWasMarkedForInstallationCurrentlyLazarus = 'The package "%s" '
     +'was marked for installation.'
-    +'%sCurrently Lazarus only supports static linked packages. '
-    +'The real installation needs rebuilding and restarting of Lazarus.'
-    +'%sDo you want to rebuild Lazarus now?';
+    +'%sCurrently Eleazar only supports static linked packages. '
+    +'The real installation needs rebuilding and restarting of Eleazar.'
+    +'%sDo you want to rebuild Eleazar now?';
   lisPkgMangPackageIsRequired = 'Package is required';
   lisPkgMangThePackageIsRequiredByWhichIsMarkedForInstallation = 'The package %s '
     +'is required by %s which is marked for installation.'
@@ -4372,9 +4372,9 @@ resourcestring
   lisPkgMangUninstallPackage = 'Uninstall package?';
   lisPkgMangUninstallPackage2 = 'Uninstall package %s?';
   lisPkgMangThePackageWasMarkedCurrentlyLazarus = 'The package "%s" was marked.'
-    +'%sCurrently Lazarus only supports static linked packages. The real un-installation '
-    +'needs rebuilding and restarting of Lazarus.'
-    +'%sDo you want to rebuild Lazarus now?';
+    +'%sCurrently Eleazar only supports static linked packages. The real un-installation '
+    +'needs rebuilding and restarting of Eleazar.'
+    +'%sDo you want to rebuild Eleazar now?';
   lisPkgMangThisIsAVirtualPackageItHasNoSourceYetPleaseSaveThe = 'This is a '
     +'virtual package. It has no source yet. Please save the package first.';
   lisPkgMangPleaseCompileThePackageFirst = 'Please compile the package first.';
@@ -4385,9 +4385,9 @@ resourcestring
   lisAvailableProjectBuildModes = 'Available project build modes';
   lisThisProjectHasOnlyTheDefaultBuildMode = 'This project has only the default build mode.';
   lisPkgMangUnableToCreateTargetDirectoryForLazarus = 'Unable to create '
-    +'target directory for Lazarus:'
+    +'target directory for Eleazar:'
     +'%s"%s".'
-    +'%sThis directory is needed for the new changed Lazarus IDE with your custom packages.';
+    +'%sThis directory is needed for the new changed Eleazar IDE with your custom packages.';
 
   // add active file to package dialog
   lisAF2PInvalidPackage = 'Invalid Package';
@@ -4916,7 +4916,7 @@ resourcestring
   lisClDirClean = 'Clean';
   
   // LFM repair wizard
-  lisTheLFMLazarusFormFileContainsInvalidPropertiesThis = 'The LFM (Lazarus '
+  lisTheLFMLazarusFormFileContainsInvalidPropertiesThis = 'The LFM (Eleazar '
     +'form) file contains invalid properties. This means for example it '
     +'contains some properties/classes which do not exist in the current LCL. '
     +'The normal fix is to remove these properties from the lfm and fix '
@@ -5289,7 +5289,7 @@ resourcestring
   lisPWOpenRecentProject = 'Open &Recent Project';
   lisPWViewExampleProjects = 'View &Example Projects';
   lisPWConvertProject = 'Convert &Delphi Project';
-  lisQuitLazarus = '&Quit Lazarus';
+  lisQuitLazarus = '&Quit Eleazar';
   lisIsAThisCircularDependencyIsNotAllowed = '%s is a %s.%sThis circular '
     +'dependency is not allowed.';
   lisTheComponentCanNotBeDeletedBecauseItIsNotOwnedBy = 'The component %s can '
@@ -5649,11 +5649,11 @@ resourcestring
     +'identifiers=%s/%s lines=%s bytes=%s';
   lisScanning2 = '%s. Scanning ...';
   lisShowGlyphsFor = 'Show Glyphs for';
-  lisBuildingLazarusFailed = 'Building Lazarus failed';
+  lisBuildingLazarusFailed = 'Building Eleazar failed';
   lisThisSetOfOptionsToBuildLazarusIsNotSupportedByThis = 'This set of '
-    +'options to build Lazarus is not supported by this installation.%sThe '
-    +'directory "%s" is not writable.%sSee the Lazarus website for other '
-    +'ways to install Lazarus.';
+    +'options to build Eleazar is not supported by this installation.%sThe '
+    +'directory "%s" is not writable.%sSee the Eleazar website for other '
+    +'ways to install Eleazar.';
   lisSelected = 'Selected';
   lisSelectedAndChildControls = 'Selected and child controls';
 
@@ -5786,7 +5786,7 @@ resourcestring
   lisInsteadOfCompilePackageCreateASimpleMakefile = 'Instead of compiling a '
     +'package create a simple Makefile.';
   lisOnlyRegisterTheLazarusPackageFilesLpkDoNotBuild = 'Only register the '
-    +'Lazarus package files (.lpk). Do not build.';
+    +'Eleazar package files (.lpk). Do not build.';
 
   // Custom form editor
   lisCFEAnExceptionOccurredDuringDeletionOf = 'An exception occurred during '
@@ -5831,9 +5831,9 @@ resourcestring
     +'example it has the file "%s".';
   lisSelectPathTo = 'Select path to %s';
   lisSelectFPCSourceDirectory = 'Select FPC source directory';
-  lisSelectLazarusSourceDirectory = 'Select Lazarus source directory';
+  lisSelectLazarusSourceDirectory = 'Select Eleazar source directory';
   lisWithoutAProperLazarusDirectoryYouWillGetALotOfWarn = 'Without a proper '
-    +'Lazarus directory you will get a lot of warnings.';
+    +'Eleazar directory you will get a lot of warnings.';
   lisWithoutAProperCompilerTheCodeBrowsingAndCompilingW = 'Without a proper '
     +'compiler the code browsing and compiling will be disappointing.';
   lisWithoutAProperDebuggerDebuggingWillBeDisappointing = 'Without a proper '
@@ -5842,7 +5842,7 @@ resourcestring
     +'FPC sources code browsing and completion will be very limited.';
   lisWithoutAProperMakeExecutableTheCompilingOfTheIDEIs = 'Without a proper "'
     +'make" executable the compiling of the IDE is not possible.';
-  lisTheLazarusDirectoryContainsTheSourcesOfTheIDEAndTh = 'The Lazarus directory '
+  lisTheLazarusDirectoryContainsTheSourcesOfTheIDEAndTh = 'The Eleazar directory '
     +'contains the sources of the IDE and the package files of LCL and many '
     +'standard packages. For example it contains the file "ide%slazarus.lpi". '
     +'The translation files are located there too.';
@@ -5855,7 +5855,7 @@ resourcestring
   lisInvalidVersionIn = 'invalid version in %s';
   lisWrongVersionIn = 'wrong version in %s: %s';
   lisFPCSources = 'FPC sources';
-  lisConfigureLazarusIDE = 'Configure Lazarus IDE';
+  lisConfigureLazarusIDE = 'Configure Eleazar IDE';
   lisFileIsNotAnExecutable = 'File is not an executable';
   lisUnusualPas2jsCompilerFileNameUsuallyItStartsWithPa = 'Unusual pas2js '
     +'compiler file name. Usually it starts with pas2js.';
@@ -5866,7 +5866,7 @@ resourcestring
     +'file name. Usually it starts with fpc, ppc or ppcross.';
   lisCompilerCfgIsMissing = '%s is missing.';
   lisSystemPpuNotFoundCheckYourFpcCfg = 'system.ppu not found. Check your fpc.cfg.';
-  lisWelcomeToLazarusIDE = 'Welcome to Lazarus IDE %s';
+  lisWelcomeToLazarusIDE = 'Welcome to Eleazar IDE %s';
   lisStartIDE = 'Start IDE';
   lisUnableToLoadFile2 = 'unable to load file %s: %s';
   lisDirectoryNotFound2 = 'directory %s not found';
@@ -5922,7 +5922,7 @@ resourcestring
 
   lisUIClearIncludedByReference = 'Clear include cache';
   lisChangeParent = 'Change Parent';
-  lisLazarusIDE = 'Lazarus IDE';
+  lisLazarusIDE = 'Eleazar IDE';
   lisProject = 'Project %s';
   lisWhatNeedsBuilding = 'What needs building';
   lisTarget = 'Target:';
@@ -6045,25 +6045,25 @@ resourcestring
     +'procedure signatures when only letter case has changed';
   lisTemplateFile = 'Template file';
   lisIncorrectConfigurationDirectoryFound = 'Incorrect configuration directory found';
-  lisIDEConficurationFoundMayBelongToOtherLazarus = 'Welcome to Lazarus.%0:s'
+  lisIDEConficurationFoundMayBelongToOtherLazarus = 'Welcome to Eleazar.%0:s'
     + 'The IDE configuration found was previously used by another '
-    + 'installation of Lazarus.%0:s'
-    + 'If you have two or more separate installations of Lazarus, they should not '
+    + 'installation of Eleazar.%0:s'
+    + 'If you have two or more separate installations of Eleazar, they should not '
     + 'share the same configuration. This may lead to conflicts and your '
-    + 'Lazarus installations may become unusable.%0:s%0:s'
-    + 'If you have only one installation and copied or moved the Lazarus '
+    + 'Eleazar installations may become unusable.%0:s%0:s'
+    + 'If you have only one installation and copied or moved the Eleazar '
     + 'executable, then you may upgrade this configuration.%0:s'
     + '%1:s%0:s%0:s'       // %1:s = ConfDirWarning
     + 'Choose:%0:s%0:s'
     + '* Update info: Use this configuration and update it for being used with this '
-    + 'Lazarus in future. The old installation will no longer use this.%0:s'
+    + 'Eleazar in future. The old installation will no longer use this.%0:s'
     + '* Ignore: Use this configuration but keep the warning. This may lead to '
     + 'conflicts with the other installation.%0:s'
-    + '* Abort: Exit now. You can then fix the problem by starting this Lazarus '
+    + '* Abort: Exit now. You can then fix the problem by starting this Eleazar '
     + 'with the correct configuration.%0:s%0:s'
     + 'Additional information:%0:s'
     + 'This configuration is at: %2:s%0:s'                     // %2:s = PrimaryConfPath
-    + 'It belongs to the Lazarus installation at: %3:s%0:s'     // %3:s = old install path
+    + 'It belongs to the Eleazar installation at: %3:s%0:s'     // %3:s = old install path
     + 'The current IDE was started from: %4:s%0:s'             // %4:s = current
     ;
   lisUpdateInfo = 'Update info';
@@ -6226,7 +6226,7 @@ resourcestring
     +'cross debugging on some platforms) or as generic alternatives.%0:sThe '
     +'debugger can have different features, depending on the backend.%0:s%0:s'
     +'Some backends require an external exe (such as gdb or lldb). This exe '
-    +'may be part of your OS (Linux/Mac), or be provided by the Lazarus '
+    +'may be part of your OS (Linux/Mac), or be provided by the Eleazar '
     +'installer (Windows).%0:s%0:s'
     +'If you have just upgraded your installation,'
     +' you may have to rebuild the IDE before your previously configured '

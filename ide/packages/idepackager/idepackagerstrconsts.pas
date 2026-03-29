@@ -39,8 +39,8 @@ resourcestring
   lisUnit = 'Unit';
   lisPkgFileTypeVirtualUnit = 'Virtual Unit';
   lisPkgFileTypeMainUnit = 'Main Unit';
-  lisPkgFileTypeLFM = 'LFM - Lazarus form text';
-  lisPkgFileTypeLRS = 'LRS - Lazarus resource';
+  lisPkgFileTypeLFM = 'LFM - Eleazar form text';
+  lisPkgFileTypeLRS = 'LRS - Eleazar resource';
   lisPkgFileTypeInclude = 'Include file';
   lisPkgFileTypeIssues = 'Issues xml file';
   lisPkgFileTypeText = 'Text';

@@ -442,7 +442,7 @@ var
   Grp: String;
   NewDiv: TDividerBevel;
 begin
-  LazarusTabSheet.Caption:='Lazarus';
+  LazarusTabSheet.Caption:='Eleazar';
   CompilerTabSheet.Caption:=lisCompiler;
   FPCSourcesTabSheet.Caption:=lisFPCSources;
   MakeExeTabSheet.Caption:='Make';
@@ -875,7 +875,7 @@ begin
 
   StartIDEBitBtn.Caption:=lisStartIDE;
 
-  LazarusTabSheet.Caption:='Lazarus';
+  LazarusTabSheet.Caption:='Eleazar';
   CompilerTabSheet.Caption:=lisCompiler;
   FPCSourcesTabSheet.Caption:=lisFPCSources;
   MakeExeTabSheet.Caption:='Make';

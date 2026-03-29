@@ -600,7 +600,7 @@ object CheckLFMDialog: TCheckLFMDialog
     end
   end
   object SynLFMSyn1: TSynLFMSyn
-    DefaultFilter = 'Lazarus Form Files (*.lfm)|*.lfm'
+    DefaultFilter = 'Eleazar Form Files (*.lfm)|*.lfm'
     Enabled = False
     left = 129
     top = 104
