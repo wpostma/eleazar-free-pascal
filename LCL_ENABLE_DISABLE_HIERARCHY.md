@@ -1,6 +1,10 @@
 # LCL Component Hierarchy: Enable/Disable and Related Method Pairs
 
+The Lazarus Component Library (LCL) is highly derivative of the VCL (Visual Component Library) from Borland and Embarcadero's Delphi.
+
 This document maps all complementary method pairs in the LCL (Lazarus Component Library) that work together to control component behavior, documents the parent-propagation protocol, and catalogs known bugs where pairs are mismatched or unprotected.
+
+It is the author's opinion that the LCL lacks the rigor and the careful design inherent in the VCL's original design, and that problems in here, especially problems with DisableAutoSizing, EnableAutoSizing, render the LCL fundamentally broken, in its current released state.
 
 ## Overview
 
@@ -48,6 +52,9 @@ TControl (Visual component base)
 **Classes:** `TControl` and descendants
 
 **Purpose:** Temporarily suspend automatic sizing calculations while making multiple property changes
+
+**Actual Effect:** Crashes, hangs, stack overflows, and non-responding applications.  At least as used in mainbar.pas. See RESIZE_LOOP_SEGFAULT.md.
+
 
 #### Declarations (controls.pp)
 ```pascal

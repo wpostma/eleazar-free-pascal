@@ -163,6 +163,15 @@ begin
   miVerToClipboard.Caption := lisVerToClipboard;
 
   VersionLabel.Font.Color:= clWhite;
+  VersionLabel.Font.Style:= [fsBold];
+  BuildDateLabel.Font.Color:= clWhite;
+  BuildDateLabel.Font.Style:= [fsBold];
+  FPCVersionLabel.Font.Color:= clWhite;
+  FPCVersionLabel.Font.Style:= [fsBold];
+  RevisionLabel.Font.Color:= clWhite;
+  RevisionLabel.Font.Style:= [fsBold];
+  PlatformLabel.Font.Color:= clWhite;
+  PlatformLabel.Font.Style:= [fsBold];
 
   AboutMemo.Lines.Text:=
     Format(lisAboutLazarusMsg,[DoubleLineEnding,DoubleLineEnding,DoubleLineEnding]);

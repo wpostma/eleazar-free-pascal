@@ -676,9 +676,12 @@ end;
 constructor TCalculatorForm.Create(AOwner: TComponent; ALayout: TCalculatorLayout);
 begin
   BeginFormUpdate;
-  inherited CreateNew(AOwner, 0);
-  InitForm(ALayout);
-  EndFormUpdate;
+  try
+    inherited CreateNew(AOwner, 0);
+    InitForm(ALayout);
+  finally
+    EndFormUpdate;
+  end;
 end;
 
 procedure TCalculatorForm.InitForm(ALayout: TCalculatorLayout);

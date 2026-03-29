@@ -4553,9 +4553,8 @@ begin
   begin
     // showing is deferred — handles exist but don't show yet
     if wcfDeferShowing in FWinControlFlags then begin
-      {$IFDEF DEBUG_LCL}
-      WriteLn(StdErr, '[UpdateShowing] DEFERRED ', Name, ':', ClassName);
-      {$ENDIF}
+      if DebugLogging then
+        DebugLn(['[UpdateShowing] DEFERRED ', Name, ':', ClassName]);
       exit;
     end;
     // the Handle should become visible
@@ -6464,20 +6463,18 @@ begin
   ParentWC := Self;
   while ParentWC <> nil do begin
     if (ParentWC is TCustomForm) and (TCustomForm(ParentWC).FormIsUpdating) then begin
-      {$IFDEF DEBUG_LCL}
-      WriteLn(StdErr, '[UpdateControlState] DEFERRED ', Name, ':', ClassName,
-        ' — parent ', ParentWC.Name, ':', ParentWC.ClassName, ' updating');
-      {$ENDIF}
+      if DebugLogging then
+        DebugLn(['[UpdateControlState] DEFERRED ', Name, ':', ClassName,
+          ' — parent ', ParentWC.Name, ':', ParentWC.ClassName, ' updating']);
       Exit;
     end;
     ParentWC := ParentWC.Parent;
   end;
 
-  {$IFDEF DEBUG_LCL}
-  WriteLn(StdErr, '[UpdateControlState] ', Name, ':', ClassName,
-    ' Handle=', HandleAllocated,
-    ' ShouldBeVisible=', HandleObjectShouldBeVisible);
-  {$ENDIF}
+  if DebugLogging then
+    DebugLn(['[UpdateControlState] ', Name, ':', ClassName,
+      ' Handle=', HandleAllocated,
+      ' ShouldBeVisible=', HandleObjectShouldBeVisible]);
 
   if HandleObjectShouldBeVisible then
     AdjustSize // this will trigger DoAllAutoSize, which calls UpdateShowing
@@ -7140,13 +7137,11 @@ var
   end;
 
 begin
-  {$IFDEF DEBUG_WM_SIZE}
-  Inc(WMSizeCounter);
-  if (WMSizeCounter mod 500) = 0 then
-    DebugLn(['[WMSize #', WMSizeCounter, '] ', DbgSName(Self),
+  if DebugLogging then
+    DebugLn(['[WMSize] ', DbgSName(Self),
       ' W=', Message.Width, ' H=', Message.Height,
-      ' FromIntf=', (Message.SizeType and Size_SourceIsInterface) > 0]);
-  {$ENDIF}
+      ' FromIntf=', (Message.SizeType and Size_SourceIsInterface) > 0,
+      ' AutoSizeLock=', AutoSizingLockCount]);
 
   {$IF defined(VerboseSizeMsg) or defined(CHECK_POSITION) or defined(VerboseIntfSizing)}
   {$IFDEF CHECK_POSITION}

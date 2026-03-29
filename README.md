@@ -7,8 +7,28 @@ Hebrew original (אלעזר) that "Lazarus" derives from — meaning "God has he
 
 This fork is fully open source under the same license as Lazarus. Any fixes or
 improvements that the upstream Lazarus project finds useful are welcome to be
-merged back. The goal is to ship a polished, stable IDE while contributing
-improvements upstream wherever possible.
+merged back. The goal is to move fast, build new experiences, and ship a polished,
+regularly updated, stable IDE while contributing improvements upstream wherever possible.
+
+
+### Eleazar Mission Statement
+
+Eleazar is a friendly, forward‑looking fork of the Lazarus IDE, created to modernize the FreePascal development experience while strengthening the ecosystem that made it possible.We believe that innovation and stability are not opposites — they are partners — and that open‑source tools thrive when experimentation is encouraged, contributions are welcomed, and improvements flow freely upstream.
+
+Eleazar exists to explore what Lazarus could be:
+
+a cleaner, more consistent LCL (even at the cost of slight breaks in backwards compatibility) which we'll call the ECL, but it aims to be basically the LCL, but better.
+
+a modern, flexible docking system (with fewer glitches and crashes)
+
+a refreshed and intuitive IDE (not just refreshed art assets, but also 2x/4x icon sizes, and things like that)
+
+a contributor‑friendly environment where new ideas can be accepted and tried (on their own branches, and then into trunk, after community feedback, kind of PRs done backwards) 
+
+We are committed to transparency, open licensing, and collaboration. Wherever possible, Eleazar contributes fixes, refinements, and architectural improvements back to Lazarus, helping the core project evolve without compromising its stability.
+
+Eleazar is not a replacement for Lazarus — it is a companion project, an R&D branch, and a catalyst for progress.Our goal is to empower developers, welcome new contributors, and push the Pascal ecosystem forward with respect, clarity, and ambition. We also plan to use a lot of the great stuff already there in FreePascal 3.x that isn't getting much of a workout yet in the classic LCL.
+
 
 ---
 

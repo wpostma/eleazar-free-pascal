@@ -218,7 +218,7 @@ begin
     Resp := SendRecv(Sock, '{"id":1,"cmd":"ping"}');
     Pid := ExtractJInt(Resp, 'pid');
     AssertTrue('pid is positive', Pid > 0);
-    AssertEquals('pid matches current process', GetProcessID, Pid);
+    AssertEquals('pid matches current process', Int64(GetProcessID), Pid);
   finally
     Sock.Free;
   end;

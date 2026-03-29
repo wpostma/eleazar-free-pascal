@@ -8,6 +8,7 @@ uses
   cthreads,
   {$ENDIF}
   Classes, SysUtils, consoletestrunner,
+  Interfaces,
   LazLoggerBase,
   TestDiagRingBuffer,
   TestDiagServer;

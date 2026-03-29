@@ -4,13 +4,16 @@ Two classes of bug involving counter-based lock pairs in the LCL:
 
 1. **Missing `try..finally`** — if an exception fires between Disable
    and Enable, the lock count is permanently stuck and the control tree
-   silently stops laying out. Four instances found, all fixed.
+   silently stops laying out. Four instances found, all fixed. These are
+   genuine code quality issues that affect all platforms.
 
 2. **Wrong calling context** — `DisableAutoSizing`/`EnableAutoSizing`
-   is safe in normal code but deadly inside GTK `size-allocate` signal
-   handlers. `EnableAutoSizing` calls `DoAllAutoSize` →
-   `RealizeBoundsRecursive` → GTK fires `size-allocate` back → infinite
-   recursion. See [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md).
+   is safe in normal code but can cause infinite recursion inside GTK
+   `size-allocate` signal handlers on **GNOME/Mutter**. `EnableAutoSizing`
+   calls `DoAllAutoSize` → `RealizeBoundsRecursive` → GTK fires
+   `size-allocate` back → infinite recursion. **This does not reproduce
+   on KDE Plasma** — KWin handles the re-entrant sizing without looping.
+   See [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md).
 
 **Related documents:**
 - [lazarus-antipatterns.md](lazarus-antipatterns.md) §1 (resize recursion),
@@ -119,15 +122,17 @@ The upstream code called `DoSetMainIDEHeight` from
 `TMainIDEBar.Resizing`, which is on the GTK `size-allocate` callback
 chain. `DoSetMainIDEHeight` contains a correct
 `DisableAutoSizing`/`try`/`finally`/`EnableAutoSizing` pair (written
-by Juha). But when called from inside `size-allocate`:
+by Juha). But when called from inside `size-allocate` on GNOME/Mutter:
 
 ```
 Resizing → DoSetMainIDEHeight → EnableAutoSizing → DoAllAutoSize
   → RealizeBoundsRecursive → GTK size-allocate → Resizing → ...
 ```
 
-The height spirals to 32,000px, exceptions fire, and the IDE crashes
-during shutdown with a use-after-free in the Object Inspector.
+On GNOME, the height spirals to 32,000px, exceptions fire, and the IDE
+crashes during shutdown with a use-after-free in the Object Inspector.
+On KDE Plasma, this loop does not occur — KWin handles the re-entrant
+`size-allocate` without spiraling.
 
 **The fix:** Remove the call from `Resizing`. The
 `DisableAutoSizing`/`EnableAutoSizing` pair in `DoSetMainIDEHeight`

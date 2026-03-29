@@ -1,7 +1,14 @@
 # LCL Evolution Ideas
 
-Changes we want to make to the Lazarus Component Library, tracked with rationale
-and current status.
+Changes we want to make to the Lazarus Component Library (ECL fork), tracked
+with rationale and current status.
+
+**Environment note:** Several of these changes were motivated by bugs observed
+on Ubuntu 24.04 LTS with GNOME/Mutter. Testing on OpenSUSE Tumbleweed with
+KDE Plasma showed that many of the issues (resize loops, X11 deadlocks, WM
+constraint fighting) do not reproduce under KWin. Items marked "GNOME-specific"
+are still worth fixing for robustness, but are lower priority than initially
+assessed.
 
 ---
 
@@ -25,6 +32,7 @@ form's `FormIsUpdating` returns `True`.
 ## 2. LCL-Only Constraints (NOT YET IMPLEMENTED)
 
 **Status:** Idea — needs design and implementation
+**Trigger:** GNOME/Mutter-specific — KWin does not exhibit this problem
 
 ### Problem
 
@@ -32,14 +40,15 @@ When you set `Constraints.MinHeight` / `Constraints.MaxHeight` on a form,
 the LCL propagates these to the window manager via `gtk_window_set_geometry_hints`
 → `WM_NORMAL_HINTS` → `min_size` / `max_size` in the X11 size hints.
 
-EWMH-compliant window managers like Mutter (GNOME Shell) rigidly enforce
-these hints. A window with `min_height = max_height = 85` becomes a
-fixed-size panel that Mutter won't let the user drag freely. It snaps,
-jumps, and fights the user during move operations.
+Mutter (GNOME Shell) rigidly enforces these hints. A window with
+`min_height = max_height = 85` becomes a fixed-size panel that Mutter
+won't let the user drag freely. It snaps, jumps, and fights the user
+during move operations. KWin (KDE Plasma) accepts the same hints without
+restricting window movement.
 
 The Lazarus IDE toolbar needs to be a fixed height (85px) but also needs
-to be freely movable. These two requirements are contradictory when the
-WM is told about the height constraint.
+to be freely movable. These two requirements are contradictory on GNOME
+when the WM is told about the height constraint.
 
 ### Proposed Solution
 
@@ -92,6 +101,8 @@ monitor work area." Falls back to primary monitor if no main form exists.
 ## 4. No Synchronous X11 Calls in Signal Handlers (IMPLEMENTED)
 
 **Status:** Done
+**Trigger:** GNOME/Mutter-specific deadlock — KWin sets `_NET_FRAME_EXTENTS`
+early enough that the synchronous call doesn't block
 
 Replaced `gdk_window_get_root_origin` (synchronous X11 round-trip) with
 `gdk_window_get_position` (GDK cache lookup) in `GetWidgetRelativePosition`.
@@ -135,6 +146,7 @@ across GTK2, GTK3, Qt5, Qt6, Win32, Cocoa.
 ## 6. Don't Mutate Geometry in Resize Callbacks (IMPLEMENTED)
 
 **Status:** Done
+**Trigger:** GNOME/Mutter-specific infinite recursion — KWin does not loop
 
 `TMainIDEBar.Resizing` no longer calls `DoSetMainIDEHeight`. Height
 adjustment happens only from deliberate callsites: `InitPaletteAndCoolBar`,

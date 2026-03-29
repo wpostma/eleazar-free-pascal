@@ -1492,6 +1492,7 @@ end;
 ------------------------------------------------------------------------------}
 procedure TApplication.Run;
 begin
+  LCLDiagStartServer;
   if (FMainForm <> nil) and FShowMainForm then
   begin
     WidgetSet.AppSetupMainForm(FMainForm);

@@ -1,8 +1,13 @@
 # The DisableAutoSizing Resize Loop Segfault
 
 **Date:** 2026-03-28
-**Status:** Fixed (workaround: commented out the offending calls)
-**Severity:** Critical — segfault during normal IDE use, preceded by visual seizure
+**Status:** Fixed (removed `DoSetMainIDEHeight` call from `Resizing`)
+**Severity:** Critical on Ubuntu + GNOME/Mutter — **does not reproduce on OpenSUSE + KDE Plasma**
+**Environment:** Observed on Ubuntu with GNOME Shell / Mutter window manager.
+Testing on OpenSUSE Tumbleweed with KDE Plasma (KWin) showed no resize loop,
+no 32000px heights, and no crash. KWin appears to handle `size-allocate`
+re-entrancy more gracefully than Mutter, either coalescing or deferring the
+signals that trigger the feedback loop.
 **Related:** [lazarus-antipatterns.md](lazarus-antipatterns.md) §1 (Endless Recursion in Event Callbacks)
 
 ---
@@ -327,11 +332,14 @@ use-after-free.
 ## Lessons
 
 1. **`DisableAutoSizing`/`EnableAutoSizing` is not safe inside
-   size-allocate handlers.** The `EnableAutoSizing` path calls
-   `DoAllAutoSize` which re-enters GTK. In a notification handler,
-   this creates unbounded recursion. The pair should only be used in
-   code that is NOT on the `gtksize_allocateCB` → `DeliverMessage` →
-   `WndProc` call path.
+   size-allocate handlers — at least on GNOME/Mutter.** The
+   `EnableAutoSizing` path calls `DoAllAutoSize` which re-enters GTK.
+   On Mutter, this creates unbounded recursion. On KWin, the same
+   code path does not loop — KWin appears to coalesce or defer the
+   re-entrant `size-allocate` signals. The pair should still only be
+   used in code that is NOT on the `gtksize_allocateCB` →
+   `DeliverMessage` → `WndProc` call path, since relying on WM-specific
+   behavior is fragile.
 
 2. **`gtk_dialog_run` processes events.** Showing an error dialog from
    inside an event handler means all pending events — including the ones
@@ -349,6 +357,12 @@ use-after-free.
    dimensions would have caught this before the exception. The height
    spiral would have been visible as a clamped-but-wrong layout instead
    of a crash.
+
+5. **Test on multiple window managers.** A bug that is a showstopper on
+   GNOME may be invisible on KDE, and vice versa. The LCL GTK2 backend
+   interacts with the window manager through X11, and different WMs have
+   very different behavior regarding signal timing, constraint
+   enforcement, and re-entrancy tolerance.
 
 ---
 

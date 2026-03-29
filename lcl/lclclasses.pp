@@ -46,6 +46,7 @@ type
   private
     FWidgetSetClass: TWSLCLComponentClass;
     FLCLRefCount: integer;
+    FDebugLogging: Boolean;
   protected
     class procedure WSRegisterClass; virtual;
     class function GetWSComponentClass(ASelf: TLCLComponent): TWSLCLComponentClass; virtual;
@@ -60,6 +61,7 @@ type
     procedure DecLCLRefCount;
     property LCLRefCount: integer read FLCLRefCount;
     property WidgetSetClass: TWSLCLComponentClass read FWidgetSetClass;
+    property DebugLogging: Boolean read FDebugLogging write FDebugLogging;
   end;
 
   { TLCLReferenceComponent }

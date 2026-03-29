@@ -53,6 +53,8 @@ type
     FInetServer: TInetServer;
     FReady: PRTLEvent;
     procedure DoConnect(Sender: TObject; Data: TSocketStream);
+    procedure DoAcceptError(Sender: TObject; ASocket: Longint;
+      E: Exception; var ErrorAction: TAcceptErrorAction);
   protected
     procedure Execute; override;
   public
@@ -88,6 +90,9 @@ uses
   Sockets, DateUtils,
   Forms, Controls, LCLClasses,
   LazLoggerBase, LazLogger;
+
+type
+  TControlCracker = class(TControl);
 
 { ===== JSON helpers ========================================================= }
 
@@ -307,7 +312,7 @@ begin
       JInt('top', AControl.Top) + ',' +
       JInt('width', AControl.Width) + ',' +
       JInt('height', AControl.Height) + ',' +
-      JInt('autoSizeLock', AControl.AutoSizingLockCount);
+      JInt('autoSizeLock', TControlCracker(AControl).AutoSizingLockCount);
 
     if AControl is TWinControl then begin
       Result := Result + ',' +
@@ -588,6 +593,15 @@ begin
   TLCLDiagConnection.Create(Data, Self);
 end;
 
+procedure TLCLDiagServer.DoAcceptError(Sender: TObject; ASocket: Longint;
+  E: Exception; var ErrorAction: TAcceptErrorAction);
+begin
+  { When StopAccepting closes the socket, accept() fails.
+    Tell the server to stop the accept loop.
+    Pattern from TFpDebugTcpServer in components/fpdebug/. }
+  ErrorAction := aeaStop;
+end;
+
 procedure TLCLDiagServer.Execute;
 var
   I: Integer;
@@ -616,6 +630,7 @@ begin
 
   FInetServer := Srv;
   FInetServer.OnConnect := @DoConnect;
+  FInetServer.OnAcceptError := @DoAcceptError;
   RTLeventSetEvent(FReady);
 
   try
@@ -633,9 +648,8 @@ end;
 
 procedure TLCLDiagServer.StopListening;
 begin
-  if Assigned(FInetServer) then begin
-    FInetServer.StopAccepting;
-  end;
+  if Assigned(FInetServer) then
+    FInetServer.StopAccepting(true);
 end;
 
 { ===== Public API =========================================================== }

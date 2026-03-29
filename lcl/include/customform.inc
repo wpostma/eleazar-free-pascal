@@ -1030,60 +1030,53 @@ begin
   dec(FFormUpdateCount);
   if FFormUpdateCount = 0 then
   begin
-    {$IFDEF DEBUG_LCL}
-    WriteLn(StdErr, '[EndFormUpdate] BEGIN ', Name, ':', ClassName,
-      ' Visible=', (fsVisible in FFormState),
-      ' Handle=', HandleAllocated,
-      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height,
-      ' Children=', ControlCount);
-    {$ENDIF}
+    if DebugLogging then
+      DebugLn(['[EndFormUpdate] BEGIN ', Name, ':', ClassName,
+        ' Visible=', (fsVisible in FFormState),
+        ' Handle=', HandleAllocated,
+        ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height,
+        ' Children=', ControlCount]);
     FormEndUpdated;
 
     // Phase 1: Set visible flag, but defer actual showing.
     // This allows handle creation and auto-sizing to proceed
     // without triggering gtk_widget_show on a half-built form.
-    {$IFDEF DEBUG_LCL}
-    WriteLn(StdErr, '[EndFormUpdate] Phase1:DeferShowing ', Name, ':', ClassName);
-    {$ENDIF}
+    if DebugLogging then
+      DebugLn(['[EndFormUpdate] Phase1:DeferShowing ', Name, ':', ClassName]);
     DeferShowingRecursive(Self, True);
     try
       Visible := (fsVisible in FFormState);
       // Phase 2: Enable auto-sizing — computes bounds, creates handles,
       // realizes bounds. Showing is blocked by wcfDeferShowing.
-      {$IFDEF DEBUG_LCL}
-      WriteLn(StdErr, '[EndFormUpdate] Phase2:AutoSize ', Name, ':', ClassName,
-        ' Handle=', HandleAllocated);
-      {$ENDIF}
+      if DebugLogging then
+        DebugLn(['[EndFormUpdate] Phase2:AutoSize ', Name, ':', ClassName,
+          ' Handle=', HandleAllocated]);
       EnableAutoSizing('TCustomForm.BeginFormUpdate');
-      {$IFDEF DEBUG_LCL}
-      WriteLn(StdErr, '[EndFormUpdate] Phase2:Done ', Name, ':', ClassName,
-        ' Handle=', HandleAllocated,
-        ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
-      {$ENDIF}
+      if DebugLogging then
+        DebugLn(['[EndFormUpdate] Phase2:Done ', Name, ':', ClassName,
+          ' Handle=', HandleAllocated,
+          ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height]);
     finally
       // Phase 3: Clear the defer flag and allow showing.
-      {$IFDEF DEBUG_LCL}
-      WriteLn(StdErr, '[EndFormUpdate] Phase3:ClearDefer ', Name, ':', ClassName);
-      {$ENDIF}
+      if DebugLogging then
+        DebugLn(['[EndFormUpdate] Phase3:ClearDefer ', Name, ':', ClassName]);
       DeferShowingRecursive(Self, False);
     end;
 
     // Phase 4: Now that everything is composed and sized, show.
     // UpdateShowing will call gtk_widget_show for the first time.
-    {$IFDEF DEBUG_LCL}
-    WriteLn(StdErr, '[EndFormUpdate] Phase4:Show ', Name, ':', ClassName,
-      ' Visible=', Visible,
-      ' Handle=', HandleAllocated,
-      ' Showing=', Showing,
-      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
-    {$ENDIF}
+    if DebugLogging then
+      DebugLn(['[EndFormUpdate] Phase4:Show ', Name, ':', ClassName,
+        ' Visible=', Visible,
+        ' Handle=', HandleAllocated,
+        ' Showing=', Showing,
+        ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height]);
     if Visible and HandleAllocated then
       UpdateShowing;
-    {$IFDEF DEBUG_LCL}
-    WriteLn(StdErr, '[EndFormUpdate] END ', Name, ':', ClassName,
-      ' Showing=', Showing,
-      ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height);
-    {$ENDIF}
+    if DebugLogging then
+      DebugLn(['[EndFormUpdate] END ', Name, ':', ClassName,
+        ' Showing=', Showing,
+        ' Bounds=', Left, ',', Top, ' ', Width, 'x', Height]);
   end;
 end;
 
@@ -2879,9 +2872,8 @@ end;
 procedure TCustomForm.BeginFormUpdate;
 begin
   inc(FFormUpdateCount);
-  {$IFDEF DEBUG_LCL}
-  WriteLn(StdErr, '[TCustomForm.BeginFormUpdate] ', Name, ':', ClassName, ' Count=', FFormUpdateCount);
-  {$ENDIF}
+  if DebugLogging then
+    DebugLn(['[TCustomForm.BeginFormUpdate] ', Name, ':', ClassName, ' Count=', FFormUpdateCount]);
   if FFormUpdateCount=1 then
     DisableAutoSizing('TCustomForm.BeginFormUpdate');
 end;

@@ -1021,7 +1021,7 @@ resourcestring
       +'compiler that runs on Windows, Linux, macOS, FreeBSD and more.'
       +'%s'
       +'Eleazar is meant to be a platform for experimentation. It will use a '
-      +'99% interoperable version of the LCL that in docs will be called ECL, '
+      +'99%% interoperable version of the LCL that in docs will be called ECL, '
       +'using the same unit names as the LCL.'
       +'%s'
       +'We hope that some of this code can become part of the main Lazarus project.';

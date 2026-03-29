@@ -2050,7 +2050,8 @@ implementation
 {$endif}
 
 uses
-  WSControls, WSForms; // Widgetset uses circle is allowed
+  WSControls, WSForms, // Widgetset uses circle is allowed
+  LCLDiagServer;
 
 var
   HandlingException: Boolean = False;

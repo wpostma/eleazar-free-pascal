@@ -56,12 +56,15 @@ end;
 constructor TCustomDockForm.Create(TheOwner: TComponent);
 begin
   BeginFormUpdate;
-  CreateNew(TheOwner,0);
-  AutoScroll := False;
-  BorderStyle := bsSizeToolWin;
-  DockSite := True;
-  FormStyle := fsStayOnTop;
-  EndFormUpdate;
+  try
+    CreateNew(TheOwner,0);
+    AutoScroll := False;
+    BorderStyle := bsSizeToolWin;
+    DockSite := True;
+    FormStyle := fsStayOnTop;
+  finally
+    EndFormUpdate;
+  end;
 end;
 
 // included by forms.pp

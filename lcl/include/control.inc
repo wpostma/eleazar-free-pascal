@@ -5810,8 +5810,10 @@ begin
 end;
 
 procedure TControl.DisableAutoSizing(const Reason: string);
+{$IFDEF LAZ_LAYOUT_DEBUG}
 var
   ASzAction: string;
+{$ENDIF}
 begin
   Inc(FAutoSizingLockCount);
   {$IFDEF DebugDisableAutoSizing}
@@ -5820,32 +5822,33 @@ begin
   FAutoSizingLockReasons.Add(Reason);
   {$ENDIF}
 
-  { Decide action -- flat, no nesting }
+  {$IFDEF LAZ_LAYOUT_DEBUG}
   if (FAutoSizingLockCount = 1) and (Parent <> nil) then
     ASzAction := 'propagate to ' + DbgSName(Parent)
   else
     ASzAction := 'no propagation';
-
-  { One log. Always one. Never zero. }
   DebugLn(['[DisableAutoSizing] ', DbgSName(Self),
     ' count=', FAutoSizingLockCount,
     ' parent=', DbgSName(Parent),
     ' reason="', Reason, '"',
     ' -> ', ASzAction]);
+  {$ENDIF}
 
   { Execute the action }
   if (FAutoSizingLockCount = 1) and (Parent <> nil) then
     Parent.DisableAutoSizing('child:' + DbgSName(Self));
 end;
 
-procedure TControl.EnableAutoSizing
-  (const Reason: string);
+procedure TControl.EnableAutoSizing(const Reason: string);
+{$IFDEF LAZ_LAYOUT_DEBUG}
 var
   ASzAction: string;
-  {$IFDEF DebugDisableAutoSizing}
+{$ENDIF}
+{$IFDEF DebugDisableAutoSizing}
+var
   i: Integer;
   s: String;
-  {$ENDIF}
+{$ENDIF}
 begin
   { Underflow check — always fatal }
   if FAutoSizingLockCount <= 0 then
@@ -5872,20 +5875,19 @@ begin
 
   Dec(FAutoSizingLockCount);
 
-  { Decide action — flat, no nesting }
+  {$IFDEF LAZ_LAYOUT_DEBUG}
   if FAutoSizingLockCount > 0 then
     ASzAction := 'still locked'
   else if Parent <> nil then
     ASzAction := 'propagate to ' + DbgSName(Parent)
   else
     ASzAction := 'DoAllAutoSize';
-
-  { One log. Always one. Never zero. }
   DebugLn(['[EnableAutoSizing] ', DbgSName(Self),
     ' count=', FAutoSizingLockCount,
     ' parent=', DbgSName(Parent),
     ' reason="', Reason, '"',
     ' -> ', ASzAction]);
+  {$ENDIF}
 
   { Execute the action }
   if FAutoSizingLockCount > 0 then

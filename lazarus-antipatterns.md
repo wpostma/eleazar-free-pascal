@@ -2,21 +2,43 @@
 
 Bugs and architectural problems found while working on the Lazarus IDE codebase.
 
+## A Note on Environment
+
+**Critical discovery:** Most of the severe bugs documented here — the resize
+loops, the X11 deadlock, the WM constraint fighting — were observed on
+**Ubuntu with GNOME/Mutter**. When tested on **OpenSUSE Tumbleweed with KDE
+Plasma**, many of these problems do not reproduce at all, or manifest only as
+minor visual glitches rather than hangs and crashes.
+
+This strongly suggests that the issues are not fundamental LCL architectural
+flaws but rather **GNOME/Mutter-specific interaction problems** with the GTK2
+backend. Mutter's handling of `size-allocate` signal re-entrancy,
+`_NET_FRAME_EXTENTS` timing during window mapping, and rigid enforcement of
+`WM_NORMAL_HINTS` constraints are all more aggressive than KWin's behavior.
+The LCL code that "doesn't work" on GNOME has been working for years on KDE,
+XFCE, and other desktop environments.
+
+This doesn't mean the code is perfect — the missing `try..finally` guards,
+the silent early exits, and the lack of re-entrancy protection are real
+code quality issues worth fixing. But the apocalyptic tone of the original
+writeups was driven by a GNOME-specific experience that we mistakenly
+generalized to the entire LCL.
+
 ## A Note on Humility
 
 This document was written while debugging a fresh-install hang on a dual-monitor
-Linux desktop. The tone is harsh. Some of that harshness is earned — a fresh
-install that hangs forever is a real bug. But some of it came from the arrogance
-of outsiders who barged into a 25-year-old codebase, declared everything broken,
-and started "fixing" things without fully understanding why they were the way
-they were.
+Ubuntu + GNOME desktop. The tone was initially harsh. Some of that harshness was
+earned — a fresh install that hangs forever is a real bug. But much of it came
+from the arrogance of outsiders who barged into a 25-year-old codebase, declared
+everything broken, and started "fixing" things without fully understanding why
+they were the way they were.
 
 The `Resizing` → `DoSetMainIDEHeight` loop that we called "insanely shitty code"
-had been working for years on single-monitor setups with saved configurations.
-The `DoAllAutoSize` loop we called a "Rube Goldberg machine" handles edge cases
+had been working for years on KDE, XFCE, and single-monitor setups. The
+`DoAllAutoSize` loop we called a "Rube Goldberg machine" handles edge cases
 in dozens of widget sets across five operating systems. The `gdk_window_get_root_origin`
 call we replaced works fine on every X11 setup except during initial window mapping
-on certain compositors.
+on GNOME/Mutter compositors.
 
 When we added our own fixes — re-entrancy guards, deferred showing, height
 change tracking — we introduced our own bugs. The `FLastResizeHeight` check
@@ -26,9 +48,9 @@ other code depended on. We knocked shelves over while rearranging the store.
 **The lesson:** In a system this old, every line of code survived years of bug
 reports. Before adding a guard, understand what the unguarded path was doing
 and who relied on it. Before calling something garbage, check whether it works
-on the platforms and configurations you haven't tested. Before rewriting a
-phase system, understand that the "wrong" design might be the only one that
-converges across GTK2, Qt5, Win32, and Cocoa.
+on the platforms and configurations you haven't tested — especially non-GNOME
+desktops. Before rewriting a phase system, understand that the "wrong" design
+might be the only one that converges across GTK2, Qt5, Win32, and Cocoa.
 
 Write tests first. Change one thing at a time. Verify on the actual application
 before declaring victory. And when your fix makes things worse, write that down
@@ -113,9 +135,9 @@ Protocols without contracts are just hopes. Hopes are not architecture.
 
 ## 1. Endless Recursion in Event Callbacks
 
-**Status:** Active bug, causes IDE hang on fresh install
+**Status:** Fixed (removed call from `Resizing`); hang was GNOME/Mutter-specific
 **Unit:** `ide/mainbar.pas` — `TMainIDEBar`
-**Severity:** Critical — IDE is unusable with no saved config
+**Severity:** Critical on GNOME — does not reproduce on KDE Plasma
 
 > **See also:** [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md) — full
 > autopsy of the three-layer crash that occurs when
@@ -182,7 +204,7 @@ The LCL already has a pattern for this: `wcfRealizingBounds` in
 `FWinControlFlags` (see `wincontrol.inc:8722`). But `TMainIDEBar.Resizing`
 does not check any such flag before calling `DoSetMainIDEHeight`.
 
-### Why It Only Hits Fresh Installs
+### Why It Only Hits GNOME Fresh Installs
 
 On a fresh install, there is no saved window geometry in
 `environmentoptions.xml`. The IDE creates the main bar with default
@@ -191,6 +213,13 @@ height may differ from what `DoSetMainIDEHeight` wants, so
 `DoSetMainIDEHeight` adjusts it, triggering the loop. On subsequent
 launches with saved geometry, the initial allocation matches the desired
 height, so `DoSetMainIDEHeight` is a no-op and the loop never starts.
+
+**Environment note:** This loop was only observed on Ubuntu + GNOME/Mutter.
+On OpenSUSE Tumbleweed with KDE Plasma, the same code path does not produce
+infinite recursion — KWin appears to coalesce `size-allocate` signals or
+handle the re-entrant sizing more gracefully. This suggests Mutter's
+`size-allocate` dispatch is more aggressive about firing signals synchronously
+during allocation, while KWin batches or defers them.
 
 ### Proposed Fix
 
@@ -353,9 +382,9 @@ reachable on some monitor.**
 
 ## 3. Synchronous X11 Round-Trip Inside GTK Signal Handler
 
-**Status:** Active bug, causes IDE to hang indefinitely on startup
+**Status:** GNOME/Mutter-specific; does not reproduce on KDE Plasma
 **Unit:** `lcl/interfaces/gtk2/gtk2proc.inc`
-**Severity:** Critical — IDE never shows a window on fresh install
+**Severity:** Critical on GNOME — KWin handles `_NET_FRAME_EXTENTS` timing differently
 
 ### Symptoms
 
@@ -379,6 +408,13 @@ The problem: this is called from inside a `size-allocate` signal handler
 before the window manager has finished decorating the window and setting
 `_NET_FRAME_EXTENTS`. The X server has nothing to reply with. The call
 blocks forever.
+
+**Environment note:** This deadlock was observed exclusively on GNOME/Mutter.
+KWin (KDE Plasma) appears to set `_NET_FRAME_EXTENTS` earlier in the window
+mapping sequence, or responds to the `XGetWindowProperty` query even before
+decoration is complete. The underlying code is still technically unsafe — a
+synchronous X11 round-trip inside a signal handler is never a good idea —
+but in practice it only deadlocks under Mutter's specific timing.
 
 ### Call Chain
 
@@ -479,15 +515,35 @@ the size has.
 
 ---
 
-## 4. Editorial: The Fresh Install Is Completely Broken
+## 4. Editorial: The Fresh Install Is Broken — On Ubuntu 24.04 LTS
 
-Three bugs. Three separate, fundamental programming errors. All triggered
-by the most basic possible scenario: **start the IDE for the first time on
-a Linux desktop with two monitors.**
+**Update:** The bugs described in this section were observed on **Ubuntu
+24.04 LTS** with its default GNOME/Mutter desktop. Testing on OpenSUSE
+Tumbleweed with KDE Plasma revealed that the fresh install works without
+these issues. The problems are real, but they are **window-manager-specific**,
+not universal LCL failures.
 
-Not an obscure configuration. Not a race condition under load. Not a
-corner case with unusual hardware. Two monitors, a fresh home directory,
-and the default build. That's it.
+### The Debian/Ubuntu Situation
+
+Debian dropped both Lazarus and Free Pascal from its repositories. The
+reasons were a combination of having no active Debian package maintainer,
+and no concrete plan to address the deprecation of GTK1 (the LCL's oldest
+backend, which Lazarus historically shipped with). After being dropped
+from Debian, the Lazarus/FPC community appears to be taking the steps
+needed to eventually produce compliant packages for re-inclusion. In the
+meantime, building from source on Debian and Ubuntu remains possible but
+is fraught with difficulty — dependency resolution, FPC bootstrapping,
+and the GTK2 backend's GNOME-specific quirks all compound the problem.
+
+This matters because Ubuntu 24.04 LTS is one of the most widely deployed
+Linux distributions, and its users have no `apt install lazarus` path.
+They must build from source, which means they hit these GNOME/Mutter
+bugs on their very first attempt to run the IDE. The combination of
+"no package" and "broken on first launch" is a serious barrier to entry
+on what is arguably the most common Linux desktop.
+
+Three bugs. Three separate programming issues. All triggered by starting the
+IDE for the first time on **Ubuntu 24.04 LTS with two monitors.**
 
 ### Bug 1: Infinite recursion
 
@@ -524,15 +580,21 @@ window manager is done with it."
 
 ### The Pattern
 
-All three bugs share the same root cause: **the code was tested on the
-developer's machine with their saved configuration.** The first-launch
-path is different from the subsequent-launch path. Nobody automated
-testing of a fresh install. Nobody tested with multiple monitors.
+All three bugs share the same root cause: **the code was primarily tested
+on KDE and other non-GNOME desktops.** The Lazarus developers likely never
+saw these problems because KWin handles the edge cases more gracefully.
+The first-launch path is different from the subsequent-launch path, and
+Mutter's aggressive signal dispatching exposes re-entrancy bugs that KWin
+masks.
 
-This is especially damaging for an IDE. The fresh install experience is
-the first thing every new user sees. If the IDE hangs on first launch,
-the user doesn't file a bug — they close the terminal and pick a
-different IDE.
+This is still worth fixing — GNOME is the default desktop on Ubuntu, the
+most popular Linux distribution, and with Lazarus dropped from Debian's
+repos, the only path for Ubuntu users is building from source. If the IDE
+hangs on first launch after a user spent an hour bootstrapping FPC and
+compiling the IDE, they don't file a bug — they close the terminal and
+pick a different IDE. The Lazarus project cannot afford to lose these
+users, especially while working to regain a place in Debian's package
+archive.
 
 ### Recommendations
 
@@ -581,20 +643,23 @@ Suzy see him go by. "Oh look," says Janine, "that poor man."
 
 *(From Oy! The Ultimate Book of Jewish Jokes, by David Minkoff)*
 
-This is the LCL. The API looks beautiful — `TForm`, `TButton`,
+On GNOME, this is the LCL. The API looks beautiful — `TForm`, `TButton`,
 `Position := poDefault`, `Constraints.MinHeight`. But to get a window
-on screen without it hanging, fighting the window manager, spanning all
-monitors, or looping 600,000 times, you have to bend your elbows
-(don't create handles during construction), hunch your back (don't set
-constraints because the WM will fight you), and bend your knees (don't
-resize during resize, don't show during show, don't call
-`gdk_window_get_root_origin` during `size-allocate`).
+on screen without it hanging, fighting Mutter, spanning all monitors, or
+looping 600,000 times, you have to bend your elbows (don't create handles
+during construction), hunch your back (don't set constraints because Mutter
+will fight you), and bend your knees (don't resize during resize, don't
+show during show, don't call `gdk_window_get_root_origin` during
+`size-allocate`).
 
-Every bug is "fixed" by making the caller contort. Every layer adds
-another "just hunch a little more." The suit looks fine on paper.
-Poor Yossi is twisted into a pretzel.
+On KDE, the same code works. KWin is a more forgiving tailor. The suit
+fits without contortions. This doesn't mean the suit is well-made — it
+means KWin compensates for the LCL's assumptions. Mutter does not.
 
-**Don't bend the user to fit the code. Fix the suit.**
+**The fix for the LCL is still to make the suit fit properly — code that
+only works when the window manager is forgiving is fragile code. But the
+urgency is lower than we initially thought, and the blame is shared
+between the LCL and Mutter.**
 
 ---
 
@@ -712,7 +777,7 @@ re-entry. No "if autosize needed, go back to step 2."
 
 **Status:** Fixed (constraints removed from WM), needs LCL-level solution
 **Unit:** `ide/mainbar.pas`
-**Severity:** Medium — toolbar can't be dragged on GNOME/Mutter
+**Severity:** Medium — GNOME/Mutter-specific; KDE Plasma handles constraints without fighting the user
 
 ### Symptoms
 
@@ -730,6 +795,10 @@ to the same value (e.g., 85). The LCL propagates these to X11 via
 Mutter (GNOME Shell's window manager) enforces these rigidly. A window
 with locked height is treated as a panel-like object. Mutter restricts
 how it can be moved and snaps it to screen edges.
+
+**Environment note:** KWin (KDE Plasma) accepts the same `WM_NORMAL_HINTS`
+without restricting window movement. The "fighting" behavior is specific to
+Mutter's interpretation of min_size == max_size as a panel-like window.
 
 ### Discovered Via
 
@@ -776,7 +845,7 @@ as a normal freely-movable window. See `lcl-evolution.md` item #2.
 
 ## 7. Silent Early Exit: `if Condition then Exit`
 
-**Status:** Coding standard for Yossi fork
+**Status:** Coding standard for Eleazar fork
 
 ### The Antipattern
 
@@ -837,7 +906,7 @@ work for later instead of silently dropping it.
 
 ## 7b. Coding Standard: One Log Per Call in Enable/Disable Functions
 
-**Status:** Coding standard for Yossi fork
+**Status:** Coding standard for Eleazar fork
 
 ### The Rule
 
