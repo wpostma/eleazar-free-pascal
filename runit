@@ -5,4 +5,4 @@ echo 'Xft.dpi: 144' | xrdb -merge
 
 export GDK_DPI_SCALE=1.5
 > /tmp/laz.log
-./lazarus --no-splash-screen --debug-log=/tmp/laz.log
+./lazarus --debug-log=/tmp/laz.log
