@@ -117,6 +117,13 @@ Protocols without contracts are just hopes. Hopes are not architecture.
 **Unit:** `ide/mainbar.pas` — `TMainIDEBar`
 **Severity:** Critical — IDE is unusable with no saved config
 
+> **See also:** [RESIZE_LOOP_SEGFAULT.md](RESIZE_LOOP_SEGFAULT.md) — full
+> autopsy of the three-layer crash that occurs when
+> `DisableAutoSizing`/`EnableAutoSizing` is re-enabled in
+> `DoSetMainIDEHeight`. Documents the resize loop → exception inside
+> `gtk_dialog_run` → use-after-free segfault in `CompFilterEdit.GetText`
+> during finalization. Includes the complete 200-frame GDB backtrace.
+
 ### Symptoms
 
 On a fresh install (no `~/.lazarus` directory or no saved window geometry),
