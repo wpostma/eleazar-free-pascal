@@ -435,8 +435,8 @@ begin
     ' Showing=',dbgs(Showing),
     ' DockMaster=',dbgs(Assigned(IDEDockMaster)),
     ' Bounds=',dbgs(BoundsRect));
-  //DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
-  try
+  //DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight'); // causes re-entrant GTK size-allocate loop
+  //try
     if Assigned(IDEDockMaster) then
     begin
       if EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeight then
@@ -470,9 +470,9 @@ begin
         Constraints.MinHeight := 0;
       end;
     end;
-  finally
-    //EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
-  end;
+  //finally
+  //  EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
+  //end;
   DebugLn('[TMainIDEBar.DoSetMainIDEHeight] done, ClientHeight=', IntToStr(ClientHeight));
 end;
 
