@@ -9,7 +9,7 @@ PLATFORM="${2:-gtk2}"
 echo "=== Lazarus Build: target=$TARGET platform=$PLATFORM ==="
 echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
 
-make clean "$TARGET" LCL_PLATFORM="$PLATFORM" 2>&1 | tail -5
+make clean "$TARGET" LCL_PLATFORM="$PLATFORM" OPT="-dDEBUG_WM_SIZE" 2>&1 | tail -5
 
 echo ""
 echo "=== Build Complete: $(date '+%Y-%m-%d %H:%M:%S') ==="

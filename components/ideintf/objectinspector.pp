@@ -4516,6 +4516,8 @@ end;
 
 destructor TObjectInspectorDlg.Destroy;
 begin
+  if FPropertyEditorHook <> nil then
+    FPropertyEditorHook.RemoveAllHandlersForObject(Self);
   FreeAndNil(FSelection);
   FreeAndNil(FComponentEditor);
   FreeAndNil(PropFilterLabel);
@@ -4668,10 +4670,12 @@ procedure TObjectInspectorDlg.HookLookupRootChange;
 var
   Page: TObjectInspectorPage;
 begin
+  if csDestroying in ComponentState then Exit;
   for Page:=Low(TObjectInspectorPage) to High(TObjectInspectorPage) do
     if GridControl[Page]<>nil then
       GridControl[Page].PropEditLookupRootChange;
-  CompFilterEdit.ResetFilter;
+  if Assigned(CompFilterEdit) and not (csDestroying in CompFilterEdit.ComponentState) then
+    CompFilterEdit.ResetFilter;
   FillComponentList(True);
 end;
 

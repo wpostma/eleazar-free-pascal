@@ -82,7 +82,7 @@ const
       EndEllipsis: False;
     );
   VersionFontStyle: TFontStyles = [fsBold];
-  VersionFontColor: TColor = clBlue;
+  VersionFontColor: TColor = clWhite;
 
 constructor TSplashForm.Create(AOwner: TComponent);
 begin

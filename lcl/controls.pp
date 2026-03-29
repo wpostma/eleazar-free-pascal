@@ -2825,6 +2825,7 @@ var
   // The interface knows, which TWinControl has the capture. This stores
   // what child control of this TWinControl has actually the capture.
   CaptureControl: TControl=nil;
+  WMSizeCounter: Integer = 0;
 
 operator := (AVariant: Variant): TCaption;
 begin

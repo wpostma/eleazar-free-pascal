@@ -1160,9 +1160,16 @@ begin
       ' -> PPI=', ScreenInfo.PixelsPerInchX]);
   end;
   ScreenInfo.ColorDepth := gdk_visual_get_system^.depth;
+
+  Gtk2MaxWidgetWidth := gdk_screen_width;
+  Gtk2MaxWidgetHeight := gdk_screen_height;
+  if Gtk2MaxWidgetWidth <= 0 then Gtk2MaxWidgetWidth := 32000;
+  if Gtk2MaxWidgetHeight <= 0 then Gtk2MaxWidgetHeight := 32000;
+
   DebugLn(['[GTK2.AppInit] FINAL ScreenInfo: PPI_X=', ScreenInfo.PixelsPerInchX,
     ' PPI_Y=', ScreenInfo.PixelsPerInchY,
-    ' ColorDepth=', ScreenInfo.ColorDepth]);
+    ' ColorDepth=', ScreenInfo.ColorDepth,
+    ' MaxWidget=', Gtk2MaxWidgetWidth, 'x', Gtk2MaxWidgetHeight]);
 end;
 
 procedure TGtk2WidgetSet.AppBringToFront;

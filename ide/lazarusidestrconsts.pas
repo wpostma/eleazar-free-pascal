@@ -1020,11 +1020,11 @@ resourcestring
       +'with Free Pascal. Free Pascal is a Pascal and Object Pascal '
       +'compiler that runs on Windows, Linux, macOS, FreeBSD and more.'
       +'%s'
-      +'Eleazar is the missing part of the puzzle that will allow you to '
-      +'develop programs for all of the above platforms in a Delphi-like '
-      +'environment. The IDE is a RAD tool that includes a form designer.'
+      +'Eleazar is meant to be a platform for experimentation. It will use a '
+      +'99% interoperable version of the LCL that in docs will be called ECL, '
+      +'using the same unit names as the LCL.'
       +'%s'
-      +'As Eleazar is growing, we need more developers.';
+      +'We hope that some of this code can become part of the main Lazarus project.';
   lisAboutNoContributors = 'Cannot find contributors list.';
   lisUnitNameAlreadyExistsCap = 'Unitname already in project';
   lisTheUnitAlreadyExists = 'The unit "%s" already exists.';

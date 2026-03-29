@@ -1231,6 +1231,25 @@ begin
   end;
 end;
 
+procedure TApplication.DeferredLayoutExceptionMessage(Data: PtrInt);
+var
+  Msg: string;
+  E: ELayoutException;
+begin
+  Msg := FDeferredLayoutMessage;
+  FDeferredLayoutMessage := '';
+  if Msg = '' then Exit;
+  DebugLn(['[DeferredLayoutExceptionMessage] Showing: ', Msg]);
+  E := ELayoutException.Create(
+    'A sizing loop was detected and stopped. The layout may be incorrect.'
+    + LineEnding + LineEnding + Msg);
+  try
+    ShowException(E);
+  finally
+    E.Free;
+  end;
+end;
+
 {------------------------------------------------------------------------------
   Method: TApplication.HandleException
   Params: Sender
@@ -1293,6 +1312,15 @@ begin
   
   if StopOnException then
     inherited Terminate;
+
+  if ExceptObject is ELayoutException then
+  begin
+    DebugLn(['[HandleException] ELayoutException deferred to async call']);
+    FDeferredLayoutMessage := Exception(ExceptObject).Message;
+    QueueAsyncCall(@DeferredLayoutExceptionMessage, 0);
+    Dec(FExceptionCounter);
+    Exit;
+  end;
 
   Skip := ExceptObject is EAbort;
 

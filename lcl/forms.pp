@@ -1553,6 +1553,8 @@ type
     FUpdateFormatSettings: Boolean;
     FRemoveStayOnTopCounter: Integer;
     FExceptionCounter: Byte;
+    FDeferredLayoutMessage: string;
+    procedure DeferredLayoutExceptionMessage({%H-}Data: PtrInt);
     procedure DoOnIdleEnd;
     function GetActive: Boolean;
     function GetActiveFormHandle: HWND;

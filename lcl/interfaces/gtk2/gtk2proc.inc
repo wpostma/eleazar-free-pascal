@@ -7007,8 +7007,6 @@ var
       '');
   end;
 
-const
-  MaxSize = 32000; // some limit to spot endless loops and bad values
 begin
   {$IFDEF VerboseSizeMsg}
   DebugLn(['SetWidgetSizeAndPosition ',DbgSName(LCLControl)]);
@@ -7048,13 +7046,13 @@ begin
   LCLHeight := LCLControl.Height;
   if LCLHeight <= 0 then
     LCLHeight := 1;
-  if (LCLWidth > MaxSize) or (LCLHeight > MaxSize) then
+  if (LCLWidth > Gtk2MaxWidgetWidth) or (LCLHeight > Gtk2MaxWidgetHeight) then
   begin
     WriteBigWarning;
-    if LCLWidth > MaxSize then
-      LCLWidth := MaxSize;
-    if LCLHeight > MaxSize then
-      LCLHeight := MaxSize;
+    if LCLWidth > Gtk2MaxWidgetWidth then
+      LCLWidth := Gtk2MaxWidgetWidth;
+    if LCLHeight > Gtk2MaxWidgetHeight then
+      LCLHeight := Gtk2MaxWidgetHeight;
   end;
 
   {$IFDEF VerboseSizeMsg}
@@ -7129,10 +7127,11 @@ var
 begin
   clientRectFix:= GetWidgetInfo(Window)^.FormClientRectFix;
   Width:=AWinControl.Width+clientRectFix.Width;
-  // 0 and negative values have a special meaning, so don't use them
   if Width<=0 then Width:=1;
+  if Width>Gtk2MaxWidgetWidth then Width:=Gtk2MaxWidgetWidth;
   Height:=AWinControl.Height+clientRectFix.Height;
   if Height<=0 then Height:=1;
+  if Height>Gtk2MaxWidgetHeight then Height:=Gtk2MaxWidgetHeight;
 
   {$IFDEF VerboseSizeMsg}
   DebugLn(['TGtkWidgetSet.SetWindowSizeAndPosition START ',DbgSName(AWinControl),' ',AWinControl.Visible,' Old=',PGtkWidget(Window)^.allocation.Width,',',PGtkWidget(Window)^.allocation.Width,' New=',Width,',',Height]);

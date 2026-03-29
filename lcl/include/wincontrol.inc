@@ -7131,7 +7131,7 @@ var
   var
     s: String;
   begin
-    s:='TWinControl.WMSize loop detected, the widgetset does not like the LCL bounds or sends unneeded wmsize messages: '+DbgSName(Self)+' BoundsRealized='+dbgs(FBoundsRealized)+' NewBoundsRealized='+dbgs(NewBoundsRealized);
+    s:='TWinControl.WMSize loop detected: '+DbgSName(Self)+' BoundsRealized='+dbgs(FBoundsRealized)+' NewBoundsRealized='+dbgs(NewBoundsRealized);
     if (OldClientSize.cx<>NewClientSize.cx)
       or (OldClientSize.cy<>NewClientSize.cy)
     then
@@ -7140,6 +7140,14 @@ var
   end;
 
 begin
+  {$IFDEF DEBUG_WM_SIZE}
+  Inc(WMSizeCounter);
+  if (WMSizeCounter mod 500) = 0 then
+    DebugLn(['[WMSize #', WMSizeCounter, '] ', DbgSName(Self),
+      ' W=', Message.Width, ' H=', Message.Height,
+      ' FromIntf=', (Message.SizeType and Size_SourceIsInterface) > 0]);
+  {$ENDIF}
+
   {$IF defined(VerboseSizeMsg) or defined(CHECK_POSITION) or defined(VerboseIntfSizing)}
   {$IFDEF CHECK_POSITION}
   if CheckPosition(Self) then

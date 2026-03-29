@@ -798,6 +798,10 @@ function GTKWindowStateEventCB(widget: PGtkWidget;
 function gtkMouseWheelCB({%H-}widget: PGtkWidget; event: PGdkEventScroll;
                          data: gPointer): GBoolean; cdecl;
 
+var
+  Gtk2MaxWidgetWidth: Integer = 32000;
+  Gtk2MaxWidgetHeight: Integer = 32000;
+
 {$Region 'Workaround for Fly (Astra Linux) + openbox'}
 var
   TopLevelWindowResizeLocked: Integer = 0;
