@@ -1,0 +1,399 @@
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/12216/bug12216.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/12216/bug12216"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/12216/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Sgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-g"
+Info: (lazarus) Param[5]="-gl"
+Info: (lazarus) Param[6]="-gh"
+Info: (lazarus) Param[7]="-l"
+Info: (lazarus) Param[8]="-vewnhibq"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/test/bugs/12216/"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[13]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[14]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[15]="-o/var/otherdev/lazarus/test/bugs/12216/bug12216"
+Info: (lazarus) Param[16]="-dLCL"
+Info: (lazarus) Param[17]="-dLCLgtk2"
+Info: (lazarus) Param[18]="bug12216.lpr"
+Info: (lazarus) Param[19]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug12216.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(18,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(18,63) Hint: (5024) Parameter "Done" not used
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(19,28) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(61,3) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(63,3) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/12216/unit1.pas(66,7) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/12216/bug12216.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/12216/bug12216
+(1008) 93 lines compiled, 0.9 sec, 3980048 bytes code, 3003712 bytes data
+(1021) 3 warning(s) issued
+(1022) 5 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/8437/project1.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/8437/project1"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/8437/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-Xs"
+Info: (lazarus) Param[5]="-l"
+Info: (lazarus) Param[6]="-vewnhibq"
+Info: (lazarus) Param[7]="-Fu/var/otherdev/lazarus/test/bugs/8437/"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[13]="-o/var/otherdev/lazarus/test/bugs/8437/project1"
+Info: (lazarus) Param[14]="-dLCL"
+Info: (lazarus) Param[15]="-dLCLgtk2"
+Info: (lazarus) Param[16]="-Faheaptrc"
+Info: (lazarus) Param[17]="project1.lpr"
+Info: (lazarus) Param[18]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling project1.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/8437/unit1.pas(25,26) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/8437/unit1.pas(23,28) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/8437/unit1.pas(22,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/8437/unit1.pas(22,63) Hint: (5024) Parameter "Done" not used
+/var/otherdev/lazarus/test/bugs/8437/unit1.pas(24,28) Hint: (5024) Parameter "Sender" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/8437/project1.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/8437/project1
+(1008) 100 lines compiled, 0.8 sec, 3963104 bytes code, 2699280 bytes data
+(1022) 7 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/8284/bug8284.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/8284/bug8284"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/8284/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O2"
+Info: (lazarus) Param[4]="-g"
+Info: (lazarus) Param[5]="-gh"
+Info: (lazarus) Param[6]="-Xs"
+Info: (lazarus) Param[7]="-XX"
+Info: (lazarus) Param[8]="-l"
+Info: (lazarus) Param[9]="-vewnhibq"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/test/bugs/8284/"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[13]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[14]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[15]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[16]="-o/var/otherdev/lazarus/test/bugs/8284/bug8284"
+Info: (lazarus) Param[17]="-dLCL"
+Info: (lazarus) Param[18]="-dLCLgtk2"
+Info: (lazarus) Param[19]="bug8284.lpr"
+Info: (lazarus) Param[20]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Note: (11046) DWARF debug information cannot be used with smart linking on this target, switching to static linking
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug8284.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/8284/unit1.pas(20,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/8284/unit1.pas(20,63) Hint: (5024) Parameter "Done" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/8284/bug8284.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/8284/bug8284
+(1008) 68 lines compiled, 0.9 sec, 3962480 bytes code, 2701328 bytes data
+(1022) 4 hint(s) issued
+(1023) 1 note(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/12204/bug12204.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/12204/bug12204"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/12204/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Sghi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-g"
+Info: (lazarus) Param[5]="-gl"
+Info: (lazarus) Param[6]="-l"
+Info: (lazarus) Param[7]="-vewnhibq"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/test/bugs/12204/"
+Info: (lazarus) Param[9]="-o/var/otherdev/lazarus/test/bugs/12204/bug12204"
+Info: (lazarus) Param[10]="bug12204.pas"
+Info: (lazarus) Param[11]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug12204.pas
+(9015) Linking /var/otherdev/lazarus/test/bugs/12204/bug12204
+(1008) 13 lines compiled, 0.0 sec, 171840 bytes code, 371272 bytes data
+(1022) 2 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/2075/bug2075.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/2075/bug2075"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/2075/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Sghi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-l"
+Info: (lazarus) Param[5]="-vewnhibq"
+Info: (lazarus) Param[6]="-Fu/var/otherdev/lazarus/test/bugs/2075/"
+Info: (lazarus) Param[7]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[12]="-o/var/otherdev/lazarus/test/bugs/2075/bug2075"
+Info: (lazarus) Param[13]="-dLCL"
+Info: (lazarus) Param[14]="-dLCLgtk2"
+Info: (lazarus) Param[15]="bug2075.lpr"
+Info: (lazarus) Param[16]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug2075.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(42,3) Warning: (5043) Symbol "DecimalSeparator" is deprecated
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(24,26) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(23,32) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(55,5) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(56,5) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(57,5) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(58,5) Warning: (5066) Symbol "DebugLn" is deprecated: "Use DebugLogger.DebugLn instead"
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(22,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/2075/unit1.pas(22,63) Hint: (5024) Parameter "Done" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/2075/bug2075.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/2075/bug2075
+(1008) 82 lines compiled, 0.7 sec, 3941888 bytes code, 2695328 bytes data
+(1021) 5 warning(s) issued
+(1022) 6 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/8450/project1.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/8450/project1"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/8450/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-Xs"
+Info: (lazarus) Param[5]="-XX"
+Info: (lazarus) Param[6]="-l"
+Info: (lazarus) Param[7]="-vewnhibq"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/test/bugs/8450/"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[13]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[14]="-o/var/otherdev/lazarus/test/bugs/8450/project1"
+Info: (lazarus) Param[15]="-dLCL"
+Info: (lazarus) Param[16]="-dLCLgtk2"
+Info: (lazarus) Param[17]="-Faheaptrc"
+Info: (lazarus) Param[18]="project1.lpr"
+Info: (lazarus) Param[19]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling project1.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/8450/unit1.pas(18,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/8450/unit1.pas(18,63) Hint: (5024) Parameter "Done" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/8450/project1.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/8450/project1
+(1008) 75 lines compiled, 0.8 sec, 2026304 bytes code, 896688 bytes data
+(1022) 4 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/7462/bug7462.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/7462/bug7462"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/7462/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-l"
+Info: (lazarus) Param[5]="-vewnhibq"
+Info: (lazarus) Param[6]="-Fu/var/otherdev/lazarus/test/bugs/7462/"
+Info: (lazarus) Param[7]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[12]="-o/var/otherdev/lazarus/test/bugs/7462/bug7462"
+Info: (lazarus) Param[13]="-dLCL"
+Info: (lazarus) Param[14]="-dLCLgtk2"
+Info: (lazarus) Param[15]="bug7462.lpr"
+Info: (lazarus) Param[16]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug7462.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/7462/unit1.pas(18,26) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/7462/unit1.pas(17,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/7462/unit1.pas(17,63) Hint: (5024) Parameter "Done" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/7462/bug7462.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/7462/bug7462
+(1008) 66 lines compiled, 0.8 sec, 3941728 bytes code, 2695200 bytes data
+(1022) 5 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/2068/bug2068.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/2068/bug2068"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/2068/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-g"
+Info: (lazarus) Param[5]="-gl"
+Info: (lazarus) Param[6]="-gh"
+Info: (lazarus) Param[7]="-l"
+Info: (lazarus) Param[8]="-vewnhibq"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/test/bugs/2068/"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[13]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[14]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[15]="-o/var/otherdev/lazarus/test/bugs/2068/bug2068"
+Info: (lazarus) Param[16]="-dLCL"
+Info: (lazarus) Param[17]="-dLCLgtk2"
+Info: (lazarus) Param[18]="bug2068.lpr"
+Info: (lazarus) Param[19]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug2068.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/2068/unit1.pas(19,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/2068/unit1.pas(19,63) Hint: (5024) Parameter "Done" not used
+/var/otherdev/lazarus/test/bugs/2068/unit1.pas(20,26) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/2068/unit1.pas(21,24) Hint: (5024) Parameter "Sender" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/2068/bug2068.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/2068/bug2068
+(1008) 89 lines compiled, 0.9 sec, 3980592 bytes code, 3003920 bytes data
+(1022) 6 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end
+Hint: (lazbuild) Opt: "ws=gtk2"
+Hint: (lazbuild) Primary config path: "/home/wpostma/.lazarus"
+CreatePrimaryConfigPath: Successfully created "/home/wpostma/.lazarus"
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+Hint: (lazarus) [TBuildManager.SetBuildTarget] Old=x86_64-linux--gtk2 New=x86_64-linux--gtk2 Changed: OS/CPU=True LCL=False
+TProject.DoLoadStateFile Statefile not found: /var/otherdev/lazarus/test/bugs/822/bug822.compiled
+Hint: (lazarus) Project needs building: No state file for Project
+Info: (lazarus) Execute Title="Compile Project, Target: /var/otherdev/lazarus/test/bugs/822/bug822"
+Info: (lazarus) Working Directory="/var/otherdev/lazarus/test/bugs/822/"
+Info: (lazarus) Executable="/usr/local/bin/fpc"
+Info: (lazarus) Param[0]="-MObjFPC"
+Info: (lazarus) Param[1]="-Scgi"
+Info: (lazarus) Param[2]="-Cg"
+Info: (lazarus) Param[3]="-O1"
+Info: (lazarus) Param[4]="-Xs"
+Info: (lazarus) Param[5]="-XX"
+Info: (lazarus) Param[6]="-l"
+Info: (lazarus) Param[7]="-vewnhibq"
+Info: (lazarus) Param[8]="-Fu/var/otherdev/lazarus/test/bugs/822/"
+Info: (lazarus) Param[9]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux/gtk2"
+Info: (lazarus) Param[10]="-Fu/var/otherdev/lazarus/lcl/units/x86_64-linux"
+Info: (lazarus) Param[11]="-Fu/var/otherdev/lazarus/components/freetype/lib/x86_64-linux"
+Info: (lazarus) Param[12]="-Fu/var/otherdev/lazarus/components/lazutils/lib/x86_64-linux"
+Info: (lazarus) Param[13]="-Fu/var/otherdev/lazarus/packager/units/x86_64-linux"
+Info: (lazarus) Param[14]="-o/var/otherdev/lazarus/test/bugs/822/bug822"
+Info: (lazarus) Param[15]="-dLCL"
+Info: (lazarus) Param[16]="-dLCLgtk2"
+Info: (lazarus) Param[17]="-Faheaptrc"
+Info: (lazarus) Param[18]="bug822.lpr"
+Info: (lazarus) Param[19]="-B"
+Hint: (11030) Start of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Hint: (11031) End of reading config file /usr/local/lib/fpc/etc/fpc.cfg
+Free Pascal Compiler version 3.3.1 [2026/03/28] for x86_64
+Copyright (c) 1993-2026 by Florian Klaempfl and others
+(1002) Target OS: Linux for x86-64
+(3104) Compiling bug822.lpr
+(3104) Compiling unit1.pas
+/var/otherdev/lazarus/test/bugs/822/unit1.pas(19,42) Hint: (5024) Parameter "Sender" not used
+/var/otherdev/lazarus/test/bugs/822/unit1.pas(19,63) Hint: (5024) Parameter "Done" not used
+(9022) Compiling resource /var/otherdev/lazarus/test/bugs/822/bug822.or
+(9015) Linking /var/otherdev/lazarus/test/bugs/822/bug822
+(1008) 71 lines compiled, 0.8 sec, 2025536 bytes code, 888640 bytes data
+(1022) 4 hint(s) issued
+Info: (lazarus) [TCompiler.Compile] end

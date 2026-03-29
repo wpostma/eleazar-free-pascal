@@ -1,0 +1,699 @@
+
+=== case 1
+
+[Thread 0x7fffecfc96c0 (LWP 287949) exited]
+[New process 287859]
+[Inferior 1 (process 287859) exited normally]
+(gdb) quit
+wpostma@wp-alienr12:/var/otherdev/lazarus$ gdb --args ./lazarus --debug-log=/tmp/laz.log
+GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+--Type <RET> for more, q to quit, c to continue without paging--
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./lazarus...
+(gdb) run
+Starting program: /var/otherdev/lazarus/lazarus --debug-log=/tmp/laz.log
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) n
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff561a6c0 (LWP 288289)]
+[New Thread 0x7fffeef396c0 (LWP 288290)]
+[New Thread 0x7fffe7fff6c0 (LWP 288291)]
+[New Thread 0x7fffee7386c0 (LWP 288292)]
+[New Thread 0x7fffedf376c0 (LWP 288293)]
+[New Thread 0x7fffed7366c0 (LWP 288294)]
+[New Thread 0x7fffe77fe6c0 (LWP 288296)]
+[Thread 0x7fffedf376c0 (LWP 288293) exited]
+[Thread 0x7fffed7366c0 (LWP 288294) exited]
+[Thread 0x7fffee7386c0 (LWP 288292) exited]
+[Thread 0x7fffe7fff6c0 (LWP 288291) exited]
+[Thread 0x7fffeef396c0 (LWP 288290) exited]
+[Thread 0x7ffff561a6c0 (LWP 288289) exited]
+[Thread 0x7ffff69b5dc0 (LWP 288151) exited]
+[Thread 0x7fffe77fe6c0 (LWP 288296) exited]
+[New process 288151]
+[Inferior 1 (process 288151) exited normally]
+(gdb) quit
+wpostma@wp-alienr12:/var/otherdev/lazarus$ echo gdb --args ./lazarus --debug-log=/tmp/laz.log >debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ vi debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ chmod +x debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ chmod +x debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ ./debugit.sh 
+GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+--Type <RET> for more, q to quit, c to continue without paging--
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./lazarus...
+(gdb) run
+Starting program: /var/otherdev/lazarus/lazarus --debug-log=/tmp/laz.log
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) n
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff561a6c0 (LWP 291265)]
+[New Thread 0x7fffeee396c0 (LWP 291266)]
+[New Thread 0x7fffee6386c0 (LWP 291267)]
+[New Thread 0x7fffede376c0 (LWP 291268)]
+[New Thread 0x7fffed6366c0 (LWP 291270)]
+[New Thread 0x7fffece356c0 (LWP 291271)]
+[New Thread 0x7fffd3e236c0 (LWP 291273)]
+[Thread 0x7fffed6366c0 (LWP 291270) exited]
+[Thread 0x7fffece356c0 (LWP 291271) exited]
+
+Thread 1 "lazarus" received signal SIGSEGV, Segmentation fault.
+0x00000000005cd4fb in GetText (this=0x7fffd31cbd10) at include/control.inc:3632
+3632      GetTextMethod := TMethod(@Self.GetTextBuf);
+(gdb) bt
+#0  0x00000000005cd4fb in GetText (this=0x7fffd31cbd10) at include/control.inc:3632
+#1  0x00000000011e4a1f in SetFilter (this=0x7fffd31cbd10, AValue=...) at editbtn.pas:1224
+#2  0x00000000011e5328 in ResetFilter (this=0x7fffd31cbd10) at editbtn.pas:1380
+#3  0x0000000000b16bf2 in HookLookupRootChange (this=0x7fffd31c85b0) at objectinspector.pp:4674
+#4  0x0000000000b30de9 in SetLookupRoot (this=0x7ffff42ecf80, APersistent=0x0) at propedits.pp:8146
+#5  0x0000000000b30fd3 in Notification (this=0x7ffff42ecf80, AComponent=0x7fffd1e3ae30, Operation=opRemove)
+    at propedits.pp:8190
+#6  0x0000000000552848 in CLASSES$_$TCOMPONENT_$__$$_REMOVEFREENOTIFICATIONS ()
+#7  0x0000000000552d84 in CLASSES$_$TCOMPONENT_$__$$_DESTROY ()
+#8  0x0000000000783735 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at lclclasses.pp:154
+--Type <RET> for more, q to quit, c to continue without paging--
+#9  0x00000000005d1ce2 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/control.inc:5246
+#10 0x00000000005bfea2 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/wincontrol.inc:6795
+#11 0x00000000005d472e in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/customcontrol.inc:40
+#12 0x00000000004983de in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/scrollingwincontrol.inc:360
+#13 0x0000000000499b41 in Destroy (this=0x7fffd1e3ae30, $vmt=0x1) at include/customform.inc:138
+#14 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#15 0x0000000000bbc2d4 in DestroyJITComponent (this=0x7fffefa4cd10, Index=0) at ../designer/jitforms.pp:796
+#16 0x0000000000bbbfdb in Destroy (this=0x7fffefa4cd10, $vmt=0x1) at ../designer/jitforms.pp:747
+#17 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#18 0x00000000004893d3 in SYSUTILS_$$_FREEANDNIL$TOBJECT ()
+#19 0x0000000000bdf903 in Destroy (this=0x7fffefa33de0, $vmt=0x1) at customformeditor.pp:542
+#20 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#21 0x0000000000bde2b6 in FreeFormEditor () at formeditor.pp:89
+#22 0x00000000004c3974 in Destroy (this=0x7ffff4a53bb0, $vmt=0x1) at main.pp:1879
+#23 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#24 0x00000000004a9995 in DoBeforeFinalization (this=0x7ffff699f890) at include/application.inc:1135
+#25 0x0000000000495163 in BeforeFinalization () at forms.pp:2100
+#26 0x000000000043b1e1 in SYSTEM_$$_DOEXITPROC ()
+#27 0x000000000043a9f2 in SYSTEM_$$_INTERNALEXIT ()
+#28 0x000000000043ab76 in fpc_do_exit ()
+#29 0x000000000043abad in SYSTEM_$$_HALT$LONGINT ()
+#30 0x00000000004a9f3c in HandleException (this=0x7ffff699f890, Sender=0x0) at include/application.inc:1275
+#31 0x00000000007ba048 in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:118
+#32 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#33 0x0000000000684fad in SendSizeNotificationToLCL (aWidget=0x34af220) at gtk2proc.inc:6826
+#34 0x000000000068efc9 in gtksize_allocateCB (widget=0x34af220, size=0x7fffffff5080, data=0x7fffd3229d50)
+    at gtk2callback.inc:2535
+#35 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#36 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#37 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#38 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#39 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#40 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#41 0x00007ffff7b3e1a1 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#42 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#43 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#44 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#45 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#46 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#47 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#48 0x00007ffff7bb5e21 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#49 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#50 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#51 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#52 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#53 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#54 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#55 0x00007ffff7a8e3ec in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#56 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#57 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#58 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#59 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#60 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#61 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#62 0x00007ffff7a8e29b in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#63 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#64 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#65 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#66 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#67 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#68 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#69 0x00007ffff7b3e1a1 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#70 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#71 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#72 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#73 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#74 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#75 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#76 0x00007ffff7bb5e21 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#77 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#78 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#79 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#80 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#81 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#82 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#83 0x00007ffff7a8e3ec in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#84 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#85 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#86 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#87 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#88 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#89 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#90 0x00007ffff7c8a8da in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#91 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#92 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#93 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#94 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#95 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#96 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#97 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#98 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#99 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffff85c4, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#100 0x000000000068f25e in gtkconfigureevent (widget=0x3279080, event=0x3dac3a0, data=0x7fffef6d9970)
+    at gtk2callback.inc:2594
+#101 0x0000000000806cbf in Gtk2FormEvent (widget=0x3279080, event=0x3dac3a0, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:190
+#102 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#103 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#104 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#105 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#106 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#107 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#108 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#109 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#110 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#111 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#112 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#113 0x00007ffff7774f47 in g_main_loop_run () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#114 0x00007ffff7acad07 in gtk_dialog_run () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#115 0x0000000000532282 in PromptUser
+    (this=0x7ffff69a3b70, DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=0x7fffd325cd70, ButtonCount=2, DefaultIndex=0, EscapeResult=2) at gtk2lclintf.inc:1314
+#116 0x00000000005945cd in PromptUser
+    (DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=0x7fffd325cd70, ButtonCount=2, DefaultIndex=0, EscapeResult=2) at include/lclintf.inc:361
+#117 0x0000000000594f22 in PromptUser
+    (DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=..., $highBUTTONS=1, DefaultIndex=0, EscapeResult=2) at include/lclintf.inc:525
+#118 0x00000000004ab1a0 in ShowException (this=0x7ffff699f890, E=0x7fffefc945c0)
+    at include/application.inc:1639
+#119 0x0000000000aae4e4 in HandleApplicationException (this=0x0, Sender=0x0, E=0x7fffefc945c0)
+    at lclexceptionstacktrace.pas:28
+#120 0x00000000004aa026 in HandleException (this=0x7ffff699f890, Sender=0x0)
+    at include/application.inc:1298
+#121 0x00000000007ba048 in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:118
+#122 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#123 0x0000000000684fad in SendSizeNotificationToLCL (aWidget=0x34af220) at gtk2proc.inc:6826
+#124 0x000000000068efc9 in gtksize_allocateCB (widget=0x34af220, size=0x7fffffffa030, data=0x7fffd3229d50)
+    at gtk2callback.inc:2535
+#125 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#126 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#127 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#128 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#129 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#130 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#131 0x0000000000685769 in SetWidgetSizeAndPosition (LCLControl=0x7fffd3229d50) at gtk2proc.inc:7111
+#132 0x000000000068549d in ResizeHandle (LCLControl=0x7fffd3229d50) at gtk2proc.inc:6968
+#133 0x00000000007ca8bc in SetBounds
+    (self=0x7ffff4acacb0, AWinControl=0x7fffd3229d50, ALeft=0, ATop=0, AWidth=2895, AHeight=32005)
+    at gtk2wscontrols.pp:637
+#134 0x00000000005c3d45 in DoSendBoundsToInterface (this=0x7fffd3229d50) at include/wincontrol.inc:8673
+#135 0x00000000005c3e89 in RealizeBounds (this=0x7fffd3229d50) at include/wincontrol.inc:8724
+#136 0x00000000005c41aa in RealizeBoundsRecursive (this=0x7fffd3229d50) at include/wincontrol.inc:8762
+#137 0x00000000005c4198 in RealizeBoundsRecursive (this=0x7fffd3227eb0) at include/wincontrol.inc:8759
+#138 0x00000000005c4198 in RealizeBoundsRecursive (this=0x7fffef6d9970) at include/wincontrol.inc:8759
+#139 0x00000000005b92b6 in DoAllAutoSize (this=0x7fffef6d9970) at include/wincontrol.inc:3685
+#140 0x00000000005d3bcd in EnableAutoSizing (this=0x7fffef6d9970, Reason=...) at include/control.inc:5898
+#141 0x00000000005c33ce in SetBounds (this=0x7fffef6d9970, ALeft=3840, ATop=78, AWidth=3382, AHeight=32163)
+    at include/wincontrol.inc:8294
+#142 0x00000000005c0664 in WMMove (this=0x7fffef6d9970, Message=...) at include/wincontrol.inc:7109
+#143 0x0000000000434b21 in SYSTEM$_$TOBJECT_$__$$_DISPATCH$formal ()
+#144 0x00000000005ca811 in WndProc (this=0x7fffef6d9970, TheMessage=...) at include/control.inc:2302
+#145 0x00000000005bd4dd in WndProc (this=0x7fffef6d9970, Message=...) at include/wincontrol.inc:5559
+#146 0x000000000049d0fd in WndProc (this=0x7fffef6d9970, TheMessage=...) at include/customform.inc:1525
+#147 0x0000000000f4de8e in WndProc (this=0x7fffef6d9970, Message=...) at mainbar.pas:624
+#148 0x00000000007b9fde in DeliverMessage
+    (Target=0x7fffef6d9970, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:114
+#149 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffef6d9970, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#150 0x0000000000685024 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6845
+#151 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffb4a0, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#152 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#153 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#154 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#155 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#156 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#157 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#158 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#159 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#160 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffbe50, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#161 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#162 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#163 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#164 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#165 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#166 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#167 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#168 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#169 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffc2d4, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#170 0x000000000068f25e in gtkconfigureevent (widget=0x3279080, event=0x3b90a90, data=0x7fffef6d9970)
+    at gtk2callback.inc:2594
+#171 0x0000000000806cbf in Gtk2FormEvent (widget=0x3279080, event=0x3b90a90, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:190
+#172 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#173 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#174 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#175 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#176 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#177 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#178 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#179 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#180 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#181 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#182 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#183 0x00007ffff7773a23 in g_main_context_iteration () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#184 0x0000000000513bc9 in AppProcessMessages (this=0x7ffff69a3b70) at gtk2widgetset.inc:2632
+#185 0x00000000004a7dcb in ProcessMessages (this=0x7ffff699f890) at include/application.inc:453
+#186 0x0000000000806ee1 in Gtk2FormEvent (widget=0x3279080, event=0x38a83d0, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:250
+#187 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#188 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#189 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#190 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#191 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#192 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#193 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#194 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#195 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#196 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#197 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#198 0x00007ffff7773a23 in g_main_context_iteration () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#199 0x0000000000513bc9 in AppProcessMessages (this=0x7ffff69a3b70) at gtk2widgetset.inc:2632
+#200 0x00000000004aa1cc in HandleMessage (this=0x7ffff699f890) at include/application.inc:1326
+#201 0x00000000004aa7eb in RunLoop (this=0x7ffff699f890) at include/application.inc:1469
+#202 0x00000000006698c3 in AppRun (this=0x7ffff69a3b70, ALoop=...) at include/interfacebase.inc:54
+#203 0x00000000004aa794 in Run (this=0x7ffff699f890) at include/application.inc:1457
+#204 0x0000000000421a21 in $main () at lazarus.pp:169
+(gdb) 
+(gdb) 
+
+
+=== case 2
+
+[Thread 0x7fffecfc96c0 (LWP 287949) exited]
+[New process 287859]
+[Inferior 1 (process 287859) exited normally]
+(gdb) quit
+wpostma@wp-alienr12:/var/otherdev/lazarus$ gdb --args ./lazarus --debug-log=/tmp/laz.log
+GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+--Type <RET> for more, q to quit, c to continue without paging--
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./lazarus...
+(gdb) run
+Starting program: /var/otherdev/lazarus/lazarus --debug-log=/tmp/laz.log
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) n
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff561a6c0 (LWP 288289)]
+[New Thread 0x7fffeef396c0 (LWP 288290)]
+[New Thread 0x7fffe7fff6c0 (LWP 288291)]
+[New Thread 0x7fffee7386c0 (LWP 288292)]
+[New Thread 0x7fffedf376c0 (LWP 288293)]
+[New Thread 0x7fffed7366c0 (LWP 288294)]
+[New Thread 0x7fffe77fe6c0 (LWP 288296)]
+[Thread 0x7fffedf376c0 (LWP 288293) exited]
+[Thread 0x7fffed7366c0 (LWP 288294) exited]
+[Thread 0x7fffee7386c0 (LWP 288292) exited]
+[Thread 0x7fffe7fff6c0 (LWP 288291) exited]
+[Thread 0x7fffeef396c0 (LWP 288290) exited]
+[Thread 0x7ffff561a6c0 (LWP 288289) exited]
+[Thread 0x7ffff69b5dc0 (LWP 288151) exited]
+[Thread 0x7fffe77fe6c0 (LWP 288296) exited]
+[New process 288151]
+[Inferior 1 (process 288151) exited normally]
+(gdb) quit
+wpostma@wp-alienr12:/var/otherdev/lazarus$ echo gdb --args ./lazarus --debug-log=/tmp/laz.log >debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ vi debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ chmod +x debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ chmod +x debugit.sh
+wpostma@wp-alienr12:/var/otherdev/lazarus$ ./debugit.sh 
+GNU gdb (Ubuntu 15.1-1ubuntu1~24.04.1) 15.1
+Copyright (C) 2024 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+--Type <RET> for more, q to quit, c to continue without paging--
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from ./lazarus...
+(gdb) run
+Starting program: /var/otherdev/lazarus/lazarus --debug-log=/tmp/laz.log
+
+This GDB supports auto-downloading debuginfo from the following URLs:
+  <https://debuginfod.ubuntu.com>
+Enable debuginfod for this session? (y or [n]) n
+Debuginfod has been disabled.
+To make this setting permanent, add 'set debuginfod enabled off' to .gdbinit.
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff561a6c0 (LWP 291265)]
+[New Thread 0x7fffeee396c0 (LWP 291266)]
+[New Thread 0x7fffee6386c0 (LWP 291267)]
+[New Thread 0x7fffede376c0 (LWP 291268)]
+[New Thread 0x7fffed6366c0 (LWP 291270)]
+[New Thread 0x7fffece356c0 (LWP 291271)]
+[New Thread 0x7fffd3e236c0 (LWP 291273)]
+[Thread 0x7fffed6366c0 (LWP 291270) exited]
+[Thread 0x7fffece356c0 (LWP 291271) exited]
+
+Thread 1 "lazarus" received signal SIGSEGV, Segmentation fault.
+0x00000000005cd4fb in GetText (this=0x7fffd31cbd10) at include/control.inc:3632
+3632      GetTextMethod := TMethod(@Self.GetTextBuf);
+(gdb) bt
+#0  0x00000000005cd4fb in GetText (this=0x7fffd31cbd10) at include/control.inc:3632
+#1  0x00000000011e4a1f in SetFilter (this=0x7fffd31cbd10, AValue=...) at editbtn.pas:1224
+#2  0x00000000011e5328 in ResetFilter (this=0x7fffd31cbd10) at editbtn.pas:1380
+#3  0x0000000000b16bf2 in HookLookupRootChange (this=0x7fffd31c85b0) at objectinspector.pp:4674
+#4  0x0000000000b30de9 in SetLookupRoot (this=0x7ffff42ecf80, APersistent=0x0) at propedits.pp:8146
+#5  0x0000000000b30fd3 in Notification (this=0x7ffff42ecf80, AComponent=0x7fffd1e3ae30, Operation=opRemove)
+    at propedits.pp:8190
+#6  0x0000000000552848 in CLASSES$_$TCOMPONENT_$__$$_REMOVEFREENOTIFICATIONS ()
+#7  0x0000000000552d84 in CLASSES$_$TCOMPONENT_$__$$_DESTROY ()
+#8  0x0000000000783735 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at lclclasses.pp:154
+--Type <RET> for more, q to quit, c to continue without paging--
+#9  0x00000000005d1ce2 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/control.inc:5246
+#10 0x00000000005bfea2 in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/wincontrol.inc:6795
+#11 0x00000000005d472e in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/customcontrol.inc:40
+#12 0x00000000004983de in Destroy (this=0x7fffd1e3ae30, $vmt=0x0) at include/scrollingwincontrol.inc:360
+#13 0x0000000000499b41 in Destroy (this=0x7fffd1e3ae30, $vmt=0x1) at include/customform.inc:138
+#14 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#15 0x0000000000bbc2d4 in DestroyJITComponent (this=0x7fffefa4cd10, Index=0) at ../designer/jitforms.pp:796
+#16 0x0000000000bbbfdb in Destroy (this=0x7fffefa4cd10, $vmt=0x1) at ../designer/jitforms.pp:747
+#17 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#18 0x00000000004893d3 in SYSUTILS_$$_FREEANDNIL$TOBJECT ()
+#19 0x0000000000bdf903 in Destroy (this=0x7fffefa33de0, $vmt=0x1) at customformeditor.pp:542
+#20 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#21 0x0000000000bde2b6 in FreeFormEditor () at formeditor.pp:89
+#22 0x00000000004c3974 in Destroy (this=0x7ffff4a53bb0, $vmt=0x1) at main.pp:1879
+#23 0x0000000000434587 in SYSTEM$_$TOBJECT_$__$$_FREE ()
+#24 0x00000000004a9995 in DoBeforeFinalization (this=0x7ffff699f890) at include/application.inc:1135
+#25 0x0000000000495163 in BeforeFinalization () at forms.pp:2100
+#26 0x000000000043b1e1 in SYSTEM_$$_DOEXITPROC ()
+#27 0x000000000043a9f2 in SYSTEM_$$_INTERNALEXIT ()
+#28 0x000000000043ab76 in fpc_do_exit ()
+#29 0x000000000043abad in SYSTEM_$$_HALT$LONGINT ()
+#30 0x00000000004a9f3c in HandleException (this=0x7ffff699f890, Sender=0x0) at include/application.inc:1275
+#31 0x00000000007ba048 in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:118
+#32 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#33 0x0000000000684fad in SendSizeNotificationToLCL (aWidget=0x34af220) at gtk2proc.inc:6826
+#34 0x000000000068efc9 in gtksize_allocateCB (widget=0x34af220, size=0x7fffffff5080, data=0x7fffd3229d50)
+    at gtk2callback.inc:2535
+#35 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#36 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#37 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#38 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#39 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#40 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#41 0x00007ffff7b3e1a1 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#42 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#43 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#44 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#45 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#46 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#47 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#48 0x00007ffff7bb5e21 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#49 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#50 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#51 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#52 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#53 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#54 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#55 0x00007ffff7a8e3ec in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#56 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#57 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#58 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#59 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#60 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#61 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#62 0x00007ffff7a8e29b in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#63 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#64 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#65 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#66 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#67 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#68 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#69 0x00007ffff7b3e1a1 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#70 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#71 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#72 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#73 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#74 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#75 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#76 0x00007ffff7bb5e21 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#77 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#78 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#79 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#80 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#81 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#82 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#83 0x00007ffff7a8e3ec in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#84 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#85 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#86 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#87 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#88 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#89 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#90 0x00007ffff7c8a8da in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#91 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#92 0x00007ffff78a4a50 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#93 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#94 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#95 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#96 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#97 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#98 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#99 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffff85c4, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#100 0x000000000068f25e in gtkconfigureevent (widget=0x3279080, event=0x3dac3a0, data=0x7fffef6d9970)
+    at gtk2callback.inc:2594
+#101 0x0000000000806cbf in Gtk2FormEvent (widget=0x3279080, event=0x3dac3a0, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:190
+#102 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#103 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#104 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#105 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#106 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#107 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#108 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#109 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#110 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#111 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#112 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#113 0x00007ffff7774f47 in g_main_loop_run () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#114 0x00007ffff7acad07 in gtk_dialog_run () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#115 0x0000000000532282 in PromptUser
+    (this=0x7ffff69a3b70, DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=0x7fffd325cd70, ButtonCount=2, DefaultIndex=0, EscapeResult=2) at gtk2lclintf.inc:1314
+#116 0x00000000005945cd in PromptUser
+    (DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=0x7fffd325cd70, ButtonCount=2, DefaultIndex=0, EscapeResult=2) at include/lclintf.inc:361
+#117 0x0000000000594f22 in PromptUser
+    (DialogCaption=..., DialogMessage=..., DialogType=257, Buttons=..., $highBUTTONS=1, DefaultIndex=0, EscapeResult=2) at include/lclintf.inc:525
+#118 0x00000000004ab1a0 in ShowException (this=0x7ffff699f890, E=0x7fffefc945c0)
+    at include/application.inc:1639
+#119 0x0000000000aae4e4 in HandleApplicationException (this=0x0, Sender=0x0, E=0x7fffefc945c0)
+    at lclexceptionstacktrace.pas:28
+#120 0x00000000004aa026 in HandleException (this=0x7ffff699f890, Sender=0x0)
+    at include/application.inc:1298
+#121 0x00000000007ba048 in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:118
+#122 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffd3229d50, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#123 0x0000000000684fad in SendSizeNotificationToLCL (aWidget=0x34af220) at gtk2proc.inc:6826
+#124 0x000000000068efc9 in gtksize_allocateCB (widget=0x34af220, size=0x7fffffffa030, data=0x7fffd3229d50)
+    at gtk2callback.inc:2535
+#125 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#126 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#127 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#128 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#129 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#130 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#131 0x0000000000685769 in SetWidgetSizeAndPosition (LCLControl=0x7fffd3229d50) at gtk2proc.inc:7111
+#132 0x000000000068549d in ResizeHandle (LCLControl=0x7fffd3229d50) at gtk2proc.inc:6968
+#133 0x00000000007ca8bc in SetBounds
+    (self=0x7ffff4acacb0, AWinControl=0x7fffd3229d50, ALeft=0, ATop=0, AWidth=2895, AHeight=32005)
+    at gtk2wscontrols.pp:637
+#134 0x00000000005c3d45 in DoSendBoundsToInterface (this=0x7fffd3229d50) at include/wincontrol.inc:8673
+#135 0x00000000005c3e89 in RealizeBounds (this=0x7fffd3229d50) at include/wincontrol.inc:8724
+#136 0x00000000005c41aa in RealizeBoundsRecursive (this=0x7fffd3229d50) at include/wincontrol.inc:8762
+#137 0x00000000005c4198 in RealizeBoundsRecursive (this=0x7fffd3227eb0) at include/wincontrol.inc:8759
+#138 0x00000000005c4198 in RealizeBoundsRecursive (this=0x7fffef6d9970) at include/wincontrol.inc:8759
+#139 0x00000000005b92b6 in DoAllAutoSize (this=0x7fffef6d9970) at include/wincontrol.inc:3685
+#140 0x00000000005d3bcd in EnableAutoSizing (this=0x7fffef6d9970, Reason=...) at include/control.inc:5898
+#141 0x00000000005c33ce in SetBounds (this=0x7fffef6d9970, ALeft=3840, ATop=78, AWidth=3382, AHeight=32163)
+    at include/wincontrol.inc:8294
+#142 0x00000000005c0664 in WMMove (this=0x7fffef6d9970, Message=...) at include/wincontrol.inc:7109
+#143 0x0000000000434b21 in SYSTEM$_$TOBJECT_$__$$_DISPATCH$formal ()
+#144 0x00000000005ca811 in WndProc (this=0x7fffef6d9970, TheMessage=...) at include/control.inc:2302
+#145 0x00000000005bd4dd in WndProc (this=0x7fffef6d9970, Message=...) at include/wincontrol.inc:5559
+#146 0x000000000049d0fd in WndProc (this=0x7fffef6d9970, TheMessage=...) at include/customform.inc:1525
+#147 0x0000000000f4de8e in WndProc (this=0x7fffef6d9970, Message=...) at mainbar.pas:624
+#148 0x00000000007b9fde in DeliverMessage
+    (Target=0x7fffef6d9970, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at lclmessageglue.pas:114
+#149 0x000000000067f34d in DeliverMessage
+    (Target=0x7fffef6d9970, AMessage=<error reading variable: Attempt to dereference a generic pointer.>)
+    at gtk2proc.inc:3755
+#150 0x0000000000685024 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6845
+#151 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffb4a0, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#152 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#153 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#154 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#155 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#156 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#157 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#158 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#159 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#160 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffbe50, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#161 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#162 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#163 0x00007ffff7895591 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#164 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#165 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#166 0x00007ffff7c7fd17 in gtk_widget_size_allocate () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#167 0x0000000000685d71 in SetWindowSizeAndPosition (Window=0x3279080, AWinControl=0x7fffef6d9970)
+    at gtk2proc.inc:7159
+#168 0x0000000000684ce9 in SendSizeNotificationToLCL (aWidget=0x3279080) at gtk2proc.inc:6726
+#169 0x000000000068efc9 in gtksize_allocateCB (widget=0x3279080, size=0x7fffffffc2d4, data=0x7fffef6d9970)
+    at gtk2callback.inc:2535
+#170 0x000000000068f25e in gtkconfigureevent (widget=0x3279080, event=0x3b90a90, data=0x7fffef6d9970)
+    at gtk2callback.inc:2594
+#171 0x0000000000806cbf in Gtk2FormEvent (widget=0x3279080, event=0x3b90a90, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:190
+#172 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#173 0x00007ffff787525c in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#174 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#175 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#176 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#177 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#178 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#179 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#180 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#181 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+--Type <RET> for more, q to quit, c to continue without paging--
+#182 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#183 0x00007ffff7773a23 in g_main_context_iteration () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#184 0x0000000000513bc9 in AppProcessMessages (this=0x7ffff69a3b70) at gtk2widgetset.inc:2632
+#185 0x00000000004a7dcb in ProcessMessages (this=0x7ffff699f890) at include/application.inc:453
+#186 0x0000000000806ee1 in Gtk2FormEvent (widget=0x3279080, event=0x38a83d0, data=0x7fffef6d9970)
+    at gtk2wsforms.pp:250
+#187 0x00007ffff7b46420 in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#188 0x00007ffff78752fa in g_closure_invoke () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#189 0x00007ffff78a490c in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#190 0x00007ffff7894ef2 in ??? () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#191 0x00007ffff78957c1 in g_signal_emit_valist () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#192 0x00007ffff7895883 in g_signal_emit () at /lib/x86_64-linux-gnu/libgobject-2.0.so.0
+#193 0x00007ffff7c8504a in ??? () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#194 0x00007ffff7b4df1b in gtk_main_do_event () at /lib/x86_64-linux-gnu/libgtk-x11-2.0.so.0
+#195 0x00007ffff7f432f6 in ??? () at /lib/x86_64-linux-gnu/libgdk-x11-2.0.so.0
+#196 0x00007ffff7774585 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#197 0x00007ffff77d3977 in ??? () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#198 0x00007ffff7773a23 in g_main_context_iteration () at /lib/x86_64-linux-gnu/libglib-2.0.so.0
+#199 0x0000000000513bc9 in AppProcessMessages (this=0x7ffff69a3b70) at gtk2widgetset.inc:2632
+#200 0x00000000004aa1cc in HandleMessage (this=0x7ffff699f890) at include/application.inc:1326
+#201 0x00000000004aa7eb in RunLoop (this=0x7ffff699f890) at include/application.inc:1469
+#202 0x00000000006698c3 in AppRun (this=0x7ffff69a3b70, ALoop=...) at include/interfacebase.inc:54
+#203 0x00000000004aa794 in Run (this=0x7ffff699f890) at include/application.inc:1457
+#204 0x0000000000421a21 in $main () at lazarus.pp:169
+(gdb) 
+(gdb) 
