@@ -402,7 +402,7 @@ begin
   and (FEffectiveShowModified = cbShowModified.Checked) then Exit;
   Container := sbAllOptions;
   Container.Perform(CM_PARENTFONTCHANGED, 0, 0);
-  Container.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TfrmAllCompilerOptions.RenderAndFilterOptions'){$ENDIF};
+  Container.DisableAutoSizing('TfrmAllCompilerOptions.RenderAndFilterOptions');
   PickupLeftsAndHeights;
   try
     // First filter and set Visible flag.
@@ -416,7 +416,7 @@ begin
     FEffectiveShowModified := cbShowModified.Checked;
     FocusControl(edOptionsFilter);
   finally
-    Container.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TfrmAllCompilerOptions.RenderAndFilterOptions'){$ENDIF};
+    Container.EnableAutoSizing('TfrmAllCompilerOptions.RenderAndFilterOptions');
     Container.Invalidate;
   end;
 end;

@@ -1669,8 +1669,8 @@ type
     procedure CNPreferredSizeChanged;
     procedure InvalidatePreferredSize; virtual;
     function GetAnchorsDependingOnParent(WithNormalAnchors: Boolean): TAnchors;
-    procedure DisableAutoSizing{$IFDEF DebugDisableAutoSizing}(const Reason: string){$ENDIF};
-    procedure EnableAutoSizing{$IFDEF DebugDisableAutoSizing}(const Reason: string){$ENDIF};
+    procedure DisableAutoSizing(const Reason: string);
+    procedure EnableAutoSizing(const Reason: string);
     {$IFDEF DebugDisableAutoSizing}
     procedure WriteAutoSizeReasons(NotIfEmpty: Boolean);
     {$ENDIF}
@@ -4144,7 +4144,7 @@ var
   OldSide: TAnchorSideReference;
 begin
   if FSide=AValue then exit;
-  FOwner.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorSide.SetSide'){$ENDIF};
+  FOwner.DisableAutoSizing('TAnchorSide.SetSide');
   if AValue=asrCenter then begin
     OldSide:=FSide;
     FixCenterAnchoring;
@@ -4154,7 +4154,7 @@ begin
   FOwner.AnchorSideChanged(Self);
   if FControl<>nil then
     FControl.ForeignAnchorSideChanged(Self,ascoChangeSide);
-  FOwner.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorSide.SetSide'){$ENDIF};
+  FOwner.EnableAutoSizing('TAnchorSide.SetSide');
 end;
 
 function TAnchorSide.GetOwner: TPersistent;

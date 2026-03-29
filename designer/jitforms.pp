@@ -1085,7 +1085,7 @@ begin
     {$ENDIF}
     Instance:=TComponent(FCurReadClass.NewInstance);
     if DisableAutoSize and (Instance is TControl) then
-      InstAsCtrl.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+      InstAsCtrl.DisableAutoSizing('TAnchorDockMaster Delayed');
     {$IFDEF VerboseJITForms}
     DebugLn('[TJITForms.DoCreateJITComponent] Initializing new instance "',Instance.Name,'" ',
             DbgS(Instance),' (',Instance.ClassName,')');

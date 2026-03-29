@@ -26948,7 +26948,7 @@ begin
   inherited;
   if AMode in [lapAutoAdjustWithoutHorizontalScrolling, lapAutoAdjustForDPI] then
   begin
-    DisableAutoSizing;
+    DisableAutoSizing('');
     try
       if IsDefaultNodeHeightStored then
         FDefaultNodeHeight := Round(FDefaultNodeHeight * AYProportion);
@@ -26967,7 +26967,7 @@ begin
       FHeader.AutoAdjustLayout(AXProportion, AYProportion);
       PrepareBitmaps(true, false);
     finally
-      EnableAutoSizing;
+      EnableAutoSizing('');
     end;
   end;
 end;

@@ -236,7 +236,7 @@ begin
     IDEWindowCreators.CreateForm(FPDocEditor,TFPDocEditor,
        State=iwgfDisabled,LazarusIDE.OwningComponent)
   else if State=iwgfDisabled then
-    FPDocEditor.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('DoShowFPDocEditor'){$ENDIF};
+    FPDocEditor.DisableAutoSizing('DoShowFPDocEditor');
 
   if State>=iwgfShow then
     IDEWindowCreators.ShowForm(FPDocEditor,State=iwgfShowOnTop);

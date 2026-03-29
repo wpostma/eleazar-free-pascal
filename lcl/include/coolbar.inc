@@ -682,13 +682,13 @@ begin
     if aRowEnd then inc(aTop, FVisiBands[i].FHeight+TCoolBand.cDivider);
   end;
   if AutoSize then begin
-    if aCountM1 >= 0 then DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomCoolBar.CalculateAndAlign'){$ENDIF};
+    if aCountM1 >= 0 then DisableAutoSizing('TCustomCoolBar.CalculateAndAlign');
     inc(FUpdateCount);
     try
       InvalidatePreferredSize;
       AdjustSize;
     finally
-      if aCountM1 >= 0 then EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomCoolBar.CalculateAndAlign'){$ENDIF};
+      if aCountM1 >= 0 then EnableAutoSizing('TCustomCoolBar.CalculateAndAlign');
       dec(FUpdateCount);
     end;
   end;
@@ -800,11 +800,11 @@ begin
   inherited EndUpdate;
   //DebugLn('EndUpdate calls CalculateAndAlign');
   if FUpdateCount = 0 then begin
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomCoolBar.EndUpdate'){$ENDIF};
+    DisableAutoSizing('TCustomCoolBar.EndUpdate');
     try
       CalculateAndAlign;
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomCoolBar.EndUpdate'){$ENDIF};
+      EnableAutoSizing('TCustomCoolBar.EndUpdate');
     end;
     Invalidate;
   end;

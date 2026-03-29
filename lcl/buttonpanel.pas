@@ -190,30 +190,32 @@ var
   btn: TPanelButton;
   aButton: TPanelBitBtn;
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.DoShowButtons'){$ENDIF};
+  DisableAutoSizing('TCustomButtonPanel.DoShowButtons');
+  try
+    for btn := Low(btn) to High(btn) do
+    begin
+      if FButtons[btn] = nil
+      then CreateButton(btn);
+      aButton:=FButtons[btn];
 
-  for btn := Low(btn) to High(btn) do
-  begin
-    if FButtons[btn] = nil
-    then CreateButton(btn);
-    aButton:=FButtons[btn];
-
-    if btn in FShowButtons
-    then begin
-      if csDesigning in ComponentState then
-        aButton.ControlStyle:=aButton.ControlStyle-[csNoDesignVisible];
-      aButton.Visible := True;
-    end
-    else begin
-      if csDesigning in ComponentState then
-        aButton.ControlStyle:=aButton.ControlStyle+[csNoDesignVisible];
-      aButton.Visible := False;
+      if btn in FShowButtons
+      then begin
+        if csDesigning in ComponentState then
+          aButton.ControlStyle:=aButton.ControlStyle-[csNoDesignVisible];
+        aButton.Visible := True;
+      end
+      else begin
+        if csDesigning in ComponentState then
+          aButton.ControlStyle:=aButton.ControlStyle+[csNoDesignVisible];
+        aButton.Visible := False;
+      end;
     end;
-  end;
 
-  UpdateButtonOrder;
-  UpdateButtonLayout;
-  EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.DoShowButtons'){$ENDIF};
+    UpdateButtonOrder;
+    UpdateButtonLayout;
+  finally
+    EnableAutoSizing('TCustomButtonPanel.DoShowButtons');
+  end;
 end;
 
 procedure TCustomButtonPanel.SetShowButtons(Value: TPanelButtons);
@@ -230,17 +232,20 @@ procedure TCustomButtonPanel.DoShowGlyphs;
 var
   btn: TPanelButton;
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.DoShowGlyphs'){$ENDIF};
-  for btn := Low(btn) to High(btn) do
-  begin
-    if FButtons[btn] = nil then Continue;
+  DisableAutoSizing('TCustomButtonPanel.DoShowGlyphs');
+  try
+    for btn := Low(btn) to High(btn) do
+    begin
+      if FButtons[btn] = nil then Continue;
 
-    if btn in FShowGlyphs then 
-      FButtons[btn].GlyphShowMode := gsmApplication
-    else
-      FButtons[btn].GlyphShowMode := gsmNever;
+      if btn in FShowGlyphs then 
+        FButtons[btn].GlyphShowMode := gsmApplication
+      else
+        FButtons[btn].GlyphShowMode := gsmNever;
+    end;
+  finally
+    EnableAutoSizing('TCustomButtonPanel.DoShowGlyphs');
   end;
-  EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.DoShowGlyphs'){$ENDIF};
 end;
 
 procedure TCustomButtonPanel.SetShowGlyphs(Value: TPanelButtons);
@@ -386,7 +391,7 @@ begin
   Details := ThemeServices.GetElementDetails(tbPushButtonNormal);
   DefButtonSize := ThemeServices.GetDetailSizeForPPI(Details, Font.PixelsPerInch);
 
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.UpdateButtonSize'){$ENDIF};
+  DisableAutoSizing('TCustomButtonPanel.UpdateButtonSize');
   try
     for btn in FButtons do
     begin
@@ -402,20 +407,20 @@ begin
       end;
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.UpdateButtonSize'){$ENDIF};
+    EnableAutoSizing('TCustomButtonPanel.UpdateButtonSize');
   end;
 end;
 
 procedure TCustomButtonPanel.SetAlign(Value: TAlign);
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.SetAlign'){$ENDIF};
+  DisableAutoSizing('TCustomButtonPanel.SetAlign');
   try
     inherited SetAlign(Value);
     UpdateButtonLayout;
     UpdateBevel;
     UpdateSizes;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.SetAlign'){$ENDIF};
+    EnableAutoSizing('TCustomButtonPanel.SetAlign');
   end;
 end;
 
@@ -470,7 +475,7 @@ begin
     Exit;
   end;
 
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.SetShowBevel'){$ENDIF};
+  DisableAutoSizing('TCustomButtonPanel.SetShowBevel');
   try
     FBevel := TBevel.Create(Self);
     FBevel.Parent := Self;
@@ -478,7 +483,7 @@ begin
 
     UpdateBevel;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomButtonPanel.SetShowBevel'){$ENDIF};
+    EnableAutoSizing('TCustomButtonPanel.SetShowBevel');
   end;
 end;
 

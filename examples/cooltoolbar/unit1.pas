@@ -153,7 +153,7 @@ begin
       else if i=cTBLeft
         then AcTBLeft.Execute
         else AcTBRight.Execute;
-    CoolBar1.DisableAutoSizing;
+    CoolBar1.DisableAutoSizing('');
     for i:=0 to CoolBar1.Bands.Count-1 do
       begin
         aPos:=INI.ReadInteger(cCoolBarSettings, cBandPos+inttostr(i), i);
@@ -170,7 +170,7 @@ begin
         CoolBar1.Bands[i].Break:=INI.ReadBool(cCoolBarSettings, cBandBreak+inttostr(i), True);
         CoolBar1.Bands[i].Visible:=INI.ReadBool(cCoolBarSettings, cBandVisi+inttostr(i), True);
       end;
-    CoolBar1.EnableAutoSizing;
+    CoolBar1.EnableAutoSizing('');
     AcTB1Visi.Checked:=TCoolBand(CoolBar1.Bands.FindItemID(0)).Visible;
     AcTB2Visi.Checked:=TCoolBand(CoolBar1.Bands.FindItemID(1)).Visible;
     AcTB3Visi.Checked:=TCoolBand(CoolBar1.Bands.FindItemID(2)).Visible;

@@ -521,7 +521,7 @@ var
 begin
     Screen.BeginWaitCursor;
     Application.ProcessMessages;
-    DisableAutoSizing;                    // good improvement on form draw time
+    DisableAutoSizing('');                    // good improvement on form draw time
     //T1 := gettickcount64();
     Memo1.clear;
     EditSearch.text := '';
@@ -550,7 +550,7 @@ begin
     Screen.EndWaitCursor;
     Application.ProcessMessages;
     //debugln('TFormLazExam.FormShow Timing ' + inttostr(T2-T1) + 'mS '  + inttostr(T3-T2) + 'mS '  + inttostr(T4-T3) + 'mS '  + inttostr(T5-T4) + 'mS');
-    EnableAutoSizing;
+    EnableAutoSizing('');
 end;
 
 end.

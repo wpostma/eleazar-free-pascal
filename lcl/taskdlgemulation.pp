@@ -1109,7 +1109,7 @@ var
   Btn: TTaskDialogCommonButton;
   CustomButtonsTextLength: Integer;
 begin
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     GetDefaultButtons(aButtonDef, aRadioDef);
 
@@ -1242,7 +1242,7 @@ begin
         ActiveControl := QueryEdit;
 
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 

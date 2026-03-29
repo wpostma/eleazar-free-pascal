@@ -889,7 +889,7 @@ var
   si: TShadowItemBase;
 begin
   sb:=GetParentBoxForMenuItem(aMI);
-  sb.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TShadowMenu.DeleteBox'){$ENDIF};
+  sb.DisableAutoSizing('TShadowMenu.DeleteBox');
   for i:=aMI.Count-1 downto 0 do
     DeleteBox(aMI.Items[i]);
   Assert(sb<>nil,'TShadowMenu.DeleteBox: internal error');
@@ -1765,7 +1765,7 @@ begin
   FInitialSelectedMenuItem := aSelect;
   SetInitialBounds(0, 0, aWidth, aHeight);
   Name := 'ShadowMenu';
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TShadowMenu.Create'){$ENDIF};
+  DisableAutoSizing('TShadowMenu.Create');
   try
     FItemsPopupMenu := TPopupMenu.Create(Self);
     FItemsPopupMenu.Name := 'ItemsPopupMenu';
@@ -1797,7 +1797,7 @@ begin
     AutoSize := False;
     Align := alClient;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TShadowMenu.Create'){$ENDIF};
+    EnableAutoSizing('TShadowMenu.Create');
   end;
 end;
 
@@ -2000,7 +2000,7 @@ begin
   if (ShadowList.Count = 0) then
     Exit;
   FShadowList.Sort(@SortByItemMenuIndex);
-  DisableAutoSizing;
+  DisableAutoSizing('');
   if IsMenuBar then begin
     len:=0;
     for si in FShadowList do begin
@@ -2018,7 +2018,7 @@ begin
       Inc(t, h);
     end;
   end;
-  EnableAutoSizing;
+  EnableAutoSizing('');
 end;
 
 constructor TShadowBox.CreateWithParentBox(aSMenu: TShadowMenu;

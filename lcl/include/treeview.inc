@@ -3592,7 +3592,7 @@ begin
 
   if AMode in [lapAutoAdjustWithoutHorizontalScrolling, lapAutoAdjustForDPI] then
   begin
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomTreeView.DoAutoAdjustLayout'){$ENDIF};
+    DisableAutoSizing('TCustomTreeView.DoAutoAdjustLayout');
     try
       if DefaultItemHeightIsStored then
         DefaultItemHeight := Round(DefaultItemHeight*AYProportion);
@@ -3601,7 +3601,7 @@ begin
       if ExpandSignSizeIsStored then
         FExpandSignSize := Round(FExpandSignSize*AXProportion);
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomTreeView.DoAutoAdjustLayout'){$ENDIF};
+      EnableAutoSizing('TCustomTreeView.DoAutoAdjustLayout');
     end;
   end;
 end;

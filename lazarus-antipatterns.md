@@ -36,14 +36,78 @@ too.
 
 ---
 
+## The Worst Generic Flaw: Protocols Between Objects Without Contracts
+
+The single most damaging pattern in the LCL is objects that coordinate
+through implicit protocols with no enforceable contract.
+
+A child tells its parent to do something. Maybe. If the parent exists.
+If it's the right parent. If the lock count happens to be at the right
+value. The parent doesn't know which child told it. The child doesn't
+record which parent it told. Nobody verifies that the Disable and Enable
+were sent to the same object. Nobody checks that the object graph didn't
+change between the two calls.
+
+This isn't one bug. It's the *architecture*. It shows up everywhere:
+
+- **DisableAutoSizing / EnableAutoSizing** (section 8): Child propagates
+  a lock to Parent on Disable, but Parent might be nil, or a different
+  Parent, or gone entirely by Enable time. The Disable side silently does
+  nothing when Parent is nil. The Enable side has completely different
+  fallback logic (`DoAllAutoSize`). The two sides of the "protocol" don't
+  even agree on what to do when the contract can't be fulfilled.
+
+- **DoAllAutoSize loop** (section 5): Auto-size runs phases on a control
+  tree, but any phase can trigger GTK signals that re-enter auto-sizing
+  on other controls. There's no contract about which controls are allowed
+  to auto-size during which phase. Everything just runs and hopes it
+  converges within 100 iterations.
+
+- **Resizing → DoSetMainIDEHeight** (section 1): GTK tells the LCL
+  the size changed. The LCL responds by changing the size. GTK tells the
+  LCL the size changed again. There's no contract between the notification
+  producer (GTK) and the notification consumer (LCL) about who is allowed
+  to mutate during a notification.
+
+- **WM constraints** (section 6): The LCL tells the window manager to
+  enforce a height constraint. The WM enforces it by restricting window
+  movement. Neither side agreed on what "enforce" means. The LCL wanted
+  internal layout enforcement. The WM provided global movement restriction.
+  Same words, different contracts.
+
+The pattern is always the same: Object A tells Object B to do something.
+The protocol assumes B exists, B is the right B, B hasn't changed state
+since A last talked to it, and B interprets the message the same way A
+intended. None of these assumptions are checked. None are documented.
+When they're violated — during reparenting, during construction, during
+docking, during first launch with no saved config — the system silently
+corrupts its own state and nobody knows until a form doesn't lay out, a
+window doesn't show, or the IDE hangs forever.
+
+**The fix is contracts.** If Disable propagates to a parent, record which
+parent. If Enable needs to undo that, verify it's the same parent. If it
+isn't, raise an error instead of silently corrupting the lock count. If
+an auto-size phase requires that no GTK signals fire, enforce that with a
+flag that blocks signal delivery, don't just hope. If a protocol has two
+sides, both sides must agree on what happens in every case — including
+the cases where the preconditions aren't met.
+
+Protocols without contracts are just hopes. Hopes are not architecture.
+
+---
+
 ## Table of Contents
 
+0. [The Worst Generic Flaw: Protocols Between Objects Without Contracts](#the-worst-generic-flaw-protocols-between-objects-without-contracts)
 1. [Endless Recursion in Event Callbacks](#1-endless-recursion-in-event-callbacks)
 2. [Default Window Positions Span All Monitors](#2-default-window-positions-span-all-monitors)
 3. [Synchronous X11 Round-Trip Inside GTK Signal Handler](#3-synchronous-x11-round-trip-inside-gtk-signal-handler)
 4. [Editorial: The Fresh Install Is Completely Broken](#4-editorial-the-fresh-install-is-completely-broken)
 5. [AutoSize Phase System: Phases That Aren't Phases](#5-autosize-phase-system-phases-that-arent-phases)
 6. [WM Constraints That Fight the User](#6-wm-constraints-that-fight-the-user)
+7. [Silent Early Exit: `if Condition then Exit`](#7-silent-early-exit-if-condition-then-exit)
+8. [TControl.DisableAutoSizing: A Lock That Isn't a Lock](#8-tcontroldisableautosizing-a-lock-that-isnt-a-lock)
+9. [Selftest-on-Startup That Poisons Its Own Config](#9-selftest-on-startup-that-poisons-its-own-config)
 
 ---
 
@@ -700,3 +764,422 @@ as a normal freely-movable window. See `lcl-evolution.md` item #2.
 |------|------|
 | `ide/mainbar.pas` | `DoSetMainIDEHeight` — was setting WM constraints |
 | `lcl/interfaces/gtk2/gtk2wsforms.pp` | `SetConstraints` — sends hints to WM |
+
+---
+
+## 7. Silent Early Exit: `if Condition then Exit`
+
+**Status:** Coding standard for Yossi fork
+
+### The Antipattern
+
+```pascal
+if not Showing then Exit;
+```
+
+This is everywhere in the LCL and IDE. A function silently does nothing
+based on a condition the caller can't see. When debugging, you have no
+idea the function was called and bailed out. Hours are wasted wondering
+"why didn't the height get set?" when the answer is a silent `Exit` on
+line 432.
+
+### The Rule
+
+**Never write `if Condition then Exit;` without logging.**
+
+Always:
+
+```pascal
+if not Showing then begin
+  DebugLn('[DoSetMainIDEHeight] not Showing — skipping');
+  Exit;
+end;
+```
+
+This way, when things don't work, there's a clue. The cost of a
+`DebugLn` call that nobody reads is zero. The cost of a silent `Exit`
+that hides a bug is hours.
+
+### Why This Matters
+
+`DoSetMainIDEHeight` had `if not Showing then Exit` at the top. On
+first launch, `Showing` is `False` because the form hasn't been shown
+yet. The function silently did nothing. The toolbar height was never
+set. The dock site started at the wrong position. The IDE looked broken.
+
+The fix was to remove the early exit entirely — the height MUST be set
+before showing. But finding the bug required reading the function,
+noticing the silent exit, and understanding that `Showing` is `False`
+during construction. A logged exit would have made it obvious in the
+debug log.
+
+### Acceptable Form
+
+```pascal
+if not Showing then begin
+  DebugLn('[DoSetMainIDEHeight] not Showing — deferring');
+  // Queue for later: Application.QueueAsyncCall(@DeferredSetHeight, 0);
+  Exit;
+end;
+```
+
+The key elements: explain WHY you're exiting, and ideally, schedule the
+work for later instead of silently dropping it.
+
+---
+
+## 7b. Coding Standard: One Log Per Call in Enable/Disable Functions
+
+**Status:** Coding standard for Yossi fork
+
+### The Rule
+
+Any function that increments or decrements a lock count — `DisableAutoSizing`,
+`EnableAutoSizing`, `BeginFormUpdate`, `EndFormUpdate`, or anything like
+them — MUST emit exactly **one** log message per call. Not zero. Not two.
+One.
+
+### Why
+
+These functions are the most debugged code in the LCL. When auto-sizing
+is stuck, the ONLY way to find the orphaned call is to read the log and
+match up every Disable with its Enable. If any call is silent, you have
+a gap. If any call logs twice (once for itself, once for the parent
+propagation), you have noise that looks like a real call. Both make the
+log useless.
+
+One call, one line. Always. Every path through the function hits the
+same `DebugLn`. No path skips it.
+
+### Requirements
+
+**1. One `DebugLn`, unconditional, every path.**
+
+No `{$IFDEF}` around the log call. No `if FAutoSizingLockCount=1 then`
+gating. The log is not optional. It fires whether you're debugging or
+not. The cost of a `DebugLn` is nothing compared to the hours lost
+finding a silent mismatch.
+
+**2. The reason is always in the log.**
+
+Even when `{$IFDEF DebugDisableAutoSizing}` is off, the log message
+must include enough to identify the caller. Use the caller's name as
+a string literal if you must. The point is: when you read the log, you
+can see WHO called Disable and WHO called Enable without recompiling.
+
+**3. No nested `if`.**
+
+Flat control flow. Decide what to do, log it, do it. Don't nest
+`if Parent<>nil then if FAutoSizingLockCount=1 then`. Each condition
+gets its own block or the function is restructured so nesting isn't
+needed.
+
+**4. The log line contains: who, what, count, and context.**
+
+```
+[DisableAutoSizing] Button1:TButton count=1 parent=Panel1:TPanel reason='loading'
+[EnableAutoSizing]  Button1:TButton count=0 parent=Panel1:TPanel reason='loading' → DoAllAutoSize
+[DisableAutoSizing] Button1:TButton count=1 parent=nil reason='reparenting'
+```
+
+- **Who:** `DbgSName(Self)`
+- **What:** function name
+- **Count:** the lock count AFTER the inc/dec
+- **Context:** parent (or `nil`), reason, and what action was taken
+  (propagated to parent, called DoAllAutoSize, did nothing, error)
+
+### Template
+
+```pascal
+procedure TControl.DisableAutoSizing(const AReason: string);
+var
+  Action: string;
+begin
+  Inc(FAutoSizingLockCount);
+  if (FAutoSizingLockCount = 1) and (Parent <> nil) then
+    Action := 'propagate to ' + DbgSName(Parent)
+  else
+    Action := 'no propagation';
+  DebugLn(['[DisableAutoSizing] ', DbgSName(Self),
+    ' count=', FAutoSizingLockCount,
+    ' parent=', DbgSName(Parent),
+    ' reason="', AReason, '"',
+    ' → ', Action]);
+  if (FAutoSizingLockCount = 1) and (Parent <> nil) then
+    Parent.DisableAutoSizing('child:' + DbgSName(Self));
+end;
+```
+
+One call. One log. One line. Always. If you can't see what happened by
+reading the log, the log is wrong.
+
+---
+
+## 8. TControl.DisableAutoSizing: A Lock That Isn't a Lock
+
+**Status:** Architectural problem
+**Unit:** `lcl/include/control.inc`
+**Severity:** Root cause contributor — makes autosize bugs nearly impossible to diagnose
+
+### The Code
+
+```pascal
+procedure TControl.DisableAutoSizing
+  {$IFDEF DebugDisableAutoSizing}(const Reason: string){$ENDIF};
+begin
+  inc(FAutoSizingLockCount);
+  {$IFDEF DebugDisableAutoSizing}
+  if FAutoSizingLockReasons=nil then FAutoSizingLockReasons:=TStringList.Create;
+  FAutoSizingLockReasons.Add(Reason);
+  {$ENDIF}
+  DebugLn([Space(FAutoSizingLockCount*2),'TControl.DisableAutoSizing ',DbgSName(Self),' ',FAutoSizingLockCount]);
+  if FAutoSizingLockCount=1 then
+  begin
+    if Parent<>nil then
+    begin
+      Parent.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.DisableAutoSizing'){$ENDIF};
+    end;
+  end;
+end;
+```
+
+### What's Wrong
+
+**1. The debug infrastructure is compiled out by default.**
+
+The `Reason` parameter — the one thing that would tell you WHY
+auto-sizing was disabled — only exists when `DebugDisableAutoSizing` is
+defined. In a normal build, calls are `DisableAutoSizing` with no
+argument. When you're debugging a hang caused by a stuck lock count, you
+have no idea which caller incremented it and never decremented it.
+
+The `FAutoSizingLockReasons` string list that tracks the stack of reasons?
+Also compiled out. The diagnostic tool exists but is behind a define that
+nobody enables in their normal development build.
+
+**2. It's a reference-counted lock that propagates to parents — asymmetrically.**
+
+When `FAutoSizingLockCount` goes from 0 to 1, it calls
+`Parent.DisableAutoSizing` — which increments the parent's lock count,
+which (if the parent goes from 0 to 1) propagates to the grandparent,
+and so on up the tree. `EnableAutoSizing` reverses this.
+
+This means a single mismatched `DisableAutoSizing` on a deeply-nested
+control silently locks the entire parent chain. No auto-sizing happens
+anywhere in that branch of the control tree. No error. No warning. The
+form just never lays out correctly, and you get to guess which of the
+hundreds of `DisableAutoSizing` calls forgot its `EnableAutoSizing`.
+
+**3. Parent=nil race: silent corruption.**
+
+Look at what happens when `FAutoSizingLockCount` hits 1 and `Parent`
+is `nil`:
+
+```pascal
+  if FAutoSizingLockCount=1 then
+  begin
+    if Parent<>nil then              // Parent is nil → nothing happens
+      Parent.DisableAutoSizing(...);
+  end;
+```
+
+It just... does nothing. No propagation, no logging, no record that
+this top-level control is now locked. Is that intentional? Is the
+control a top-level form? Was it just reparented? Is it mid-construction
+and Parent hasn't been assigned yet? Nobody knows. It's silent.
+
+Now look at `EnableAutoSizing`:
+
+```pascal
+  if (FAutoSizingLockCount=0) then
+  begin
+    if (Parent<>nil) then
+      Parent.EnableAutoSizing(...)   // propagate up
+    else
+      DoAllAutoSize;                 // no parent → auto-size self
+  end;
+```
+
+The Enable side has DIFFERENT logic from the Disable side. This creates
+three race conditions when Parent changes between Disable and Enable:
+
+| Disable time | Enable time | Result |
+|---|---|---|
+| Parent = nil | Parent = nil | OK — `DoAllAutoSize` runs on self |
+| Parent = A | Parent = A | OK — symmetric propagation |
+| **Parent = nil** | **Parent = B** | **BUG — `B.EnableAutoSizing` called but `B.DisableAutoSizing` was never called → underflow exception or negative lock count on B** |
+| **Parent = A** | **Parent = nil** | **BUG — `A.DisableAutoSizing` was called but `A.EnableAutoSizing` never is → A stays locked forever, auto-sizing never runs on that branch again** |
+
+This isn't hypothetical. Controls get reparented during docking, during
+form construction, during `TMainIDE.Create` when dock panels are built
+and populated. Every reparenting between a Disable/Enable pair silently
+corrupts the lock counts somewhere in the control tree.
+
+**4. The unconditional DebugLn is noise.**
+
+The bare `DebugLn` call (outside the `{$IFDEF}`) fires on EVERY
+disable/enable cycle in debug builds. Auto-sizing is disabled and
+enabled hundreds of times during form construction. This produces
+thousands of log lines that obscure the one line you care about — the
+unpaired call. It's the logging equivalent of a car alarm that goes
+off every time the wind blows: you learn to ignore it.
+
+**5. The debug mode is a two-API fork that leaks RAM.**
+
+The `{$IFDEF DebugDisableAutoSizing}` doesn't just toggle logging — it
+changes the function *signature*. Without the define, it's
+`DisableAutoSizing` (no parameters). With it, it's
+`DisableAutoSizing(const Reason: string)`. Every callsite in the LCL
+has both forms: `{$IFDEF DebugDisableAutoSizing}('reason'){$ENDIF}`.
+You're maintaining two different APIs in the same source file, toggled
+by a compile flag.
+
+When the define IS on, `FAutoSizingLockReasons` is created on first
+Disable and entries are added on every call. Enable deletes matching
+entries. But if there's ever a mismatch — and there will be, because
+reparenting corrupts the lock counts (see #3 above) — entries
+accumulate forever. The TStringList is never freed outside the
+`{$IFDEF}` destructor path. So you enable the debug flag to diagnose
+why auto-sizing is stuck, and the diagnostic tool itself leaks memory
+for every orphaned reason string. You're debugging a leak with a leak.
+
+**6. There's no overflow or underflow protection.**
+
+`FAutoSizingLockCount` is a plain integer. Nothing prevents it from
+going negative (double-enable) or overflowing (leaked disables
+accumulating forever). A negative count would silently cause auto-sizing
+to run when it shouldn't. An ever-growing count would silently prevent
+auto-sizing forever. Both failures are silent.
+
+### The Pattern
+
+This is Yossi's suit again. The API looks reasonable — disable
+auto-sizing, do your work, re-enable it. But the implementation:
+- Hides the only useful diagnostic behind a compile-time flag
+- Silently propagates up the control tree
+- Has no protection against misuse
+- Floods the log with noise that drowns out real problems
+
+To debug an auto-sizing hang, you have to: recompile the LCL with
+`-dDebugDisableAutoSizing`, reproduce the bug, wade through thousands
+of log lines, and manually match up every Disable/Enable pair to find
+the orphan. This is a multi-hour process for what should be a simple
+"who forgot to call EnableAutoSizing?" question.
+
+### What It Should Be
+
+```pascal
+procedure TControl.DisableAutoSizing(const Reason: string);
+begin
+  inc(FAutoSizingLockCount);
+  FAutoSizingLockReasons.Add(Reason);  // ALWAYS, not just in debug builds
+  if FAutoSizingLockCount=1 then
+    if Parent<>nil then
+      Parent.DisableAutoSizing('child:' + DbgSName(Self));
+end;
+
+procedure TControl.EnableAutoSizing(const Reason: string);
+begin
+  if FAutoSizingLockCount <= 0 then begin
+    DebugLn(['ERROR: EnableAutoSizing underflow on ', DbgSName(Self),
+      ' reason="', Reason, '"']);
+    Exit;
+  end;
+  // ... remove matching reason, decrement, propagate to parent
+end;
+```
+
+The `Reason` parameter should always be there. The reason list should
+always be tracked. Underflow should be caught and logged. The parent
+propagation reason should identify which child caused it. None of this
+needs a compile-time flag — a string list add is not a performance
+bottleneck compared to the hundreds of GTK round-trips that auto-sizing
+already does.
+
+### Files Involved
+
+| File | Role |
+|------|------|
+| `lcl/include/control.inc` | `DisableAutoSizing` / `EnableAutoSizing` |
+| `lcl/controls.pp` | `FAutoSizingLockCount`, `FAutoSizingLockReasons` declarations |
+| `lcl/include/wincontrol.inc` | `DoAllAutoSize` — checks `AutoSizingLockCount` |
+
+---
+
+## 9. Selftest-on-Startup That Poisons Its Own Config
+
+**Status:** Design problem
+**Unit:** `components/macroscript/registerems.pas`
+**Severity:** Medium — package permanently disabled after any startup crash
+
+### The Pattern
+
+The EditorMacroScript package runs a selftest on every IDE startup:
+
+```pascal
+conf.SelfTestActive := True;   // flag: "test in progress"
+conf.Save;                     // persist to ~/.lazarus/editormacroscript.xml
+
+ok := DoSelfTest;              // run the test
+
+conf.SelfTestActive := False;  // clear the flag
+conf.SelfTestFailed := 0;
+conf.Save;
+```
+
+If the IDE crashes or hangs for ANY reason during startup — not just a
+macroscript problem — the `SelfTestActive` flag stays set in the XML.
+On next launch, the package sees the stale flag:
+
+```pascal
+if conf.SelfTestActive then begin
+  conf.SelfTestFailed := EMSVersion;
+  conf.SelfTestError := 'failed last time';
+  conf.Save;
+  MessageDlg('The package selftest was not completed...');
+end;
+```
+
+The package disables itself permanently. The user sees "EditorMacroScript
+has detected a problem and was deactivated" with no way to re-enable it
+from the UI. The fix is to manually edit the XML file.
+
+### Why This Is Bad
+
+1. **It punishes the innocent.** Our fresh-install hang had nothing to do
+   with PascalScript. But because the IDE hung during startup, the
+   selftest flag was left set, and macroscript was disabled on the next
+   (fixed) launch.
+
+2. **The error message is misleading.** "The package selftest was not
+   completed" implies the package is broken. The real cause is that
+   the IDE crashed during startup for an unrelated reason.
+
+3. **There's no recovery path.** No UI to re-enable the package. No
+   "try again" button. No timeout. The user has to know to find and
+   edit `~/.lazarus/editormacroscript.xml`.
+
+### The Fix
+
+```
+~/.lazarus/editormacroscript.xml:
+  Set SelfTestFailed="0" and SelfTestError=""
+```
+
+### The Better Fix
+
+Don't persist a "test in progress" flag to disk. Instead:
+- Run the selftest
+- If it fails, record the failure
+- If the IDE crashes, that's not a selftest failure — don't treat it as one
+- Or at minimum: on next launch, offer "The IDE crashed last time.
+  Re-run macroscript selftest? [Yes] [Disable]" instead of silently
+  disabling the package
+
+### Files Involved
+
+| File | Role |
+|------|------|
+| `components/macroscript/registerems.pas` | Selftest runner and config persistence |
+| `components/macroscript/emsselftest.pas` | Actual selftest implementation |
+| `~/.lazarus/editormacroscript.xml` | Persisted selftest state |

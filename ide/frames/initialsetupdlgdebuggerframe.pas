@@ -617,7 +617,7 @@ var
 begin
   inc(FInChangeLock);
   try
-    DisableAutoSizing;
+    DisableAutoSizing('');
     Result := resOk;
 
     // This only needs update, if a macro in the path changes
@@ -736,7 +736,7 @@ begin
   finally
     dec(FInChangeLock);
 
-    EnableAutoSizing;
+    EnableAutoSizing('');
     FrameResize(nil);
   end;
 end;

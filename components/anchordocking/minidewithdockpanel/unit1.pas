@@ -309,7 +309,7 @@ procedure TMainIDE.ShowForm(AForm: TCustomForm; FormEnableAutosizing: boolean);
 begin
   DockMaster.MakeDockable(AForm);
   if FormEnableAutosizing then
-    AForm.EnableAutoSizing;
+    AForm.EnableAutoSizing('');
 end;
 
 procedure TMainIDE.SaveLayout(Filename: string);

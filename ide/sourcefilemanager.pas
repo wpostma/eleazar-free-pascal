@@ -2566,7 +2566,7 @@ begin
                              and (NewUnitInfo.Component is TCustomDesignControl)
                              and IDETabMaster.AutoSizeInShowDesigner(TControl(NewUnitInfo.Component));
           if not PreventAutoSize then
-            TControl(NewUnitInfo.Component).EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+            TControl(NewUnitInfo.Component).EnableAutoSizing('TAnchorDockMaster Delayed');
         end;
       end;
       if Result<>mrOk then
@@ -6647,7 +6647,7 @@ begin
                                and (NewControl is TCustomDesignControl)
                                and IDETabMaster.AutoSizeInShowDesigner(NewControl);
             if not PreventAutoSize then
-              NewControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+              NewControl.EnableAutoSizing('TAnchorDockMaster Delayed');
           end;
         end;
 

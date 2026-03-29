@@ -481,7 +481,7 @@ begin
 
   FrameList := SetupDlgFrameList;
   FrameList.Sort(@DoCompFrameList);
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     for i := 0 to FrameList.Count - 1 do begin
       CurFrame := FrameList[i];
@@ -563,7 +563,7 @@ begin
       CurFrame.AddToDialog(Self, NewParent, Self);
     end;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 
   UpdateCaptions;
@@ -1522,6 +1522,7 @@ begin
   if IsFirstStart or (EnvironmentOptions.FPCSourceDirectory='')
   or (not FileExistsCached(EnvironmentOptions.GetParsedFPCSourceDirectory))
   then begin
+    debugln('[InitialSetup] FPC source directory needs to be located');
     // first start => choose first best candidate
     {$IFDEF DebugSearchFPCSrcThread}
     Candidate:=nil;
@@ -1529,7 +1530,9 @@ begin
     Candidate:=GetFirstCandidate(FCandidates[sddtFPCSrcDir]);
     {$ENDIF}
     if Candidate<>nil then begin
+      debugln('[InitialSetup] Found FPC source candidate: ', Candidate.Caption);
       EnvironmentOptions.FPCSourceDirectory:=Candidate.Caption;
+      debugln('[InitialSetup] FPC source directory set to: ', EnvironmentOptions.FPCSourceDirectory);
     end
     else begin
       // No candidates found => start a thread to scan the file system.

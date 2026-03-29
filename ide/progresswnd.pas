@@ -253,7 +253,7 @@ begin
   inherited Notification(AComponent, Operation);
   if (Operation=opRemove) and (Count>0) then
   begin
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TIDEProgressWindow.Notification'){$ENDIF};
+    DisableAutoSizing('TIDEProgressWindow.Notification');
     try
       for i:=Count-1 downto 0 do
         if Items[i]=AComponent then
@@ -265,7 +265,7 @@ begin
       if Count=0 then
         Hide;
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TIDEProgressWindow.Notification'){$ENDIF};
+      EnableAutoSizing('TIDEProgressWindow.Notification');
     end;
   end;
 end;
@@ -349,14 +349,14 @@ begin
   Result.ProgressBar.BorderSpacing.Around:=6;
 
   // show panel
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TIDEProgressWindow.AddItem'){$ENDIF};
+  DisableAutoSizing('TIDEProgressWindow.AddItem');
   try
     AutoSize:=false;
     Result.Panel.Parent:=Self;
     AutoSize:=true;
     Show;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TIDEProgressWindow.AddItem'){$ENDIF};
+    EnableAutoSizing('TIDEProgressWindow.AddItem');
   end;
 end;
 

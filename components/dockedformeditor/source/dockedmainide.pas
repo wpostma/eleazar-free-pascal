@@ -193,7 +193,7 @@ begin
   begin
     FAutoSizeControlList.Delete(AIndex);
     if AutoSizeControl.AutoSizeDelayed then
-      AutoSizeControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+      AutoSizeControl.EnableAutoSizing('TAnchorDockMaster Delayed');
   end;
 end;
 

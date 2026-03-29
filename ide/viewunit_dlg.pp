@@ -568,7 +568,7 @@ procedure TViewUnitDialog.ShowEntries;
 var
   UEntry: TViewUnitsEntry;
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TViewUnitDialog.ShowEntries'){$ENDIF};
+  DisableAutoSizing('TViewUnitDialog.ShowEntries');
   try
     // Data items
     FilterEdit.Items.Clear;
@@ -576,7 +576,7 @@ begin
       FilterEdit.Items.AddObject(UEntry.Name, UEntry);
     FilterEdit.InvalidateFilter;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TViewUnitDialog.ShowEntries'){$ENDIF};
+    EnableAutoSizing('TViewUnitDialog.ShowEntries');
   end;
 end;
 

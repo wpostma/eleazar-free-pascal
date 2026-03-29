@@ -39,20 +39,20 @@ begin
   Result:=TSimpleForm(Screen.FindForm(Name));
   if Result is TSimpleForm then begin
     if DisableAutoSizing then
-      Result.DisableAutoSizing;
+      Result.DisableAutoSizing('');
     exit;
   end;
 
   // create it
   Result:=TSimpleForm(TSimpleForm.NewInstance);
-  Result.DisableAutoSizing;
+  Result.DisableAutoSizing('');
   Result.Create(Application);
   Result.Caption:=Title;
   Result.Name:=Name;
   Result.Memo1.Lines.Text:=Name;
   Result.BoundsRect:=NewBounds;
   if not DisableAutoSizing then
-    Result.EnableAutoSizing;
+    Result.EnableAutoSizing('');
 end;
 
 {$R *.lfm}

@@ -194,7 +194,7 @@ begin
   else
     NewControlIndex := FNotebook.GetControlIndex(TCustomPage(FPageList[NewIndex]));
 
-  FNotebook.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TNBPages.Move'){$ENDIF};
+  FNotebook.DisableAutoSizing('TNBPages.Move');
   try
      // move Page in notebook handle
     FNotebook.WSMovePage(APage, NewIndex);
@@ -212,7 +212,7 @@ begin
     if FNotebook.PageIndex >= 0 then // keep if -1
       FNotebook.PageIndex := NewIndex;
   finally
-    FNotebook.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TNBPages.Move'){$ENDIF};
+    FNotebook.EnableAutoSizing('TNBPages.Move');
   end;
 end;
 
@@ -711,7 +711,7 @@ end;
 
 procedure TCustomTabControl.AddRemovePageHandle(APage: TCustomPage);
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomTabControl.AddRemovePageHandle'){$ENDIF};
+  DisableAutoSizing('TCustomTabControl.AddRemovePageHandle');
   try
     if (not (csDestroying in APage.ComponentState))
     and (APage.TabVisible or (csDesigning in ComponentState)) then begin
@@ -736,7 +736,7 @@ begin
       Exclude(APage.FFlags, pfRemoving);
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomTabControl.AddRemovePageHandle'){$ENDIF};
+    EnableAutoSizing('TCustomTabControl.AddRemovePageHandle');
   end;
 end;
 

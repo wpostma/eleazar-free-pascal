@@ -307,8 +307,15 @@ var
 begin
   inherited AdjustMainIDEWindowHeight(AIDEWindow, AAdjustHeight, ANewHeight);
 
+  DebugLn('[AdjustMainIDEWindowHeight] AdjustH=',dbgs(AAdjustHeight),
+    ' NewH=',dbgs(ANewHeight),
+    ' ChildCount=',dbgs(AIDEWindow.ControlCount));
+
   Site := nil;
-  for I := 0 to AIDEWindow.ControlCount-1 do
+  for I := 0 to AIDEWindow.ControlCount-1 do begin
+    DebugLn('  Child[',dbgs(I),']: ',AIDEWindow.Controls[I].Name,':',
+      AIDEWindow.Controls[I].ClassName,
+      ' IsDockSite=',dbgs(AIDEWindow.Controls[I] is TAnchorDockHostSite));
     if AIDEWindow.Controls[I] is TAnchorDockHostSite then
     begin
       Site := TAnchorDockHostSite(AIDEWindow.Controls[I]);
@@ -317,9 +324,21 @@ begin
       else
         Site := nil;
     end;
+  end;
 
-  if (Site=nil) or (Site.BoundSplitter=nil) then
+  if Site=nil then begin
+    DebugLn('[AdjustMainIDEWindowHeight] No dock site found — cannot adjust');
     Exit;
+  end;
+  if Site.BoundSplitter=nil then begin
+    DebugLn('[AdjustMainIDEWindowHeight] Site has no BoundSplitter — cannot adjust');
+    Exit;
+  end;
+
+  DebugLn('[AdjustMainIDEWindowHeight] Site=',Site.Name,
+    ' SiteH=',dbgs(Site.Height),
+    ' ParentClientH=',dbgs(Site.Parent.ClientHeight),
+    ' SplitterH=',dbgs(Site.BoundSplitter.Height));
 
   Site.BoundSplitter.Enabled := not AAdjustHeight;
   Site.BoundSplitter.CustomWidth := not Site.BoundSplitter.Enabled;
@@ -331,6 +350,8 @@ begin
     Site.BoundSplitter.Height := Site.BoundSplitter.Constraints.MinHeight;
   end;
   SiteNewHeight := Site.Parent.ClientHeight - ANewHeight - Site.BoundSplitter.Height;
+  DebugLn('[AdjustMainIDEWindowHeight] Setting SiteH=',dbgs(SiteNewHeight),
+    ' (was ',dbgs(Site.Height),')');
   if AAdjustHeight and (Site.Height <> SiteNewHeight) then
     Site.Height := SiteNewHeight;
 end;

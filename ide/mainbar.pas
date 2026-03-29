@@ -429,8 +429,13 @@ end;
 
 procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
 begin
-  if not Showing then Exit;
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDEBar.DoSetMainIDEHeight'){$ENDIF};
+  DebugLn('[DoSetMainIDEHeight] Maximized=',dbgs(AIDEIsMaximized),
+    ' RequestedH=',dbgs(ANewHeight),
+    ' CalcH=',dbgs(CalcMainIDEHeight),
+    ' Showing=',dbgs(Showing),
+    ' DockMaster=',dbgs(Assigned(IDEDockMaster)),
+    ' Bounds=',dbgs(BoundsRect));
+  //DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
   try
     if Assigned(IDEDockMaster) then
     begin
@@ -466,8 +471,9 @@ begin
       end;
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDEBar.DoSetMainIDEHeight'){$ENDIF};
+    //EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
   end;
+  DebugLn('[TMainIDEBar.DoSetMainIDEHeight] done, ClientHeight=', IntToStr(ClientHeight));
 end;
 
 function TMainIDEBar.CalcMainIDEHeight: Integer;
@@ -479,7 +485,10 @@ var
 begin
   Result := 0;
   if (EnvironmentGuiOpts=Nil) or (CoolBar=Nil) or (ComponentPageControl=Nil) then
+  begin
+    DebugLn('CalcMainIDEHeight: Can''t calculate yet');
     Exit;
+  end;
 
   // IDE Coolbar height
   if EnvironmentGuiOpts.Desktop.IDECoolBarOptions.Visible then
@@ -667,6 +676,7 @@ end;
 
 procedure TMainIDEBar.Setup(TheOwner: TComponent);
 begin
+  DebugLn('[TMainIDEBar.Setup]');
   FMainOwningComponent := TheOwner;
   OnActive:=@MainBarActive;
 

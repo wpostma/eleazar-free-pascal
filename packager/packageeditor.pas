@@ -3660,22 +3660,18 @@ begin
   Result:=FindEditor(Pkg);
   if Result<>nil then begin
     if DoDisableAutoSizing then
-      Result.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+      Result.DisableAutoSizing('TAnchorDockMaster Delayed');
   end else begin
     Result:=TPackageEditorForm(TPackageEditorForm.NewInstance);
-    {$IFDEF DebugDisableAutoSizing}
     if DoDisableAutoSizing then
       Result.DisableAutoSizing('TAnchorDockMaster Delayed')
     else
       Result.DisableAutoSizing('TPackageEditors.OpenEditor');
-    {$ELSE}
-    Result.DisableAutoSizing;
-    {$ENDIF}
     Result.Create(LazarusIDE.OwningComponent);
     Result.LazPackage:=TEditablePackage(Pkg);
     FItems.Add(Result);
     if not DoDisableAutoSizing then
-      Result.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TPackageEditors.OpenEditor'){$ENDIF};
+      Result.EnableAutoSizing('TPackageEditors.OpenEditor');
   end;
 end;
 
@@ -3686,7 +3682,7 @@ begin
   try
     IDEWindowCreators.ShowForm(Result, BringToFront);
   finally
-    Result.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+    Result.EnableAutoSizing('TAnchorDockMaster Delayed');
   end;
 end;
 

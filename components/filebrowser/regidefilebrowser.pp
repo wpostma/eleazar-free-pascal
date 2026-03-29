@@ -64,7 +64,7 @@ begin
   if C.IdleHandlerWasCalled then  // Apparently it didn't.
     C.ConfigBrowser;
   if not DoDisableAutoSizing then
-    AForm.EnableAutoSizing;
+    AForm.EnableAutoSizing('');
 end;
 
 

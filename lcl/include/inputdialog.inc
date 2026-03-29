@@ -30,7 +30,7 @@ var
 begin
   Result := False;
   Form := TForm(TForm.NewInstance);
-  Form.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('ShowInputDialog'){$ENDIF};
+  Form.DisableAutoSizing('ShowInputDialog');
   Form.CreateNew(nil, 0);
   with Form do
   try
@@ -90,7 +90,7 @@ begin
 
     // upon show, the edit control will be focused for editing, because it's
     // the first in the tab order
-    Form.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('ShowInputDialog'){$ENDIF};
+    Form.EnableAutoSizing('ShowInputDialog');
     if ShowModal = mrOk then
     begin
       Value := Edit.Text;

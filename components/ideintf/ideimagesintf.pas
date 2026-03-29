@@ -60,8 +60,8 @@ type
     procedure AssignImage(const ASpeedButton: TCustomSpeedButton; ImageName: String;
       ImageSize: Integer = 16);
 
-    function LoadImage(ImageName: String; ImageSize: Integer = 16): Integer;
-    function GetImageIndex(ImageName: String; ImageSize: Integer = 16): Integer;
+    function LoadImage(ImageName: String; ImageSize: Integer = 24): Integer;
+    function GetImageIndex(ImageName: String; ImageSize: Integer = 24): Integer;
 
     (* Images_nn
        Each list contains images according to their default size at 96 PPI.
@@ -92,7 +92,7 @@ begin
     FImages_12 := TLCLGlyphs.Create(nil);
     FImages_12.Width := 12;
     FImages_12.Height := FImages_12.Width;
-    FImages_12.RegisterResolutions([12, 16, 24]);
+    FImages_12.RegisterResolutions([12, 16, 24, 32]);
   end;
   Result := FImages_12;
 end;
@@ -104,7 +104,7 @@ begin
     FImages_16 := TLCLGlyphs.Create(nil);
     FImages_16.Width := 16;
     FImages_16.Height := FImages_16.Width;
-    FImages_16.RegisterResolutions([16, 24, 32]);
+    FImages_16.RegisterResolutions([16, 24, 32, 48, 64]);
   end;
   Result := FImages_16;
 end;
@@ -116,7 +116,7 @@ begin
     FImages_24 := TLCLGlyphs.Create(nil);
     FImages_24.Width := 24;
     FImages_24.Height := FImages_24.Width;
-    FImages_24.RegisterResolutions([24, 36, 48]);
+    FImages_24.RegisterResolutions([24, 36, 48, 72, 96]);
   end;
   Result := FImages_24;
 end;

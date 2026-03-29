@@ -379,13 +379,13 @@ end;
 
 procedure TWikiSearchDemoForm.HideSearchButtonClick(Sender: TObject);
 begin
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     SearchPanel.Hide;
     Splitter1.Hide;
     ShowSearchToolButton.Visible:=true;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 
@@ -468,7 +468,7 @@ end;
 
 procedure TWikiSearchDemoForm.ShowSearchToolButtonClick(Sender: TObject);
 begin
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     Splitter1.Show;
     SearchPanel.Show;
@@ -476,7 +476,7 @@ begin
     Splitter1.Left:=Max(Splitter1.Left,SearchPanel.Width);
     ShowSearchToolButton.Visible:=false;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 
@@ -688,7 +688,7 @@ var
   ViewSrcForm: TForm;
 begin
   ViewSrcForm:=TForm.Create(Self);
-  ViewSrcForm.DisableAutoSizing;
+  ViewSrcForm.DisableAutoSizing('');
   try
     ViewSrcForm.Caption:=aTitle;
     ViewSrcForm.Position:=poScreenCenter;
@@ -704,7 +704,7 @@ begin
 
     ViewSrcForm.Show;
   finally
-    ViewSrcForm.EnableAutoSizing;
+    ViewSrcForm.EnableAutoSizing('');
   end;
 end;
 

@@ -663,7 +663,7 @@ begin
   then
     exit;
 
-  DisableAutoSizing;
+  DisableAutoSizing('');
   FCheckControlsVisibleRunning := True;
   try
     Limit := 5 + ClientHeight div (DefaultNodeHeight * 2);
@@ -727,7 +727,7 @@ begin
     FCheckControlsVisibleAgain := False;
     FCheckControlsVisibleRunning := False;
     // EnableAutoSizing: Some controls may change their node's height
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 
@@ -751,11 +751,11 @@ function TDbgTreeView.DoSetOffsetXY(Value: TPoint;
   Options: TScrollUpdateOptions; ClipRect: PRect): Boolean;
 begin
   inc(FCheckControlsVisibleLock);
-  DisableAutoSizing;
+  DisableAutoSizing('');
   Result := inherited DoSetOffsetXY(Value, Options, ClipRect);
   dec(FCheckControlsVisibleLock);
   CheckControlsVisible;
-  EnableAutoSizing;
+  EnableAutoSizing('');
 end;
 
 function TDbgTreeView.DoCollapsing(Node: PVirtualNode): Boolean;

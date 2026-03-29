@@ -2232,7 +2232,7 @@ begin
 
   if Result<>nil then begin
     if DisableAutoSizing then
-      Result.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+      Result.DisableAutoSizing('TAnchorDockMaster Delayed');
     exit;
   end;
   if AutoCreate then begin
@@ -2298,23 +2298,19 @@ procedure TIDEWindowCreatorList.CreateForm(var AForm;
 begin
   if TCustomForm(AForm)=nil then begin
     TCustomForm(AForm):=TCustomForm(AFormClass.NewInstance);
-    {$IFDEF DebugDisableAutoSizing}
     if DoDisableAutoSizing then
       TCustomForm(AForm).DisableAutoSizing('TAnchorDockMaster Delayed')
     else
       TCustomForm(AForm).DisableAutoSizing('TIDEWindowCreatorList.CreateForm');
-    {$ELSE}
-    TCustomForm(AForm).DisableAutoSizing;
-    {$ENDIF};
     try
       TCustomForm(AForm).Create(TheOwner);
     finally
       if not DoDisableAutoSizing then
-        TCustomForm(AForm).EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TIDEWindowCreatorList.CreateForm'){$ENDIF};
+        TCustomForm(AForm).EnableAutoSizing('TIDEWindowCreatorList.CreateForm');
     end;
     SimpleLayoutStorage.SetDefaultPosition(TCustomForm(AForm));
   end else if DoDisableAutoSizing then
-    TCustomForm(AForm).DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TAnchorDockMaster Delayed'){$ENDIF};
+    TCustomForm(AForm).DisableAutoSizing('TAnchorDockMaster Delayed');
 end;
 
 procedure TIDEWindowCreatorList.RestoreSimpleLayout;

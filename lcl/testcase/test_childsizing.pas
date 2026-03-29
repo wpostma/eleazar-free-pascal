@@ -221,12 +221,12 @@ end;
 
 procedure TTestChildSizing.EnableAutoSizing(c: TWinControl);
 begin
-  c.EnableAutoSizing;
+  c.EnableAutoSizing('');
 end;
 
 procedure TTestChildSizing.DisableAutoSizing(c: TWinControl);
 begin
-  c.DisableAutoSizing;
+  c.DisableAutoSizing('');
 end;
 
 procedure TTestChildSizing.Init1(out P: TTestContainer; AContainerWidth: integer;

@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-TARGET="${1:-all}"
+# Targets: "bigide" = IDE with anchordocking + extra packages (docked layout)
+#          "all"    = plain IDE without anchordocking (undocked layout)
+TARGET="${1:-bigide}"
 PLATFORM="${2:-gtk2}"
 
 echo "=== Lazarus Build: target=$TARGET platform=$PLATFORM ==="

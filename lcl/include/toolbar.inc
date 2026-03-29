@@ -198,12 +198,12 @@ procedure TToolBar.CreateWnd;
 begin
   BeginUpdate;
   try
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TToolBar.CreateWnd'){$ENDIF};
+    DisableAutoSizing('TToolBar.CreateWnd');
     try
       inherited CreateWnd;
       UpdateVisibleBar;
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TToolBar.CreateWnd'){$ENDIF};
+      EnableAutoSizing('TToolBar.CreateWnd');
     end;
   finally
     EndUpdate;

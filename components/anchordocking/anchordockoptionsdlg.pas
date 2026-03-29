@@ -95,7 +95,7 @@ var
 begin
   Dlg:=TForm.Create(nil);
   try
-    Dlg.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('ShowAnchorDockOptions'){$ENDIF};
+    Dlg.DisableAutoSizing('ShowAnchorDockOptions');
     try
       Dlg.Position:=poScreenCenter;
       Dlg.AutoSize:=true;
@@ -111,7 +111,7 @@ begin
       BtnPanel.OKButton.OnClick:=@OptsFrame.OkClick;
       BtnPanel.Parent:=Dlg;
     finally
-      Dlg.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('ShowAnchorDockOptions'){$ENDIF};
+      Dlg.EnableAutoSizing('ShowAnchorDockOptions');
     end;
     Result:=Dlg.ShowModal;
   finally

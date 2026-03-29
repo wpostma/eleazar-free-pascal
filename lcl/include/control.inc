@@ -958,7 +958,7 @@ begin
   if (FloatingClass<>nil) and (FloatingClass<>TWinControlClass(ClassType)) then
   begin
     Result := TWinControl(FloatingClass.NewInstance);
-    Result.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.CreateFloatingDockSite'){$ENDIF};
+    Result.DisableAutoSizing('TControl.CreateFloatingDockSite');
     Result.Create(Self);
     // resize with minimal resizes
     NewClientWidth:=Bounds.Right-Bounds.Left;
@@ -967,10 +967,8 @@ begin
     NewHeight:=Result.Height-Result.ClientHeight+NewClientHeight;
     Result.SetBounds(Bounds.Left,Bounds.Top,NewWidth,NewHeight);
     Result.SetClientSize(Point(NewClientWidth,NewClientHeight));
-    {$IFDEF DebugDisableAutoSizing}
     debugln('TControl.CreateFloatingDockSite A ',DbgSName(Self),' ',DbgSName(Result),' ',dbgs(Result.BoundsRect));
-    {$ENDIF}
-    Result.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.CreateFloatingDockSite'){$ENDIF};
+    Result.EnableAutoSizing('TControl.CreateFloatingDockSite');
   end;
 end;
 
@@ -3909,11 +3907,11 @@ procedure TControl.Loaded;
     // all components on the form finished loading
     ClearLoadingFlags(TopParent);
     // call LoadedAll
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Loaded.CheckLoading'){$ENDIF};
+    DisableAutoSizing('TControl.Loaded.CheckLoading');
     try
       AControl.LoadedAll;
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Loaded.CheckLoading'){$ENDIF};
+      EnableAutoSizing('TControl.Loaded.CheckLoading');
     end;
   end;
 
@@ -4025,13 +4023,13 @@ end;
 procedure TControl.ReadState(Reader: TReader);
 begin
   Include(FControlFlags, cfLoading);
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ReadState'){$ENDIF};
+  DisableAutoSizing('TControl.ReadState');
   try
     Include(FControlState, csReadingState);
     inherited ReadState(Reader);
   finally
     Exclude(FControlState, csReadingState);
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ReadState'){$ENDIF};
+    EnableAutoSizing('TControl.ReadState');
   end;
 end;
 
@@ -4078,7 +4076,7 @@ var
 begin
   if FAlign = Value then exit;
   //DebugLn(['TControl.SetAlign ',DbgSName(Self),' Old=',DbgS(FAlign),' New=',DbgS(Value),' ',Anchors<>AnchorAlign[FAlign]]);
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetAlign'){$ENDIF};
+  DisableAutoSizing('TControl.SetAlign');
   try
     OldBaseBounds:=BaseBounds;
     OldAlign := FAlign;
@@ -4104,7 +4102,7 @@ begin
       BoundsRect:=OldBaseBounds;
     //DebugLn(['TControl.SetAlign ',DbgSName(Self),' Cur=',DbgS(FAlign),' New=',DbgS(Value),' ',Anchors<>AnchorAlign[FAlign],' Anchors=',dbgs(Anchors)]);
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetAlign'){$ENDIF};
+    EnableAutoSizing('TControl.SetAlign');
   end;
 end;
 
@@ -4238,7 +4236,7 @@ begin
   if AFromPPI > 0 then lYProportion := AToPPI / AFromPPI
   else lYProportion := 1.0;
 
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.AutoAdjustLayout'){$ENDIF};
+  DisableAutoSizing('TControl.AutoAdjustLayout');
   savedParentFont := ParentFont;
   try
     if AMode in [lapAutoAdjustWithoutHorizontalScrolling, lapAutoAdjustForDPI] then
@@ -4247,7 +4245,7 @@ begin
     DoAutoAdjustLayout(lMode, lXProportion, lYProportion);
   finally
     ParentFont := savedParentFont;
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.AutoAdjustLayout'){$ENDIF};
+    EnableAutoSizing('TControl.AutoAdjustLayout');
   end;
 end;
 
@@ -4442,7 +4440,7 @@ end;
 procedure TControl.SetParent(NewParent: TWinControl);
 begin
   if FParent = NewParent then exit;
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetParent'){$ENDIF};
+  DisableAutoSizing('TControl.SetParent');
   try
     CheckNewParent(NewParent);
     if FParent <> nil then FParent.RemoveControl(Self);
@@ -4453,7 +4451,7 @@ begin
     end;
     if NewParent <> nil then NewParent.InsertControl(Self);
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetParent'){$ENDIF};
+    EnableAutoSizing('TControl.SetParent');
   end;
 end;
 
@@ -4637,7 +4635,7 @@ begin
   if FVisible <> Value then
   begin
     //DebugLn(['TControl.SetVisible ',DbgSName(Self),' NewVisible=',Value]);
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetVisible'){$ENDIF};
+    DisableAutoSizing('TControl.SetVisible');
     try
       VisibleChanging;
       FVisible := Value;
@@ -4664,7 +4662,7 @@ begin
         VisibleChanged;
       end;
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetVisible'){$ENDIF};
+      EnableAutoSizing('TControl.SetVisible');
     end;
   end;
   if (csLoading in ComponentState) then
@@ -4795,7 +4793,7 @@ begin
     RaiseAlreadyDocking;
     
   // dock
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Dock'){$ENDIF};
+  DisableAutoSizing('TControl.Dock');
   Include(FControlState, csDocking);
   try
     OldHostDockSite:=HostDockSite;
@@ -4826,7 +4824,7 @@ begin
       NewDockSite.FDockClients.Remove(Self);
     Exclude(FControlState, csDocking);
   end;
-  EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Dock'){$ENDIF};
+  EnableAutoSizing('TControl.Dock');
 
   //DebugLn(['TControl.Dock END ',DbgSName(Self),' ',DbgSName(HostDockSite)]);
 end;
@@ -4850,9 +4848,9 @@ var
   NewPosition: TPoint;
 begin
   if DropControl<>nil then
-    DropControl.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualDock DropControl'){$ENDIF};
+    DropControl.DisableAutoSizing('TControl.ManualDock DropControl');
   if NewDockSite<>nil then
-    NewDockSite.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualDock NewDockSite'){$ENDIF};
+    NewDockSite.DisableAutoSizing('TControl.ManualDock NewDockSite');
   if (NewDockSite=nil) then begin
     // undock / float this control
     // float the control at the same screen position
@@ -4908,9 +4906,9 @@ begin
     end;
   end;
   if NewDockSite<>nil then
-    NewDockSite.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualDock NewDockSite'){$ENDIF};
+    NewDockSite.EnableAutoSizing('TControl.ManualDock NewDockSite');
   if DropControl<>nil then
-    DropControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualDock DropControl'){$ENDIF};
+    DropControl.EnableAutoSizing('TControl.ManualDock DropControl');
 end;
 
 {------------------------------------------------------------------------------
@@ -4927,7 +4925,7 @@ var
   FloatHost: TWinControl;
 begin
   DebugLn(['TControl.ManualFloat ',DbgSName(Self)]);
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualFloat'){$ENDIF};
+  DisableAutoSizing('TControl.ManualFloat');
   // undock from old host dock site
   if HostDockSite = nil then
   begin
@@ -4955,7 +4953,7 @@ begin
     else
       Dock(nil, TheScreenRect);
   end;
-  EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ManualFloat'){$ENDIF};
+  EnableAutoSizing('TControl.ManualFloat');
 end;
 
 {------------------------------------------------------------------------------
@@ -4972,7 +4970,7 @@ var
 begin
   Result := False;
 
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ReplaceDockedControl'){$ENDIF};
+  DisableAutoSizing('TControl.ReplaceDockedControl');
   OldDockSite := Control.HostDockSite;
   if (OldDockSite<>nil) and (not HostDockSiteManagerAvailable(OldDockSite)) then
     exit;
@@ -4986,7 +4984,7 @@ begin
       OldDockSite.DockManager.SetReplacingControl(nil);
   end;
   Result:=Control.ManualDock(NewDockSite,DropControl,ControlSide);
-  EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.ReplaceDockedControl'){$ENDIF};
+  EnableAutoSizing('TControl.ReplaceDockedControl');
 end;
 
 function TControl.Docked: Boolean;
@@ -5271,7 +5269,7 @@ constructor TControl.Create(TheOwner: TComponent);
 var
   Side: TAnchorKind;
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Create'){$ENDIF};
+  DisableAutoSizing('TControl.Create');
   try
     //if AnsiCompareText(ClassName,'TSpeedButton')=0 then
     //  DebugLn('TControl.Create START ',Name,':',ClassName);
@@ -5310,7 +5308,7 @@ begin
     FFloatingDockSiteClass := TCustomDockForm;
     //DebugLn('TControl.Create END ',Name,':',ClassName);
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.Create'){$ENDIF};
+    EnableAutoSizing('TControl.Create');
   end;
 end;
 
@@ -5811,67 +5809,91 @@ begin
   end;
 end;
 
-procedure TControl.DisableAutoSizing
-  {$IFDEF DebugDisableAutoSizing}(const Reason: string){$ENDIF};
+procedure TControl.DisableAutoSizing(const Reason: string);
+var
+  ASzAction: string;
 begin
-  inc(FAutoSizingLockCount);
+  Inc(FAutoSizingLockCount);
   {$IFDEF DebugDisableAutoSizing}
-  if FAutoSizingLockReasons=nil then FAutoSizingLockReasons:=TStringList.Create;
+  if FAutoSizingLockReasons = nil then
+    FAutoSizingLockReasons := TStringList.Create;
   FAutoSizingLockReasons.Add(Reason);
   {$ENDIF}
-  //DebugLn([Space(FAutoSizingLockCount*2),'TControl.DisableAutoSizing ',DbgSName(Self),' ',FAutoSizingLockCount]);
-  if FAutoSizingLockCount=1 then
-  begin
-    if Parent<>nil then
-    begin
-      //DebugLn([Space(FAutoSizingLockCount*2),'TControl.DisableAutoSizing ',DbgSName(Self),' disable Parent=',DbgSName(Parent)]);
-      Parent.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.DisableAutoSizing'){$ENDIF};
-    end;
-  end;
+
+  { Decide action -- flat, no nesting }
+  if (FAutoSizingLockCount = 1) and (Parent <> nil) then
+    ASzAction := 'propagate to ' + DbgSName(Parent)
+  else
+    ASzAction := 'no propagation';
+
+  { One log. Always one. Never zero. }
+  DebugLn(['[DisableAutoSizing] ', DbgSName(Self),
+    ' count=', FAutoSizingLockCount,
+    ' parent=', DbgSName(Parent),
+    ' reason="', Reason, '"',
+    ' -> ', ASzAction]);
+
+  { Execute the action }
+  if (FAutoSizingLockCount = 1) and (Parent <> nil) then
+    Parent.DisableAutoSizing('child:' + DbgSName(Self));
 end;
 
 procedure TControl.EnableAutoSizing
-  {$IFDEF DebugDisableAutoSizing}(const Reason: string){$ENDIF};
+  (const Reason: string);
+var
+  ASzAction: string;
+  {$IFDEF DebugDisableAutoSizing}
+  i: Integer;
+  s: String;
+  {$ENDIF}
+begin
+  { Underflow check — always fatal }
+  if FAutoSizingLockCount <= 0 then
+    raise ELayoutException.CreateFmt(
+      'TControl.EnableAutoSizing %s count=%d: missing DisableAutoSizing',
+      [DbgSName(Self), FAutoSizingLockCount]);
 
   {$IFDEF DebugDisableAutoSizing}
-  procedure CheckReason;
-  var
-    i: Integer;
-    s: String;
-  begin
-    i:=FAutoSizingLockReasons.Count-1;
-    while i>=0 do begin
-      if FAutoSizingLockReasons[i]=Reason then begin
-        FAutoSizingLockReasons.Delete(i);
-        exit;
-      end;
-      dec(i);
-    end;
-    s:='TControl.EnableAutoSizing '+DbgSName(Self)+' never disabled with reason "'+Reason+'"';
-    for i:=0 to FAutoSizingLockReasons.Count-1 do
-      s+=','+LineEnding+'reason['+IntToStr(i)+']="'+FAutoSizingLockReasons[i]+'"';
+  { Remove matching reason or raise }
+  i := FAutoSizingLockReasons.Count - 1;
+  while (i >= 0) and (FAutoSizingLockReasons[i] <> Reason) do
+    Dec(i);
+  if i >= 0 then
+    FAutoSizingLockReasons.Delete(i)
+  else begin
+    s := 'TControl.EnableAutoSizing ' + DbgSName(Self)
+       + ' never disabled with reason "' + Reason + '"';
+    for i := 0 to FAutoSizingLockReasons.Count - 1 do
+      s += ',' + LineEnding + 'reason[' + IntToStr(i) + ']="'
+         + FAutoSizingLockReasons[i] + '"';
     RaiseGDBException(s);
   end;
   {$ENDIF}
 
-begin
-  {$IFDEF DebugDisableAutoSizing}
-  CheckReason;
-  {$ENDIF}
-  if FAutoSizingLockCount<=0 then
-    raise ELayoutException.CreateFmt('TControl.EnableAutoSizing %s: missing DisableAutoSizing',
-                                     [DbgSName(Self)]);
-  dec(FAutoSizingLockCount);
-  //DebugLn([Space(FAutoSizingLockCount*2),'TControl.EnableAutoSizing ',DbgSName(Self),' ',FAutoSizingLockCount]);
-  if (FAutoSizingLockCount=0) then
-  begin
-    if (Parent<>nil) then
-    begin
-      //DebugLn([Space(FAutoSizingLockCount*2),'TControl.EnableAutoSizing ',DbgSName(Self),' enable Parent ',DbgSName(Parent)]);
-      Parent.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.DisableAutoSizing'){$ENDIF};
-    end else
-      DoAllAutoSize;
-  end;
+  Dec(FAutoSizingLockCount);
+
+  { Decide action — flat, no nesting }
+  if FAutoSizingLockCount > 0 then
+    ASzAction := 'still locked'
+  else if Parent <> nil then
+    ASzAction := 'propagate to ' + DbgSName(Parent)
+  else
+    ASzAction := 'DoAllAutoSize';
+
+  { One log. Always one. Never zero. }
+  DebugLn(['[EnableAutoSizing] ', DbgSName(Self),
+    ' count=', FAutoSizingLockCount,
+    ' parent=', DbgSName(Parent),
+    ' reason="', Reason, '"',
+    ' -> ', ASzAction]);
+
+  { Execute the action }
+  if FAutoSizingLockCount > 0 then
+    Exit;
+  if Parent <> nil then
+    Parent.EnableAutoSizing('child:' + DbgSName(Self))
+  else
+    DoAllAutoSize;
 end;
 
 {$IFDEF DebugDisableAutoSizing}
@@ -5960,11 +5982,11 @@ begin
   if FBiDiMode=AValue then exit;
   FBiDiMode:=AValue;
   FParentBiDiMode := False;
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetBiDiMode'){$ENDIF};
+  DisableAutoSizing('TControl.SetBiDiMode');
   try
     Perform(CM_BIDIMODECHANGED, 0, 0); // see TWinControl.CMBiDiModeChanged
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TControl.SetBiDiMode'){$ENDIF};
+    EnableAutoSizing('TControl.SetBiDiMode');
   end;
 end;
 

@@ -268,6 +268,10 @@ end;
 function CreatePrimaryConfigPath: boolean;
 begin
   Result:=ForceDirectoriesUTF8(GetPrimaryConfigPath);
+  if Result then
+    debugln(['CreatePrimaryConfigPath: Successfully created "', GetPrimaryConfigPath, '"'])
+  else
+    debugln(['CreatePrimaryConfigPath: Failed to create "', GetPrimaryConfigPath, '"']);
 end;
 
 {---------------------------------------------------------------------------

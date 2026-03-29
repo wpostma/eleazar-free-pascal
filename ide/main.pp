@@ -1631,7 +1631,7 @@ begin
   FLastActivatedWindows:=TFPList.Create;
 
   // menu
-  MainIDEBar.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.Create'){$ENDIF};
+  MainIDEBar.DisableAutoSizing('TMainIDE.Create');
   try
     SetupStandardIDEMenuItems;
     SetupMainMenu;
@@ -1639,9 +1639,11 @@ begin
     MainIDEBar.OptionsMenuItem.OnClick := @ToolBarOptionsClick;
     ConnectMainBarEvents;
   finally
-    MainIDEBar.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.Create'){$ENDIF};
+    MainIDEBar.EnableAutoSizing('TMainIDE.Create');
   end;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Create MENU');{$ENDIF}
+
+  DebugLn('[MainIDEBar.EnableAutoSizing] Height '+IntToStr(MainIDEBar.Height));
 
   // create main IDE register items
   NewIDEItems:=TNewLazIDEItemCategories.Create;
@@ -1694,18 +1696,35 @@ begin
   HelpBoss.LoadHelpOptions;
 end;
 
+const
+  AlignNames: array[TAlign] of string = (
+    'None', 'Top', 'Bottom', 'Left', 'Right', 'Client', 'Custom');
+
 procedure DumpATree(AControl: TControl);
+
+  function ControlInfo(C: TControl): string;
+  var
+    WC: TWinControl;
+  begin
+    Result := C.Name + ':' + C.ClassName +
+      ' ' + IntToStr(C.Width) + 'x' + IntToStr(C.Height) +
+      ' @' + IntToStr(C.Left) + ',' + IntToStr(C.Top) +
+      ' ' + AlignNames[C.Align];
+    if not C.Visible then
+      Result := Result + ' HIDDEN';
+    if C is TWinControl then begin
+      WC := TWinControl(C);
+      if WC.HandleAllocated then
+        Result := Result + ' [hwnd]';
+    end;
+  end;
 
   procedure DumpChildren(C: TControl; Indent: string);
   var
     i: Integer;
     WC: TWinControl;
   begin
-    debugln(Indent, C.Name, ':', C.ClassName,
-      ' ', dbgs(C.Width), 'x', dbgs(C.Height),
-      ' @', dbgs(C.Left), ',', dbgs(C.Top),
-      ' Align=', dbgs(ord(C.Align)),
-      ' Vis=', dbgs(C.Visible));
+    debugln(Indent, ControlInfo(C));
     if C is TWinControl then begin
       WC := TWinControl(C);
       for i := 0 to WC.ControlCount-1 do
@@ -1714,21 +1733,35 @@ procedure DumpATree(AControl: TControl);
   end;
 
 var
+  Chain: array of TControl;
   P: TControl;
+  i, Depth: Integer;
 begin
-  // Walk up to root
-  debugln('[DumpATree] === Parents (bottom-up) ===');
-  P := AControl.Parent;
+  // Build chain from root to AControl
+  SetLength(Chain, 0);
+  P := AControl;
   while P <> nil do begin
-    debugln('  ^ ', P.Name, ':', P.ClassName,
-      ' ', dbgs(P.Width), 'x', dbgs(P.Height),
-      ' @', dbgs(P.Left), ',', dbgs(P.Top),
-      ' Align=', dbgs(ord(P.Align)));
+    SetLength(Chain, Length(Chain) + 1);
+    Chain[High(Chain)] := P;
     P := P.Parent;
   end;
-  // Dump self and children
-  debugln('[DumpATree] === Tree (top-down) ===');
-  DumpChildren(AControl, '');
+
+  debugln('[DumpATree] === ', AControl.Name, ':', AControl.ClassName, ' ===');
+
+  // Print root to AControl (chain is reversed, so walk backwards)
+  Depth := 0;
+  for i := High(Chain) downto 0 do begin
+    if Chain[i] = AControl then
+      debugln(StringOfChar(' ', Depth * 2), '>>> ', ControlInfo(Chain[i]))
+    else
+      debugln(StringOfChar(' ', Depth * 2), ControlInfo(Chain[i]));
+    Inc(Depth);
+  end;
+
+  // Print AControl's children continuing from current depth
+  if AControl is TWinControl then
+    for i := 0 to TWinControl(AControl).ControlCount - 1 do
+      DumpChildren(TWinControl(AControl).Controls[i], StringOfChar(' ', Depth * 2));
 end;
 
 procedure TMainIDE.StartIDE;
@@ -1772,6 +1805,9 @@ begin
     ' Parent=',dbgSName(MainIDEBar.Parent),
     ' HostDockSite=',dbgSName(MainIDEBar.HostDockSite));
   DumpATree(MainIDEBar);
+  debugln('');
+  debugln('[StartIDE] === PageControl upward ===');
+  DumpATree(MainIDEBar.ComponentPageControl);
   DebugBoss.UpdateButtonsAndMenuItems; // Disable Stop-button (and some others).
   SetupStartProject;                   // Now load a project
   if Project1=nil then begin
@@ -1803,7 +1839,7 @@ begin
 
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.Destroy A ');{$ENDIF}
   if Assigned(MainIDEBar) then begin
-    MainIDEBar.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.Destroy'){$ENDIF};
+    MainIDEBar.DisableAutoSizing('TMainIDE.Destroy');
     MainIDEBar.OnActive:=nil;
   end;
 
@@ -5394,18 +5430,31 @@ procedure TMainIDE.SaveEnvironment(Immediately: boolean);
 begin
   if Immediately then
   begin
+    debugln('[TMainIDE.SaveEnvironment] BEGIN immediate save');
     Exclude(FIdleIdeActions, iiaSaveEnvironment);
     SaveDesktopSettings(EnvironmentGuiOpts);
+    debugln('[TMainIDE.SaveEnvironment] Desktop settings saved');
     DebuggerOptions.Save; // before environment
+    debugln('[TMainIDE.SaveEnvironment] Debugger options saved');
     EnvironmentOptions.Save(false);
+    debugln('[TMainIDE.SaveEnvironment] Environment options saved');
+    debugln(['  FPCSourceDirectory: ', EnvironmentOptions.GetParsedFPCSourceDirectory]);
+    debugln(['  CompilerPath: ', EnvironmentOptions.GetParsedCompilerFilename]);
+    debugln(['  MakePath: ', EnvironmentOptions.GetParsedMakeFilename]);
     EditorMacroListViewer.SaveGlobalInfo;
+    debugln('[TMainIDE.SaveEnvironment] Editor macros saved');
     (IDEMacros as TLazIDEMacros).SaveBuildMacros;
-    //debugln('TMainIDE.SaveEnvironment A ',dbgsName(ObjectInspector1.Favorites));
+    debugln('[TMainIDE.SaveEnvironment] Build macros saved');
     if (ObjectInspector1<>nil) and (ObjectInspector1.Favorites<>nil) then
       SaveOIFavoriteProperties(ObjectInspector1.Favorites);
+    debugln('[TMainIDE.SaveEnvironment] Object Inspector favorites saved');
+    debugln('[TMainIDE.SaveEnvironment] END - all settings saved');
   end
   else if FIDEStarted then
+  begin
+    debugln('[TMainIDE.SaveEnvironment] Deferred save scheduled');
     Include(FIdleIdeActions, iiaSaveEnvironment);
+  end;
 end;
 
 procedure TMainIDE.PackageTranslated(APackage: TLazPackage);
@@ -6129,7 +6178,7 @@ begin
     CodeExplorerView.OnJumpToCode:=@CodeExplorerJumpToCode;
     CodeExplorerView.OnShowOptions:=@CodeExplorerShowOptions;
   end else if State=iwgfDisabled then
-    CodeExplorerView.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.DoShowCodeExplorer'){$ENDIF};
+    CodeExplorerView.DisableAutoSizing('TMainIDE.DoShowCodeExplorer');
 
   if State>=iwgfShow then begin
     IDEWindowCreators.ShowForm(CodeExplorerView,State=iwgfShowOnTop);
@@ -6169,7 +6218,7 @@ begin
     IDEWindowCreators.CreateForm(RestrictionBrowserView,TRestrictionBrowserView,
       State=iwgfDisabled,OwningComponent)
   else if State=iwgfDisabled then
-    RestrictionBrowserView.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.DoShowRestrictionBrowser'){$ENDIF};
+    RestrictionBrowserView.DisableAutoSizing('TMainIDE.DoShowRestrictionBrowser');
 
   RestrictionBrowserView.SetIssueName(RestrictedName);
   if State>=iwgfShow then
@@ -6186,7 +6235,7 @@ begin
     ComponentListForm.OnOpenUnit:=@PkgBoss.IDEComponentPaletteOpenUnit;
     ComponentListForm.OnClassSelected:=@ComponentPaletteClassSelected;
   end else if State=iwgfDisabled then
-    ComponentListForm.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.DoShowComponentList'){$ENDIF};
+    ComponentListForm.DisableAutoSizing('TMainIDE.DoShowComponentList');
   if State>=iwgfShow then
     IDEWindowCreators.ShowForm(ComponentListForm,State=iwgfShowOnTop);
 end;
@@ -6198,7 +6247,7 @@ begin
       State=iwgfDisabled,OwningComponent);
     JumpHistoryViewWin.OnSelectionChanged := @JumpHistoryViewSelectionChanged;
   end else if State=iwgfDisabled then
-    JumpHistoryViewWin.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.DoShowJumpHistory'){$ENDIF};
+    JumpHistoryViewWin.DisableAutoSizing('TMainIDE.DoShowJumpHistory');
   if State>=iwgfShow then
     IDEWindowCreators.ShowForm(JumpHistoryViewWin,State=iwgfShowOnTop);
 end;
@@ -9578,7 +9627,7 @@ begin
        State=iwgfDisabled,OwningComponent);
     SearchresultsView.OnSelectionChanged := OnSearchResultsViewSelectionChanged;
   end else if State=iwgfDisabled then
-    SearchResultsView.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.DoShowSearchResultsView'){$ENDIF};
+    SearchResultsView.DisableAutoSizing('TMainIDE.DoShowSearchResultsView');
   if State>=iwgfShow then
     IDEWindowCreators.ShowForm(SearchresultsView,State=iwgfShowOnTop);
 end;
@@ -12403,7 +12452,7 @@ procedure TMainIDE.CreateObjectInspector(aDisableAutoSize: boolean);
 begin
   if ObjectInspector1<>nil then begin
     if aDisableAutoSize then
-      ObjectInspector1.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TMainIDE.CreateObjectInspector'){$ENDIF};
+      ObjectInspector1.DisableAutoSizing('TMainIDE.CreateObjectInspector');
     exit;
   end;
 

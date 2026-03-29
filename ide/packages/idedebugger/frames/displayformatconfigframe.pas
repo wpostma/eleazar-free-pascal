@@ -1717,7 +1717,7 @@ var
 begin
   if not (HandleAllocated and FSetupDone) then
     exit;
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     for i := 0 to ComponentCount - 1 do begin
       if (not (Components[i] is TControl)) then
@@ -1742,7 +1742,7 @@ begin
         c.Constraints.MinWidth := px;
     end;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 
@@ -1843,7 +1843,7 @@ begin
 
   UpdateButtonStates;
 
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     UpdateTabs;
     UpdateVisiblePanels;
@@ -2236,7 +2236,7 @@ begin
 
     UpdateConstraints;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
 
     // workaround issue that SpinEdit.Text / EmptyValue don't allways work
     FormatSpinChanged(SpinDigits);

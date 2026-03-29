@@ -126,7 +126,7 @@ begin
     GlobalNameSpace.BeginWrite;
   try
     Application.RemoveAsyncCalls(Self); // because of Application.QueueAsyncCall(@Moved, 0); in WMMove
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.Destroy'){$ENDIF};
+    DisableAutoSizing('TCustomForm.Destroy');
     FreeThenNil(FIcon);
     FreeIconHandles;
     Screen.RemoveForm(Self);
@@ -1054,7 +1054,7 @@ begin
       WriteLn(StdErr, '[EndFormUpdate] Phase2:AutoSize ', Name, ':', ClassName,
         ' Handle=', HandleAllocated);
       {$ENDIF}
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.BeginFormUpdate'){$ENDIF};
+      EnableAutoSizing('TCustomForm.BeginFormUpdate');
       {$IFDEF DEBUG_LCL}
       WriteLn(StdErr, '[EndFormUpdate] Phase2:Done ', Name, ':', ClassName,
         ' Handle=', HandleAllocated,
@@ -1266,7 +1266,7 @@ var
   ParentForm: TCustomForm;
 begin
   if Parent = NewParent then exit;
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.SetParent'){$ENDIF};
+  DisableAutoSizing('TCustomForm.SetParent');
   try
     if HandleAllocated then DestroyHandle;
     inherited SetParent(NewParent);
@@ -1281,7 +1281,7 @@ begin
         AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, ParentForm.PixelsPerInch, 0, 0);
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.SetParent'){$ENDIF};
+    EnableAutoSizing('TCustomForm.SetParent');
   end;
 end;
 
@@ -2348,14 +2348,14 @@ begin
         Inc(I);
       end;
       try
-        DisableAutoSizing;
+        DisableAutoSizing('');
         AutoAdjustLayout(lapAutoAdjustForDPI, PixelsPerInch, NewDpi,
           Width, MulDiv(Width, NewDpi, PixelsPerInch));
 
         if Msg.lParam <> 0 then
           SetBounds(PRect(Msg.lParam)^.Left, PRect(Msg.lParam)^.Top, PRect(Msg.lParam)^.Width, PRect(Msg.lParam)^.Height);
       finally
-        EnableAutoSizing;
+        EnableAutoSizing('');
         for L := 0 to I do
           BeginUpdateBounds;
       end;
@@ -2883,7 +2883,7 @@ begin
   WriteLn(StdErr, '[TCustomForm.BeginFormUpdate] ', Name, ':', ClassName, ' Count=', FFormUpdateCount);
   {$ENDIF}
   if FFormUpdateCount=1 then
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomForm.BeginFormUpdate'){$ENDIF};
+    DisableAutoSizing('TCustomForm.BeginFormUpdate');
 end;
 
 procedure TCustomForm.UpdateShowing;

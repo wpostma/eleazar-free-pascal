@@ -7109,7 +7109,7 @@ begin
   DebugLnEnter(SRCED_CLOSE, ['TSourceNotebook.Destroy ']);
   if assigned(Manager) then
     Manager.RemoveWindow(Self);
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.Destroy'){$ENDIF};
+  DisableAutoSizing('TSourceNotebook.Destroy');
   FProcessingCommand:=false;
 
   for i:=FSourceEditorList.Count-1 downto 0 do
@@ -8255,7 +8255,7 @@ begin
     FUpdateFlags := [];
     DebugLn(SRCED_LOCK, ['TSourceNotebook.IncUpdateLockInternal']);
     FPageIndex := PageIndex;
-    FNotebook.DisableAutoSizing;
+    FNotebook.DisableAutoSizing('');
   end;
   inc(FUpdateLock);
 end;
@@ -8273,7 +8273,7 @@ begin
     if (ufFocusEditor in FUpdateFlags)  then FocusEditor;
     if (ufActiveEditorChanged in FUpdateFlags) then DoActiveEditorChanged;
     FUpdateFlags := [];
-    FNotebook.EnableAutoSizing;
+    FNotebook.EnableAutoSizing('');
     DebugLnExit(SRCED_LOCK, ['<< TSourceNotebook.DecUpdateLockInternal']);
   end;
 end;
@@ -8635,10 +8635,10 @@ begin
   then
     exit;
 
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.MoveEditor'){$ENDIF};
+  DisableAutoSizing('TSourceNotebook.MoveEditor');
   IncUpdateLock;
   try
-    DestWin.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.MoveEdito DestWinr'){$ENDIF};
+    DestWin.DisableAutoSizing('TSourceNotebook.MoveEdito DestWinr');
     DestWin.IncUpdateLock;
     try
       Edit := FindSourceEditorWithPageIndex(OldPageIndex);
@@ -8660,11 +8660,11 @@ begin
       DestWin.NotebookPageChanged(nil); // make sure page SynEdit willl be visible
       SourceEditorManager.SendEditorMoved(Edit);
     finally
-      DestWin.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.MoveEdito DestWinr'){$ENDIF};
+      DestWin.EnableAutoSizing('TSourceNotebook.MoveEdito DestWinr');
       DestWin.DecUpdateLock;
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.MoveEditor'){$ENDIF};
+    EnableAutoSizing('TSourceNotebook.MoveEditor');
     DecUpdateLock
   end;
 
@@ -8996,7 +8996,7 @@ Begin
   // Debugger cause ProcessMessages, which could lead to entering methods in unexpected order
   DebugBoss.LockCommandProcessing;
   try
-    DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.NewFile'){$ENDIF};
+    DisableAutoSizing('TSourceNotebook.NewFile');
     try
       IDEWindowCreators.ShowForm(Self,false);
       s := Manager.FindUniquePageName(NewShortName, AShareEditor);
@@ -9012,7 +9012,7 @@ Begin
       UpdateStatusBar;
       Manager.SendEditorCreated(Result);
     finally
-      EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceNotebook.NewFile'){$ENDIF};
+      EnableAutoSizing('TSourceNotebook.NewFile');
     end;
     if FocusIt then FocusEditor;
   finally
@@ -12159,14 +12159,10 @@ var
   i: Integer;
 begin
   Result := TSourceNotebook(TSourceNotebook.NewInstance);
-  {$IFDEF DebugDisableAutoSizing}
   if DoDisableAutoSizing then
     Result.DisableAutoSizing('TAnchorDockMaster Delayed')
   else
     Result.DisableAutoSizing('TSourceEditorManager.CreateNewWindow');
-  {$ELSE}
-  Result.DisableAutoSizing;
-  {$ENDIF};
   if AnID > 0 then
     Result.Create(Self, AnID)
   else
@@ -12185,7 +12181,7 @@ begin
   end;
   FChangeNotifyLists[semWindowCreate].CallNotifyEvents(Result);
   if not DoDisableAutoSizing then
-    Result.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TSourceEditorManager.CreateNewWindow'){$ENDIF};
+    Result.EnableAutoSizing('TSourceEditorManager.CreateNewWindow');
 end;
 
 function TSourceEditorManager.SenderToEditor(Sender: TObject): TSourceEditor;

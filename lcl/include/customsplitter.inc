@@ -974,7 +974,7 @@ var
   OldWidth: LongInt;
   OldHeight: LongInt;
 begin
-  DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomSplitter.AnchorSplitter'){$ENDIF};
+  DisableAutoSizing('TCustomSplitter.AnchorSplitter');
   try
     OldWidth := Width;
     OldHeight := Height;
@@ -1003,7 +1003,7 @@ begin
         Height := OldWidth;
     end;
   finally
-    EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TCustomSplitter.AnchorSplitter'){$ENDIF};
+    EnableAutoSizing('TCustomSplitter.AnchorSplitter');
   end;
 end;
 

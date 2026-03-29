@@ -416,12 +416,12 @@ end;
 procedure TCustomGroupedEditButton.SetBiDiMode(AValue: TBiDiMode);
 begin
   if BiDiMode=AValue then exit;
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     inherited SetBiDiMode(AValue);
     AnchorEditAndButton;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 
@@ -495,7 +495,7 @@ end;
 
 procedure TCustomGroupedEditButton.AnchorEditAndButton;
 begin
-  DisableAutoSizing;
+  DisableAutoSizing('');
   try
     if IsRightToLeft then begin
       // button + edit
@@ -513,7 +513,7 @@ begin
       Edit.AnchorToNeighbour(akRight,0,Button);
     end;
   finally
-    EnableAutoSizing;
+    EnableAutoSizing('');
   end;
 end;
 

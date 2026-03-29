@@ -89,7 +89,7 @@ end;
 procedure TCustomTestADRestore.CreateMainBar(DisabledAutoSize: boolean);
 begin
   FMainBar:=TMainBar(TMainBar.NewInstance);
-  FMainBar.DisableAutoSizing;
+  FMainBar.DisableAutoSizing('');
   try
     with FMainBar do begin
       Create(Application);
@@ -118,7 +118,7 @@ begin
     DockMaster.MakeDockSite(FMainBar,[akBottom],admrpChild);
   finally
     if not DisabledAutoSize then
-      FMainBar.EnableAutoSizing;
+      FMainBar.EnableAutoSizing('');
   end;
 end;
 

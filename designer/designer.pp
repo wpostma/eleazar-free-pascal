@@ -755,7 +755,7 @@ begin
      NewLeft,NewTop,NewWidth,NewHeight,DisableAutoSize);
   if NewComponent=nil then exit;
   if DisableAutoSize and (NewComponent is TControl) then
-    TControl(NewComponent).EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TDesigner.AddComponent'){$ENDIF};
+    TControl(NewComponent).EnableAutoSizing('TDesigner.AddComponent');
   TheFormEditor.FixupReferences(NewComponent); // e.g. frame references a datamodule
 
   // modified
@@ -1376,7 +1376,7 @@ begin
   NewSelection:=TPersistentSelectionList.Create;
   NewComps:=TFPList.Create;
   try
-    Form.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TDesigner.DoInsertFromStream'){$ENDIF};
+    Form.DisableAutoSizing('TDesigner.DoInsertFromStream');
     try
       // read component stream from clipboard
       if (s.Size<=S.Position) then begin
@@ -1404,7 +1404,7 @@ begin
         FOnPastedComponents(Self,FLookupRoot);
 
     finally
-      Form.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TDesigner.DoInsertFromStream'){$ENDIF};
+      Form.EnableAutoSizing('TDesigner.DoInsertFromStream');
     end;
   finally
     NewComps.Free;
@@ -4280,7 +4280,7 @@ begin
                        mrCancel]);
   if not (MsgResult in [mrYes,mrYesToAll]) then exit;
   HasChanged:=false;
-  Form.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TDesigner.OnResetPopupMenuClick'){$ENDIF};
+  Form.DisableAutoSizing('TDesigner.OnResetPopupMenuClick');
   ResetComps:=TFPList.Create;
   try
     for i:=0 to Selection.Count-1 do begin
@@ -4302,7 +4302,7 @@ begin
     end;
   finally
     ResetComps.Free;
-    Form.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TDesigner.OnResetPopupMenuClick'){$ENDIF};
+    Form.EnableAutoSizing('TDesigner.OnResetPopupMenuClick');
     if HasChanged then
       Modified;
   end;

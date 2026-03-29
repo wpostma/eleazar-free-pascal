@@ -270,7 +270,7 @@ begin
   end;
   Pal := TComponentPalette(Palette);
   if Pal.PageControl<>nil then
-    Pal.PageControl.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TComponentPage.ReAlignButtons'){$ENDIF};
+    Pal.PageControl.DisableAutoSizing('TComponentPage.ReAlignButtons');
   ComponentPaletteBtnWidthScaled := Pal.PageControl.Scale96ToForm(ComponentPaletteBtnWidth);
   ComponentPaletteBtnHeightScaled := Pal.PageControl.Scale96ToForm(ComponentPaletteBtnHeight);
   ButtonTree:=nil;
@@ -328,7 +328,7 @@ begin
     PageComponent.Invalidate;
   finally
     if Pal.PageControl<>nil then
-      Pal.PageControl.EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TComponentPage.ReAlignButtons'){$ENDIF};
+      Pal.PageControl.EnableAutoSizing('TComponentPage.ReAlignButtons');
     FreeAndNil(ButtonTree);
   end;
 end;
@@ -761,7 +761,7 @@ begin
         DisableAutoSize);
       if AComponent<>nil then begin
         if DisableAutoSize and (AComponent is TControl) then
-          TControl(AComponent).EnableAutoSizing{$IFDEF DebugDisableAutoSizing}('TComponentPalette.ComponentBtnDblClick'){$ENDIF};
+          TControl(AComponent).EnableAutoSizing('TComponentPalette.ComponentBtnDblClick');
         GlobalDesignHook.PersistentAdded(AComponent,true);
       end;
     end;

@@ -889,10 +889,10 @@ begin
     *)
 
     if Scale = 2 then begin
-      //TheForm.DisableAutoSizing;
+      //TheForm.DisableAutoSizing('');
       TheForm.Width  := TheForm.Width  - 80; // substract 80 / the form is already scaled
       TheForm.Height := TheForm.Height - 80;
-      //TheForm.EnableAutoSizing;
+      //TheForm.EnableAutoSizing('');
       case Algn of
         alTop:
           if akBottom in Anch1 then  AssertBounds('Top',    TheForm.Panel1,   0,   0,  1320,  320)

@@ -671,7 +671,7 @@ begin
     DoShowPackageGraph(false);
     AForm:=PackageGraphExplorer;
     if DoDisableAutoSizing then
-      AForm.DisableAutoSizing{$IFDEF DebugDisableAutoSizing}('TPkgManager.CreateIDEWindow'){$ENDIF};
+      AForm.DisableAutoSizing('TPkgManager.CreateIDEWindow');
   end else if SysUtils.CompareText(PackageEditorWindowPrefix,
     copy(aFormName,1,length(PackageEditorWindowPrefix)))=0
   then begin
