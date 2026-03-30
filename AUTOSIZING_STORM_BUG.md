@@ -5,6 +5,33 @@
 **Reproducible:** Always, on any docking layout change
 **Date:** 2026-03-29
 
+## Next Step (morning of 2026-03-30)
+
+**Try this first:** In `gtksize_allocateCB` (our code, in
+`lcl/interfaces/gtk2/gtk2callback.inc`), check the target control's
+`AutoSizingLockCount` before delivering `LM_SIZE`. If count > 0, the
+control is already inside a `DisableAutoSizing` block — tree surgery
+is in progress. Skip or defer the `size-allocate` notification.
+
+The lock count already exists and is already set by `ManualFloat`,
+`ManualDock`, and every layout operation. We just aren't checking it
+at the GTK callback boundary. This is the simplest possible fix — no
+new flags, no new mechanism, just one guard check at the point where
+GTK re-enters the LCL.
+
+Steps:
+1. Read `gtksize_allocateCB` in `lcl/interfaces/gtk2/gtk2callback.inc`
+2. Find where it calls `SendSizeNotificationToLCL`
+3. Before that call, get the LCL control for the widget
+4. Check `AutoSizingLockCount > 0` — if so, exit early (or queue for later)
+5. Build with `DIAG=1 bash build.sh`
+6. Run `bash test-dock-stress.sh 5` — expect zero AVs
+7. Check `python3 tools/lcl-inspector.py stats` — expect dramatically
+   fewer events
+
+If the simple "exit early" causes visual glitches, upgrade to a
+deferred queue (see Proposed Fix section below).
+
 ## Summary
 
 Two related bugs in the LCL's autosizing/docking interaction:
