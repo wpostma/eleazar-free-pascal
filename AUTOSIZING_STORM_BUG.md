@@ -249,9 +249,131 @@ From 65,536 events in the ring buffer:
 | GTK2 `gtksize_allocateCB` | Re-enters LCL during tree surgery, causes AV |
 | Mutter compositor | Sends async `ConfigureNotify`, adds more re-entrancy |
 
-## Possible Fixes
+## Proposed Fix: Deferred Size-Allocate During Dock Operations
 
-### 1. Batch the layout switch
+### The idea
+
+During tree surgery (dock/undock/layout restore), defer all GTK
+`size-allocate` processing instead of handling it synchronously.
+Process the deferred notifications after the surgery is complete.
+
+### Why global, not per-form or per-dock-site
+
+A single undock of ObjectInspectorDlg affects:
+- `ObjectInspectorDlg` (being removed)
+- `AnchorDockSite9` (losing a child)
+- `AnchorDockSite10` (parent, relayouts)
+- `MainIDE` (grandparent, relayouts)
+- The new float host (being created)
+
+Any of these can receive a `size-allocate` during the surgery. A
+per-form flag would need to be set on all of them, but you don't
+know the full list in advance because the propagation walks up the
+tree dynamically.
+
+The flag must be **global** — one counter (for nesting) that says
+"the LCL is currently doing tree surgery, defer all `size-allocate`
+processing."
+
+### Design
+
+```pascal
+var
+  LCLDockOperationCount: Integer = 0;
+  DeferredSizeAllocates: <list of (Widget, Allocation) pairs>;
+
+procedure BeginDockOperation;
+begin
+  Inc(LCLDockOperationCount);
+end;
+
+procedure EndDockOperation;
+begin
+  Dec(LCLDockOperationCount);
+  if LCLDockOperationCount = 0 then
+    ProcessDeferredSizeAllocates;
+end;
+```
+
+In `gtksize_allocateCB` (our code, in `gtk2callback.inc`):
+
+```pascal
+if LCLDockOperationCount > 0 then begin
+  QueueDeferredSizeAllocate(Widget, Allocation);
+  Exit;
+end;
+// ... normal processing ...
+```
+
+### Where to call BeginDockOperation / EndDockOperation
+
+| Call site | Scope |
+|-----------|-------|
+| `TControl.ManualFloat` | Wraps the undock + reparent |
+| `TControl.ManualDock` | Wraps the dock + reparent |
+| `TAnchorDockMaster.FullRestoreLayout` | Wraps the entire desktop switch |
+
+The counter handles nesting: `FullRestoreLayout` calls `Begin`, then
+internally calls `ManualFloat`/`ManualDock` which call `Begin`/`End`
+for their own operations, but the outer `End` is what actually
+processes the deferred queue.
+
+### What the deferred queue contains
+
+Each entry is a `(GtkWidget, GtkAllocation)` pair — the widget and
+the size GTK allocated to it. When `EndDockOperation` calls
+`ProcessDeferredSizeAllocates`, it iterates the queue and calls
+`SendSizeNotificationToLCL` for each entry, in order.
+
+### Will GTK tolerate ignored size-allocate?
+
+GTK expects `size-allocate` to position the widget's children. If we
+swallow it and do nothing, the widget may paint at the wrong size
+temporarily. But:
+
+1. The defer period is very short — from `BeginDockOperation` to
+   `EndDockOperation`, typically a single synchronous call.
+2. The deferred processing happens immediately after, not on the next
+   idle cycle.
+3. A brief visual glitch during a dock operation is vastly better than
+   an access violation or a 30-second hang.
+4. The final `ProcessDeferredSizeAllocates` delivers all the size
+   notifications, so the final state is correct.
+
+### What this fixes
+
+- **Crash (AV):** Eliminated. GTK can't re-enter the LCL during tree
+  surgery because `size-allocate` is deferred.
+- **Storm (partially):** The deferred queue collapses redundant
+  notifications — if the same widget receives 50 `size-allocate`
+  calls during the defer period, only the last one matters.
+- **Stack overflow:** The synchronous cascade is broken because
+  `size-allocate` no longer triggers `DoAllAutoSize` mid-surgery.
+
+### What this does NOT fix
+
+- **The 0→1→0 ping-pong in DisableAutoSizing/EnableAutoSizing.** The
+  internal LCL storm still happens — `DoAllAutoSize` still triggers
+  child Disable/Enable cascades. But without GTK re-entrancy
+  amplifying it, the storm is bounded and much faster.
+- **Convergence.** `DoAllAutoSize` still does full work even when
+  nothing changed. A dirty-flag would help but is a separate fix.
+
+### Implementation plan
+
+1. Add `LCLDockOperationCount` and the deferred queue to the GTK2
+   widgetset (not the LCL core — this is GTK-specific).
+2. Add `BeginDockOperation`/`EndDockOperation` as widgetset methods
+   or as globals in a shared unit.
+3. Wrap `ManualFloat` and `ManualDock` in `control.inc`.
+4. Wrap `FullRestoreLayout` in `anchordocking.pas`.
+5. Modify `gtksize_allocateCB` to check the counter and defer.
+6. Test with `test-dock-stress.sh` — expect zero AVs and reduced
+   event counts.
+
+## Other Fix Ideas (lower priority)
+
+### Batch the layout switch
 
 The dock manager should `DisableAutoSizing` on `MainIDE` (or the root
 dock site) once at the start of the layout switch, do all the
@@ -259,34 +381,27 @@ reconfiguration, then `EnableAutoSizing` once at the end. Currently each
 individual dock/undock/move operation does its own Disable/Enable pair,
 and each one triggers a full layout cascade.
 
-### 2. Dirty-flag in `DoAllAutoSize`
+### Dirty-flag in `DoAllAutoSize`
 
 `DoAllAutoSize` could check whether the control tree actually changed
 since the last pass and skip if nothing is dirty. Currently it does
 full work unconditionally.
 
-### 3. Coalesce at the parent
+### Coalesce at the parent
 
 When `EnableAutoSizing` drops the count to 0 and would call
 `DoAllAutoSize`, instead post a deferred layout request (like
 `InvalidatePreferredSize` does) and let the event loop coalesce
 multiple requests into a single pass.
 
-### 4. Block GTK signals during tree surgery
-
-Temporarily disconnect the `size-allocate` handler (or set a
-re-entrancy guard flag) during `ManualFloat`/`ManualDock` operations.
-Process the deferred `size-allocate` after the tree surgery is
-complete. This directly prevents the AV.
-
-### 5. Make tree walks tolerant of modification
+### Make tree walks tolerant of modification
 
 The code that walks the control tree during `DoAllAutoSize` could
 snapshot the child list before iterating, so that concurrent
 modifications (from GTK re-entrancy) don't cause stale pointer
 access. This is a defense-in-depth measure, not a fix for the storm.
 
-### 6. Rate-limit `DoAllAutoSize`
+### Rate-limit `DoAllAutoSize`
 
 If `DoAllAutoSize` has been called within the last N milliseconds,
 skip or defer. This is a hack but would cap the storm to a bounded
