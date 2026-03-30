@@ -1,21 +1,36 @@
 #!/bin/bash
 set -e
 
-# Targets: "bigide" = IDE with anchordocking + extra packages (docked layout)
-#          "all"    = plain IDE without anchordocking (undocked layout)
-TARGET="${1:-bigide}"
-PLATFORM="${2:-gtk2}"
+# Usage:
+#   bash build.sh                  # default: bigide gtk2
+#   bash build.sh qt5              # bigide qt5
+#   bash build.sh gtk2             # bigide gtk2
+#   bash build.sh bigide qt5       # explicit target + platform
+#   bash build.sh all gtk2         # undocked IDE
+#   DIAG=0 bash build.sh           # disable socket inspector
 
-export DIAG=1
+# Parse arguments — detect platform shortcuts
+TARGET="bigide"
+PLATFORM="gtk2"
 
-# Diagnostic socket inspector: set DIAG=1 to enable ring buffer + TCP server
+for ARG in "$@"; do
+  case "$ARG" in
+    gtk2|gtk3|qt5|qt6)  PLATFORM="$ARG" ;;
+    bigide|all)         TARGET="$ARG" ;;
+    *)                  echo "Unknown argument: $ARG"; echo "Usage: build.sh [bigide|all] [gtk2|gtk3|qt5|qt6]"; exit 1 ;;
+  esac
+done
+
+# Diagnostic socket inspector: DIAG=1 (default) enables ring buffer + TCP server
+export DIAG="${DIAG:-1}"
+
 OPT_FLAGS=""
-if [ "${DIAG:-0}" = "1" ]; then
+if [ "${DIAG}" = "1" ]; then
   OPT_FLAGS="-dENABLE_LCL_SOCKET_DIAG"
   echo "[build] Diagnostic mode: LCL socket inspector enabled (port 4747)"
 fi
 
-echo "=== Lazarus Build: target=$TARGET platform=$PLATFORM ==="
+echo "=== Eleazar Build: target=$TARGET platform=$PLATFORM ==="
 echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
 
 if [ -n "$OPT_FLAGS" ]; then
@@ -34,3 +49,4 @@ for bin in lazarus lazbuild startlazarus; do
     echo "  $bin: ${size} bytes  md5=$hash  built=$ts"
   fi
 done
+echo "  platform: $PLATFORM"
