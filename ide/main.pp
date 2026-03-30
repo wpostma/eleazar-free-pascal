@@ -179,7 +179,9 @@ uses
   SourceFileManager, EditorToolbarStatic, IDEInstances,
   WordCompletion, EnvGuiOptions, EnvDebuggerOptions, IdeDebuggerValueFormatter, ProjectDebugLink,
   // main ide
-  MainBar, MainIntf, MainBase;
+  MainBar, MainIntf, MainBase,
+  // diagnostic socket inspector IDE commands
+  IDEDiagCommands;
 
 type
   { TMainIDE }
@@ -1821,6 +1823,7 @@ begin
   LazIDEInstances.StartListening(@LazInstancesStartNewInstance, @LazInstancesGetOpenedProjectFileName);
   IDECommandList.StartUpdateEvents;
   FIDEStarted:=true;
+  RegisterIDEDiagCommands;
   {$IFDEF IDE_MEM_CHECK}CheckHeapWrtMemCnt('TMainIDE.StartIDE END');{$ENDIF}
 end;
 

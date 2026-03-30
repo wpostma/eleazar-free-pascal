@@ -12,10 +12,14 @@ unit LCLDiagServer;
 
 interface
 
-{$IFDEF ENABLE_LCL_SOCKET_DIAG}
-
 uses
-  Classes, SysUtils, ssockets;
+  SysUtils
+  {$IFDEF ENABLE_LCL_SOCKET_DIAG}
+  , Classes, ssockets
+  {$ENDIF}
+  ;
+
+{$IFDEF ENABLE_LCL_SOCKET_DIAG}
 
 type
   TLCLDiagEvent = record
@@ -65,7 +69,20 @@ type
     property Port: Integer read FPort;
   end;
 
-{ JSON helper functions (used by tests) }
+var
+  DiagRing: TLCLEventRing;
+
+{$ENDIF}
+
+{ --- Always available, even without ENABLE_LCL_SOCKET_DIAG --- }
+
+type
+  TDiagCommandHandler = function(const ALine: string): string;
+
+{ Register a command handler. Without ENABLE_LCL_SOCKET_DIAG this is a no-op. }
+procedure RegisterDiagCommand(const ACmd: string; AHandler: TDiagCommandHandler);
+
+{ JSON helpers — always available so command handlers can use them. }
 function JSONEscape(const S: string): string;
 function JStr(const AKey, AValue: string): string; inline;
 function JInt(const AKey: string; AValue: Int64): string; inline;
@@ -74,27 +91,19 @@ function ExtractJStr(const AJSON, AKey: string): string;
 function ExtractJInt(const AJSON, AKey: string): Int64;
 function ExtractJBool(const AJSON, AKey: string): Boolean;
 
-var
-  DiagRing: TLCLEventRing;
-
-{$ENDIF}
-
 procedure LCLDiagStartServer;
 procedure LCLDiagStopServer;
 
 implementation
 
 {$IFDEF ENABLE_LCL_SOCKET_DIAG}
-
 uses
   Sockets, DateUtils,
   Forms, Controls, LCLClasses,
   LazLoggerBase, LazLogger;
+{$ENDIF}
 
-type
-  TControlCracker = class(TControl);
-
-{ ===== JSON helpers ========================================================= }
+{ ===== JSON helpers (always available) ====================================== }
 
 function JSONEscape(const S: string): string;
 var
@@ -188,6 +197,51 @@ begin
   while (P <= Length(AJSON)) and (AJSON[P] in [' ', ':', #9]) do Inc(P);
   Result := (P <= Length(AJSON)) and (AJSON[P] = 't');
 end;
+
+{ ===== Command Registry (always available) =================================== }
+
+type
+  TDiagCommandEntry = record
+    Cmd: string;
+    Handler: TDiagCommandHandler;
+  end;
+
+var
+  DiagCommands: array of TDiagCommandEntry;
+  DiagCommandCount: Integer = 0;
+
+procedure RegisterDiagCommand(const ACmd: string; AHandler: TDiagCommandHandler);
+var
+  I: Integer;
+begin
+  for I := 0 to DiagCommandCount - 1 do
+    if DiagCommands[I].Cmd = ACmd then begin
+      DiagCommands[I].Handler := AHandler;
+      Exit;
+    end;
+  if DiagCommandCount >= Length(DiagCommands) then
+    SetLength(DiagCommands, DiagCommandCount + 16);
+  DiagCommands[DiagCommandCount].Cmd := ACmd;
+  DiagCommands[DiagCommandCount].Handler := AHandler;
+  Inc(DiagCommandCount);
+end;
+
+function FindDiagCommand(const ACmd: string): TDiagCommandHandler;
+var
+  I: Integer;
+begin
+  Result := nil;
+  for I := 0 to DiagCommandCount - 1 do
+    if DiagCommands[I].Cmd = ACmd then begin
+      Result := DiagCommands[I].Handler;
+      Exit;
+    end;
+end;
+
+{$IFDEF ENABLE_LCL_SOCKET_DIAG}
+
+type
+  TControlCracker = class(TControl);
 
 { ===== Ring Buffer ========================================================== }
 
@@ -416,6 +470,97 @@ begin
   Result := ControlToJSON(C, 0, 1);
 end;
 
+{ ===== Find Controls ======================================================== }
+
+procedure FindControlsRecursive(AControl: TControl; const APath: string;
+  const AName, AClass, ACaption: string;
+  ASetDebug: Boolean; ADebugVal: Boolean;
+  var AItems: string; var ACount: Integer);
+var
+  MyPath, LowerName, LowerClass, LowerCaption: string;
+  Match: Boolean;
+  I: Integer;
+  WC: TWinControl;
+begin
+  if AControl = nil then Exit;
+  try
+    if APath = '' then
+      MyPath := AControl.Name
+    else if AControl.Name <> '' then
+      MyPath := APath + '/' + AControl.Name
+    else
+      MyPath := APath + '/<unnamed>';
+
+    Match := False;
+    if AName <> '' then begin
+      LowerName := LowerCase(AControl.Name);
+      Match := Pos(AName, LowerName) > 0;
+    end;
+    if (not Match) and (AClass <> '') then begin
+      LowerClass := LowerCase(AControl.ClassName);
+      Match := Pos(AClass, LowerClass) > 0;
+    end;
+    if (not Match) and (ACaption <> '') then begin
+      LowerCaption := LowerCase(AControl.Caption);
+      Match := Pos(ACaption, LowerCaption) > 0;
+    end;
+
+    if Match then begin
+      if ASetDebug then
+        AControl.DebugLogging := ADebugVal;
+      if AItems <> '' then AItems := AItems + ',';
+      AItems := AItems + '{' +
+        JStr('path', MyPath) + ',' +
+        JStr('class', AControl.ClassName) + ',' +
+        JStr('name', AControl.Name) + ',' +
+        JStr('caption', AControl.Caption) + ',' +
+        JBool('visible', AControl.Visible) + ',' +
+        JBool('debugLogging', AControl.DebugLogging) + ',' +
+        JInt('width', AControl.Width) + ',' +
+        JInt('height', AControl.Height) + '}';
+      Inc(ACount);
+    end;
+
+    if AControl is TWinControl then begin
+      WC := TWinControl(AControl);
+      for I := 0 to WC.ControlCount - 1 do
+        FindControlsRecursive(WC.Controls[I], MyPath,
+          AName, AClass, ACaption,
+          ASetDebug, ADebugVal, AItems, ACount);
+    end;
+  except
+  end;
+end;
+
+function FindControlsJSON(const AName, AClass, ACaption: string;
+  ASetDebug: Boolean; ADebugVal: Boolean): string;
+var
+  I, Count: Integer;
+  Items: string;
+begin
+  Items := '';
+  Count := 0;
+  try
+    if Screen = nil then begin
+      Result := '{' + JStr('error', 'Screen not available') + '}';
+      Exit;
+    end;
+    for I := 0 to Screen.CustomFormCount - 1 do
+      FindControlsRecursive(Screen.CustomForms[I], '',
+        LowerCase(AName), LowerCase(AClass), LowerCase(ACaption),
+        ASetDebug, ADebugVal, Items, Count);
+  except
+    on E: Exception do begin
+      Result := '{' + JStr('error', E.Message) + '}';
+      Exit;
+    end;
+  end;
+  Result := '{' + JInt('count', Count);
+  if ASetDebug then
+    Result := Result + ',' + JInt('debug_set', Count);
+  Result := Result + ',"matches":[' + Items + ']}';
+end;
+
 { ===== Connection Handler =================================================== }
 
 type
@@ -478,6 +623,9 @@ var
   Id, Depth, SinceSeq, Max: Int64;
   C: TControl;
   DebugVal: Boolean;
+  FindName, FindClass, FindCaption: string;
+  FindSetDebug: Boolean;
+  ExtHandler: TDiagCommandHandler;
 begin
   Cmd := ExtractJStr(ALine, 'cmd');
   Id := ExtractJInt(ALine, 'id');
@@ -493,8 +641,18 @@ begin
   else if Cmd = 'tree' then begin
     Depth := ExtractJInt(ALine, 'depth');
     if Depth <= 0 then Depth := 10;
-    AResponse := '{' + JInt('id', Id) + ',"result":' +
-      BuildTreeJSON(Depth) + '}';
+    Path := ExtractJStr(ALine, 'path');
+    if Path <> '' then begin
+      C := FindControlByPath(Path);
+      if C <> nil then
+        AResponse := '{' + JInt('id', Id) + ',"result":' +
+          ControlToJSON(C, 0, Depth) + '}'
+      else
+        AResponse := '{' + JInt('id', Id) + ',' +
+          JStr('error', 'control not found: ' + Path) + '}';
+    end else
+      AResponse := '{' + JInt('id', Id) + ',"result":' +
+        BuildTreeJSON(Depth) + '}';
   end
 
   else if Cmd = 'props' then begin
@@ -539,9 +697,36 @@ begin
       BuildTreeJSON(0) + '}';
   end
 
-  else
-    AResponse := '{' + JInt('id', Id) + ',' +
-      JStr('error', 'unknown command: ' + Cmd) + '}';
+  else if Cmd = 'find' then begin
+    FindName := ExtractJStr(ALine, 'name');
+    FindClass := ExtractJStr(ALine, 'class');
+    FindCaption := ExtractJStr(ALine, 'caption');
+    FindSetDebug := ExtractJStr(ALine, 'set_debug') <> '';
+    if FindSetDebug then
+      DebugVal := ExtractJBool(ALine, 'set_debug')
+    else
+      DebugVal := False;
+    AResponse := '{' + JInt('id', Id) + ',"result":' +
+      FindControlsJSON(FindName, FindClass, FindCaption,
+        FindSetDebug, DebugVal) + '}';
+  end
+
+  else begin
+    { Check registered command handlers from other modules (e.g. IDE layer) }
+    ExtHandler := FindDiagCommand(Cmd);
+    if Assigned(ExtHandler) then begin
+      try
+        AResponse := '{' + JInt('id', Id) + ',"result":' +
+          ExtHandler(ALine) + '}';
+      except
+        on E: Exception do
+          AResponse := '{' + JInt('id', Id) + ',' +
+            JStr('error', E.Message) + '}';
+      end;
+    end else
+      AResponse := '{' + JInt('id', Id) + ',' +
+        JStr('error', 'unknown command: ' + Cmd) + '}';
+  end;
 end;
 
 procedure TLCLDiagConnection.Execute;

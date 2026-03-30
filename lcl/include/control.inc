@@ -5810,10 +5810,6 @@ begin
 end;
 
 procedure TControl.DisableAutoSizing(const Reason: string);
-{$IFDEF LAZ_LAYOUT_DEBUG}
-var
-  ASzAction: string;
-{$ENDIF}
 begin
   Inc(FAutoSizingLockCount);
   {$IFDEF DebugDisableAutoSizing}
@@ -5822,17 +5818,12 @@ begin
   FAutoSizingLockReasons.Add(Reason);
   {$ENDIF}
 
-  {$IFDEF LAZ_LAYOUT_DEBUG}
-  if (FAutoSizingLockCount = 1) and (Parent <> nil) then
-    ASzAction := 'propagate to ' + DbgSName(Parent)
-  else
-    ASzAction := 'no propagation';
-  DebugLn(['[DisableAutoSizing] ', DbgSName(Self),
-    ' count=', FAutoSizingLockCount,
-    ' parent=', DbgSName(Parent),
-    ' reason="', Reason, '"',
-    ' -> ', ASzAction]);
-  {$ENDIF}
+  // Only log when count > 1 — the normal 0→1→0 cycle is 92% noise.
+  // count > 1 means nested locks, which is the interesting case.
+  if (FAutoSizingLockCount > 1) and DebugLogging then
+    DebugLn(['[DisableAutoSizing] ', DbgSName(Self),
+      ' count=', FAutoSizingLockCount,
+      ' reason="', Reason, '"']);
 
   { Execute the action }
   if (FAutoSizingLockCount = 1) and (Parent <> nil) then
@@ -5840,10 +5831,6 @@ begin
 end;
 
 procedure TControl.EnableAutoSizing(const Reason: string);
-{$IFDEF LAZ_LAYOUT_DEBUG}
-var
-  ASzAction: string;
-{$ENDIF}
 {$IFDEF DebugDisableAutoSizing}
 var
   i: Integer;
@@ -5875,19 +5862,12 @@ begin
 
   Dec(FAutoSizingLockCount);
 
-  {$IFDEF LAZ_LAYOUT_DEBUG}
-  if FAutoSizingLockCount > 0 then
-    ASzAction := 'still locked'
-  else if Parent <> nil then
-    ASzAction := 'propagate to ' + DbgSName(Parent)
-  else
-    ASzAction := 'DoAllAutoSize';
-  DebugLn(['[EnableAutoSizing] ', DbgSName(Self),
-    ' count=', FAutoSizingLockCount,
-    ' parent=', DbgSName(Parent),
-    ' reason="', Reason, '"',
-    ' -> ', ASzAction]);
-  {$ENDIF}
+  // Only log when count > 0 after decrement — still locked, not the
+  // normal final-unlock-triggers-DoAllAutoSize path.
+  if (FAutoSizingLockCount > 0) and DebugLogging then
+    DebugLn(['[EnableAutoSizing] ', DbgSName(Self),
+      ' count=', FAutoSizingLockCount,
+      ' reason="', Reason, '" (still locked)']);
 
   { Execute the action }
   if FAutoSizingLockCount > 0 then

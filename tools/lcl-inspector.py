@@ -111,15 +111,22 @@ def cmd_ping(client):
           f"v{res.get('version', '?')}")
 
 
-def cmd_tree(client, depth=10):
-    r = client.send({"cmd": "tree", "depth": depth})
+def cmd_tree(client, depth=10, path=None):
+    cmd = {"cmd": "tree", "depth": depth}
+    if path:
+        cmd["path"] = path
+    r = client.send(cmd)
     res = r.get("result", {})
     if "error" in res:
         print(f"{RED}Error:{RESET} {res['error']}")
         return
-    print(f"{BOLD}{res.get('formCount', 0)} forms{RESET}")
-    for form in res.get("forms", []):
-        format_tree(form)
+    if "forms" in res:
+        print(f"{BOLD}{res.get('formCount', 0)} forms{RESET}")
+        for form in res.get("forms", []):
+            format_tree(form)
+            print()
+    else:
+        format_tree(res)
         print()
 
 
@@ -173,6 +180,47 @@ def cmd_stats(client):
     res = r.get("result", {})
     for k, v in sorted(res.items()):
         print(f"  {CYAN}{k}{RESET}: {v}")
+
+
+def cmd_find(client, name="", cls="", caption="", set_debug=None):
+    cmd = {"cmd": "find"}
+    if name:
+        cmd["name"] = name
+    if cls:
+        cmd["class"] = cls
+    if caption:
+        cmd["caption"] = caption
+    if set_debug is not None:
+        cmd["set_debug"] = set_debug
+    r = client.send(cmd)
+    res = r.get("result", {})
+    if "error" in res:
+        print(f"{RED}Error:{RESET} {res['error']}")
+        return
+    count = res.get("count", 0)
+    debug_set = res.get("debug_set", None)
+    if debug_set is not None:
+        state = "ON" if set_debug else "OFF"
+        print(f"{BOLD}{count} matches{RESET} — DebugLogging set to {GREEN}{state}{RESET} on {debug_set}")
+    else:
+        print(f"{BOLD}{count} matches{RESET}")
+    for m in res.get("matches", []):
+        path = m.get("path", "?")
+        cls_name = m.get("class", "?")
+        name_str = m.get("name", "")
+        cap = m.get("caption", "")
+        vis = m.get("visible", False)
+        dbg = m.get("debugLogging", False)
+        w, h = m.get("width", 0), m.get("height", 0)
+        label = f"  {CYAN}{path}{RESET} ({cls_name})"
+        if cap:
+            label += f" {DIM}\"{cap}\"{RESET}"
+        label += f" {DIM}{w}x{h}{RESET}"
+        if not vis:
+            label += f" {RED}(hidden){RESET}"
+        if dbg:
+            label += f" {YELLOW}[DEBUG]{RESET}"
+        print(label)
 
 
 def cmd_set_debug(client, path, value):
@@ -237,20 +285,28 @@ def repl(client):
             if cmd in ("help", "?"):
                 print(textwrap.dedent("""\
                     ping              Check connection
-                    tree [DEPTH]      Control tree (default depth=10)
+                    tree [DEPTH] [PATH] Control tree (or single form's tree)
                     forms             List top-level forms
                     props PATH        Control properties (e.g. MainIDE/StatusBar1)
                     events [MAX]      Recent ring buffer events
                     stats             Ring buffer statistics
                     watch             Tail events (Ctrl+C to stop)
+                    find TERM          Find by name/class/caption
+                    find TERM on|off  Find and set DebugLogging
                     debug PATH on|off Toggle DebugLogging
                     raw JSON          Send raw JSON command
                     quit              Exit"""))
             elif cmd == "ping":
                 cmd_ping(client)
             elif cmd == "tree":
-                depth = int(parts[1]) if len(parts) > 1 else 10
-                cmd_tree(client, depth)
+                depth = 10
+                path = None
+                for p in parts[1:]:
+                    if p.isdigit():
+                        depth = int(p)
+                    else:
+                        path = p
+                cmd_tree(client, depth, path)
             elif cmd == "forms":
                 cmd_forms(client)
             elif cmd == "props":
@@ -265,6 +321,15 @@ def repl(client):
                 cmd_stats(client)
             elif cmd == "watch":
                 cmd_watch(client)
+            elif cmd == "find":
+                if len(parts) < 2:
+                    print("Usage: find TERM [on|off]")
+                else:
+                    term = parts[1]
+                    sd = None
+                    if len(parts) >= 3 and parts[2].lower() in ("on", "off", "true", "false"):
+                        sd = parts[2].lower() in ("on", "true")
+                    cmd_find(client, name=term, cls=term, caption=term, set_debug=sd)
             elif cmd == "debug":
                 if len(parts) < 3:
                     print("Usage: debug FormName/ControlName on|off")
@@ -293,6 +358,7 @@ def main():
 
     p_tree = sub.add_parser("tree", help="Dump control tree")
     p_tree.add_argument("--depth", type=int, default=10)
+    p_tree.add_argument("path", nargs="?", default=None, help="Form/control path")
 
     sub.add_parser("forms", help="List top-level forms")
 
@@ -307,6 +373,14 @@ def main():
 
     p_watch = sub.add_parser("watch", help="Tail events continuously")
     p_watch.add_argument("--interval", type=float, default=0.5)
+
+    p_find = sub.add_parser("find", help="Find controls by name/class/caption")
+    p_find.add_argument("term", help="Search term (matches name, class, or caption)")
+    p_find.add_argument("--name", default="", help="Match name only")
+    p_find.add_argument("--class", dest="cls", default="", help="Match class only")
+    p_find.add_argument("--caption", default="", help="Match caption only")
+    p_find.add_argument("--set-debug", choices=["on", "off"], default=None,
+                        help="Set DebugLogging on all matches")
 
     p_debug = sub.add_parser("set-debug", help="Toggle DebugLogging")
     p_debug.add_argument("path", help="Control path")
@@ -330,7 +404,7 @@ def main():
         elif args.command == "ping":
             cmd_ping(client)
         elif args.command == "tree":
-            cmd_tree(client, args.depth)
+            cmd_tree(client, args.depth, args.path)
         elif args.command == "forms":
             cmd_forms(client)
         elif args.command == "props":
@@ -341,9 +415,24 @@ def main():
             cmd_stats(client)
         elif args.command == "watch":
             cmd_watch(client, args.interval)
+        elif args.command == "find":
+            name = args.name or args.term
+            cls = args.cls or args.term
+            caption = args.caption or args.term
+            if args.name or args.cls or args.caption:
+                name = args.name
+                cls = args.cls
+                caption = args.caption
+            sd = None
+            if args.set_debug is not None:
+                sd = args.set_debug == "on"
+            cmd_find(client, name=name, cls=cls, caption=caption, set_debug=sd)
         elif args.command == "set-debug":
             val = args.value == "on"
             cmd_set_debug(client, args.path, val)
+    except (ConnectionError, BrokenPipeError, OSError) as e:
+        print(f"{RED}Connection lost:{RESET} {e}")
+        sys.exit(1)
     finally:
         client.close()
 
