@@ -1,5 +1,6 @@
 unit LCLDiagServer;
-{
+{ PROJECT ELEAZAR: DIAGNOSTIC SOCKET SERVER
+
   LCL Diagnostic Socket Server
   Provides a localhost TCP server that exposes the live LCL control tree,
   a circular event ring buffer (hooked into DebugLn), and per-control
@@ -15,7 +16,7 @@ interface
 uses
   SysUtils
   {$IFDEF ENABLE_LCL_SOCKET_DIAG}
-  , Classes, ssockets
+  , Classes, ssockets, Controls
   {$ENDIF}
   ;
 
@@ -72,6 +73,8 @@ type
 var
   DiagRing: TLCLEventRing;
 
+function FindControlByPath(const APath: string): TControl;
+
 {$ENDIF}
 
 { --- Always available, even without ENABLE_LCL_SOCKET_DIAG --- }
@@ -99,7 +102,7 @@ implementation
 {$IFDEF ENABLE_LCL_SOCKET_DIAG}
 uses
   Sockets, DateUtils,
-  Forms, Controls, LCLClasses,
+  Forms, LCLClasses,
   LazLoggerBase, LazLogger;
 {$ENDIF}
 
@@ -633,7 +636,7 @@ begin
   if Cmd = 'ping' then begin
     AResponse := '{' + JInt('id', Id) + ',"result":{' +
       JStr('version', '1.0') + ',' +
-      JStr('app', 'Eleazar') + ',' +
+      JStr('app', Application.Title) + ',' +
       JInt('pid', GetProcessID) + ',' +
       JInt('port', FServer.Port) + '}}';
   end

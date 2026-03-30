@@ -20,7 +20,8 @@ implementation
 uses
   Classes, SysUtils, Forms, Controls,
   LCLDiagServer,
-  LazIDEIntf, SrcEditorIntf, ProjectIntf;
+  LazIDEIntf, SrcEditorIntf, ProjectIntf,
+  EnvGuiOptions;
 
 { ===== Request record — all cross-thread data lives here =================== }
 
@@ -57,12 +58,22 @@ begin
   FProc(FData);
 end;
 
+function MainThreadIsModal: Boolean;
+begin
+  Result := (Application <> nil) and (Application.ModalLevel > 0);
+end;
+
 procedure RunOnMainThread(AProc: TDiagMainProc; AParam: PtrInt);
 begin
   if GetCurrentThreadId = MainThreadID then begin
     AProc(AParam);
     Exit;
   end;
+  { If a modal dialog is up, Synchronize will deadlock — the main thread
+    is stuck in the modal loop and won't process our call. }
+  if MainThreadIsModal then
+    raise Exception.Create('main thread blocked by modal dialog (ModalLevel='
+      + IntToStr(Application.ModalLevel) + ')');
   { TThread.Synchronize blocks the calling thread until the main thread
     completes DoCall. So the writes to FProc/FData below are safe:
     the calling thread is blocked while the main thread reads them,
@@ -737,6 +748,346 @@ begin
   Result := Req.Result;
 end;
 
+{ ===== Command: list_desktops ============================================== }
+
+procedure DoListDesktops(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  I: Integer;
+  D: TCustomDesktopOpt;
+  Items, ActiveName: string;
+begin
+  Req := PDiagRequest(Data);
+  Items := '';
+  ActiveName := '';
+  if EnvironmentGuiOpts.ActiveDesktop <> nil then
+    ActiveName := EnvironmentGuiOpts.ActiveDesktop.Name;
+  for I := 0 to EnvironmentGuiOpts.Desktops.Count - 1 do begin
+    D := EnvironmentGuiOpts.Desktops[I];
+    if Items <> '' then Items := Items + ',';
+    Items := Items + '{' +
+      JStr('name', D.Name) + ',' +
+      JBool('isDocked', D.IsDocked) + ',' +
+      JBool('compatible', D.Compatible) + ',' +
+      JBool('active', D.Name = ActiveName) + '}';
+  end;
+  Req^.Result := '{' +
+    JInt('count', EnvironmentGuiOpts.Desktops.Count) + ',' +
+    JStr('active', ActiveName) + ',' +
+    '"desktops":[' + Items + ']}';
+end;
+
+function HandleListDesktops(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  Req.Line := ALine;
+  RunOnMainThread(@DoListDesktops, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: switch_desktop ============================================= }
+
+procedure DoSwitchDesktop(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  Name: string;
+  D: TCustomDesktopOpt;
+begin
+  Req := PDiagRequest(Data);
+  Name := ExtractJStr(Req^.Line, 'name');
+  D := EnvironmentGuiOpts.Desktops.Find(Name);
+  if D = nil then begin
+    Req^.Result := '{' + JStr('error', 'desktop not found: ' + Name) + '}';
+    Exit;
+  end;
+  if not D.Compatible then begin
+    Req^.Result := '{' + JStr('error', 'desktop not compatible (docked/undocked mismatch): ' + Name) + '}';
+    Exit;
+  end;
+  if not (D is TDesktopOpt) then begin
+    Req^.Result := '{' + JStr('error', 'desktop is not a TDesktopOpt: ' + Name) + '}';
+    Exit;
+  end;
+  EnvironmentGuiOpts.UseDesktop(TDesktopOpt(D));
+  Req^.Result := '{' + JStr('result', 'ok') + ',' +
+    JStr('desktop', Name) + '}';
+end;
+
+function HandleSwitchDesktop(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'name') = '' then begin
+    Result := '{' + JStr('error', 'missing name') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoSwitchDesktop, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: undock ===================================================== }
+
+procedure DoUndock(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  Path: string;
+  C: TControl;
+  R: TRect;
+begin
+  Req := PDiagRequest(Data);
+  Path := ExtractJStr(Req^.Line, 'path');
+  C := FindControlByPath(Path);
+  if C = nil then begin
+    Req^.Result := '{' + JStr('error', 'control not found: ' + Path) + '}';
+    Exit;
+  end;
+  { Float at current screen position }
+  R := C.BoundsRect;
+  R.TopLeft := C.ClientToScreen(Point(0, 0));
+  R.Right := R.Left + C.Width;
+  R.Bottom := R.Top + C.Height;
+  if C.ManualFloat(R) then
+    Req^.Result := '{' + JStr('result', 'ok') + ',' +
+      JStr('path', Path) + ',' +
+      JInt('left', R.Left) + ',' +
+      JInt('top', R.Top) + ',' +
+      JInt('width', C.Width) + ',' +
+      JInt('height', C.Height) + '}'
+  else
+    Req^.Result := '{' + JStr('error', 'ManualFloat failed for ' + Path) + '}';
+end;
+
+function HandleUndock(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'path') = '' then begin
+    Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoUndock, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: dock ======================================================= }
+
+function SideToAlign(const S: string): TAlign;
+begin
+  if S = 'left' then Result := alLeft
+  else if S = 'right' then Result := alRight
+  else if S = 'top' then Result := alTop
+  else if S = 'bottom' then Result := alBottom
+  else if S = 'client' then Result := alClient
+  else Result := alNone;
+end;
+
+procedure DoDock(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  SourcePath, TargetPath, Side: string;
+  Src, Tgt: TControl;
+  A: TAlign;
+begin
+  Req := PDiagRequest(Data);
+  SourcePath := ExtractJStr(Req^.Line, 'path');
+  TargetPath := ExtractJStr(Req^.Line, 'target');
+  Side := ExtractJStr(Req^.Line, 'side');
+  Src := FindControlByPath(SourcePath);
+  if Src = nil then begin
+    Req^.Result := '{' + JStr('error', 'source not found: ' + SourcePath) + '}';
+    Exit;
+  end;
+  Tgt := FindControlByPath(TargetPath);
+  if Tgt = nil then begin
+    Req^.Result := '{' + JStr('error', 'target not found: ' + TargetPath) + '}';
+    Exit;
+  end;
+  if not (Tgt is TWinControl) then begin
+    Req^.Result := '{' + JStr('error', 'target is not a TWinControl: ' + TargetPath) + '}';
+    Exit;
+  end;
+  A := SideToAlign(Side);
+  if Src.ManualDock(TWinControl(Tgt), nil, A) then
+    Req^.Result := '{' + JStr('result', 'ok') + ',' +
+      JStr('source', SourcePath) + ',' +
+      JStr('target', TargetPath) + ',' +
+      JStr('side', Side) + '}'
+  else
+    Req^.Result := '{' + JStr('error', 'ManualDock failed') + '}';
+end;
+
+function HandleDock(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'path') = '' then begin
+    Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  if ExtractJStr(ALine, 'target') = '' then begin
+    Result := '{' + JStr('error', 'missing target') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoDock, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: resize ===================================================== }
+
+procedure DoResize(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  Path: string;
+  C: TControl;
+  W, H: Int64;
+begin
+  Req := PDiagRequest(Data);
+  Path := ExtractJStr(Req^.Line, 'path');
+  W := ExtractJInt(Req^.Line, 'w');
+  H := ExtractJInt(Req^.Line, 'h');
+  C := FindControlByPath(Path);
+  if C = nil then begin
+    Req^.Result := '{' + JStr('error', 'control not found: ' + Path) + '}';
+    Exit;
+  end;
+  C.SetBounds(C.Left, C.Top, W, H);
+  Req^.Result := '{' + JStr('result', 'ok') + ',' +
+    JStr('path', Path) + ',' +
+    JInt('width', C.Width) + ',' +
+    JInt('height', C.Height) + '}';
+end;
+
+function HandleResize(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'path') = '' then begin
+    Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoResize, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: move ======================================================= }
+
+procedure DoMove(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  Path: string;
+  C: TControl;
+  L, T: Int64;
+begin
+  Req := PDiagRequest(Data);
+  Path := ExtractJStr(Req^.Line, 'path');
+  L := ExtractJInt(Req^.Line, 'left');
+  T := ExtractJInt(Req^.Line, 'top');
+  C := FindControlByPath(Path);
+  if C = nil then begin
+    Req^.Result := '{' + JStr('error', 'control not found: ' + Path) + '}';
+    Exit;
+  end;
+  C.SetBounds(L, T, C.Width, C.Height);
+  Req^.Result := '{' + JStr('result', 'ok') + ',' +
+    JStr('path', Path) + ',' +
+    JInt('left', C.Left) + ',' +
+    JInt('top', C.Top) + '}';
+end;
+
+function HandleMove(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'path') = '' then begin
+    Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoMove, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
+{ ===== Command: dock_state ================================================= }
+
+procedure BuildDockStateRecursive(AControl: TControl; const APath: string;
+  var AItems: string; var ACount: Integer);
+var
+  MyPath: string;
+  I: Integer;
+  WC: TWinControl;
+begin
+  if AControl = nil then Exit;
+  try
+    if APath = '' then
+      MyPath := AControl.Name
+    else if AControl.Name <> '' then
+      MyPath := APath + '/' + AControl.Name
+    else
+      MyPath := APath + '/<unnamed>';
+
+    if AItems <> '' then AItems := AItems + ',';
+    AItems := AItems + '{' +
+      JStr('path', MyPath) + ',' +
+      JStr('class', AControl.ClassName) + ',' +
+      JStr('caption', AControl.Caption) + ',' +
+      JBool('visible', AControl.Visible) + ',' +
+      JInt('left', AControl.Left) + ',' +
+      JInt('top', AControl.Top) + ',' +
+      JInt('width', AControl.Width) + ',' +
+      JInt('height', AControl.Height);
+    if AControl.HostDockSite <> nil then
+      AItems := AItems + ',' + JStr('hostDockSite', AControl.HostDockSite.Name);
+    if AControl.Parent <> nil then
+      AItems := AItems + ',' + JStr('parent', AControl.Parent.Name);
+    AItems := AItems + '}';
+    Inc(ACount);
+
+    if AControl is TWinControl then begin
+      WC := TWinControl(AControl);
+      for I := 0 to WC.ControlCount - 1 do
+        if Pos('AnchorDock', WC.Controls[I].ClassName) > 0 then
+          BuildDockStateRecursive(WC.Controls[I], MyPath, AItems, ACount);
+    end;
+  except
+  end;
+end;
+
+procedure DoDockState(Data: PtrInt);
+var
+  Req: PDiagRequest;
+  I, Count: Integer;
+  Items: string;
+begin
+  Req := PDiagRequest(Data);
+  Items := '';
+  Count := 0;
+  try
+    if Screen <> nil then
+      for I := 0 to Screen.CustomFormCount - 1 do
+        if Pos('AnchorDock', Screen.CustomForms[I].ClassName) > 0 then
+          BuildDockStateRecursive(Screen.CustomForms[I], '', Items, Count)
+        else if Screen.CustomForms[I].HostDockSite <> nil then
+          BuildDockStateRecursive(Screen.CustomForms[I], '', Items, Count);
+  except
+  end;
+  Req^.Result := '{' + JInt('count', Count) + ',' +
+    '"nodes":[' + Items + ']}';
+end;
+
+function HandleDockState(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  Req.Line := ALine;
+  RunOnMainThread(@DoDockState, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
 { ===== Registration ======================================================== }
 
 procedure DoRegisterAll;
@@ -758,6 +1109,13 @@ begin
   RegisterDiagCommand('project_info', @HandleProjectInfo);
   RegisterDiagCommand('project_files', @HandleProjectFiles);
   RegisterDiagCommand('tool_status', @HandleToolStatus);
+  RegisterDiagCommand('list_desktops', @HandleListDesktops);
+  RegisterDiagCommand('switch_desktop', @HandleSwitchDesktop);
+  RegisterDiagCommand('undock', @HandleUndock);
+  RegisterDiagCommand('dock', @HandleDock);
+  RegisterDiagCommand('resize', @HandleResize);
+  RegisterDiagCommand('move', @HandleMove);
+  RegisterDiagCommand('dock_state', @HandleDockState);
 end;
 
 procedure RegisterIDEDiagCommands;
