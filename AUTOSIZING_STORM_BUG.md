@@ -32,6 +32,35 @@ Steps:
 If the simple "exit early" causes visual glitches, upgrade to a
 deferred queue (see Proposed Fix section below).
 
+## Qt5 vs GTK2: Confirmed GTK2-Only Bug
+
+Built and tested the same IDE with the Qt5 widgetset (`bash build.sh qt5`)
+and ran the identical dock stress test. Results:
+
+| | GTK2 | Qt5 |
+|---|---|---|
+| Events (3 rounds stress test) | 90,000+ | 722 |
+| Access violations | 2 | **0** |
+| Desktop switch event count | ~30,000 per switch | ~240 per switch |
+| Behavior | Hangs 2–30s, crashes | Clean, instant |
+
+**The bug is entirely in the GTK2 widgetset's `size-allocate` handling.**
+Qt5 delivers resize notifications via `QWidget::resizeEvent`, which is a
+post-facto notification — it arrives after the resize is done, not
+synchronously during layout. There is no re-entrancy.
+
+GTK3 uses the same `size-allocate` model as GTK2 — the Lazarus GTK3
+widgetset (33K lines, experimental/incomplete) has comments about
+"GTK cascade loops" in its own `size_allocate` code. GTK3 would not
+fix this. GTK4 changed to a constraint-based layout system but has no
+Lazarus widgetset.
+
+This confirms: the fix belongs in `gtksize_allocateCB` — our code in
+`lcl/interfaces/gtk2/gtk2callback.inc`. The LCL core and the anchor
+docking code are fine. Qt5 proves that the same `DisableAutoSizing`/
+`EnableAutoSizing` protocol works correctly when the widgetset doesn't
+re-enter during layout.
+
 ## Summary
 
 Two related bugs in the LCL's autosizing/docking interaction:
