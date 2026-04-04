@@ -34,9 +34,9 @@ echo "=== Eleazar Build: target=$TARGET platform=$PLATFORM ==="
 echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
 
 if [ -n "$OPT_FLAGS" ]; then
-  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" OPT="$OPT_FLAGS" 2>&1 | tee make.log | grep -E 'Error|Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
+  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" OPT="$OPT_FLAGS" 2>&1 | tee make.log | grep -E 'make -C | Error| Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
 else
-  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" 2>&1 | tee make.log | grep -E 'Error|Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
+  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" 2>&1 | tee make.log | grep -E ' Error| Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
 fi
 
 if [ "$MAKE_EXIT" -ne 0 ]; then
