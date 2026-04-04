@@ -194,11 +194,11 @@ begin
 end;
 
 initialization
-  Registration := TAnchorDockDsgnSetup.Create;
-  SetupDlgFrameList.Add(Registration);
+  //Registration := TAnchorDockDsgnSetup.Create;
+  //SetupDlgFrameList.Add(Registration);
 
 finalization
-  FreeAndNil(Registration);
+//  FreeAndNil(Registration);
 
 end.
 

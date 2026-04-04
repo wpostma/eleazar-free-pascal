@@ -97,6 +97,10 @@ function ExtractJBool(const AJSON, AKey: string): Boolean;
 procedure LCLDiagStartServer;
 procedure LCLDiagStopServer;
 
+{ Walk UP the parent chain from AControl and set DebugLogging on every
+  ancestor. Also sets AControl itself. Safe to call before the server starts. }
+procedure SetDebugLoggingUp(AControl: TControl; AValue: Boolean = True);
+
 implementation
 
 {$IFDEF ENABLE_LCL_SOCKET_DIAG}
@@ -564,6 +568,56 @@ begin
   Result := Result + ',"matches":[' + Items + ']}';
 end;
 
+{ ===== Debug All ============================================================ }
+
+procedure SetDebugAllRecursive(AControl: TControl; AVal: Boolean;
+  const AClassFilter: string; var ACount: Integer);
+var
+  I: Integer;
+  WC: TWinControl;
+begin
+  if AControl = nil then Exit;
+  try
+    if (AClassFilter = '') or (Pos(AClassFilter, LowerCase(AControl.ClassName)) > 0) then begin
+      AControl.DebugLogging := AVal;
+      Inc(ACount);
+    end;
+    if AControl is TWinControl then begin
+      WC := TWinControl(AControl);
+      for I := 0 to WC.ControlCount - 1 do
+        SetDebugAllRecursive(WC.Controls[I], AVal, AClassFilter, ACount);
+    end;
+  except
+  end;
+end;
+
+function DebugAllJSON(AVal: Boolean): string;
+var
+  I, FormCount, DockCount: Integer;
+begin
+  FormCount := 0;
+  DockCount := 0;
+  try
+    if Screen = nil then begin
+      Result := '{' + JStr('error', 'Screen not available') + '}';
+      Exit;
+    end;
+    for I := 0 to Screen.CustomFormCount - 1 do begin
+      Screen.CustomForms[I].DebugLogging := AVal;
+      Inc(FormCount);
+      SetDebugAllRecursive(Screen.CustomForms[I], AVal, 'tanchordockhostsite', DockCount);
+    end;
+  except
+    on E: Exception do begin
+      Result := '{' + JStr('error', E.Message) + '}';
+      Exit;
+    end;
+  end;
+  Result := '{' + JInt('forms_set', FormCount) + ',' +
+    JInt('docksites_set', DockCount) + ',' +
+    JBool('value', AVal) + '}';
+end;
+
 { ===== Connection Handler =================================================== }
 
 type
@@ -700,11 +754,18 @@ begin
       BuildTreeJSON(0) + '}';
   end
 
+  else if Cmd = 'debug_all' then begin
+    DebugVal := ExtractJBool(ALine, 'value');
+    if Pos('"value"', ALine) = 0 then DebugVal := True; // default on
+    AResponse := '{' + JInt('id', Id) + ',"result":' +
+      DebugAllJSON(DebugVal) + '}';
+  end
+
   else if Cmd = 'find' then begin
     FindName := ExtractJStr(ALine, 'name');
     FindClass := ExtractJStr(ALine, 'class');
     FindCaption := ExtractJStr(ALine, 'caption');
-    FindSetDebug := ExtractJStr(ALine, 'set_debug') <> '';
+    FindSetDebug := Pos('"set_debug"', ALine) > 0;
     if FindSetDebug then
       DebugVal := ExtractJBool(ALine, 'set_debug')
     else
@@ -841,6 +902,17 @@ begin
 end;
 
 { ===== Public API =========================================================== }
+
+procedure SetDebugLoggingUp(AControl: TControl; AValue: Boolean = True);
+var
+  C: TControl;
+begin
+  C := AControl;
+  while C <> nil do begin
+    C.DebugLogging := AValue;
+    C := C.Parent;
+  end;
+end;
 
 procedure LCLDiagStartServer;
 var

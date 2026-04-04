@@ -395,8 +395,8 @@ var
 begin
   Cfg := GetIDEConfigStorage(AFilename, True);
   try
-    EnableAnchorDock            := Cfg.GetValue('EnableAnchorDock/Value',             True);
-    DoneAskUserEnableAnchorDock := Cfg.GetValue('DoneAskUserEnableAnchorDock/Value',  False);
+    EnableAnchorDock            := True; // always on
+    DoneAskUserEnableAnchorDock := True; // skip the setup prompt
   finally
     Cfg.Free;
   end;

@@ -258,6 +258,9 @@ begin
   try
     Application.TaskBarBehavior:=tbMultiButton;
     InitialSetupDialog.Init;
+
+
+
     Result:=InitialSetupDialog.ShowModal;
   finally
     InitialSetupDialog.Free;

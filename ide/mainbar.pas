@@ -40,7 +40,7 @@ uses
 {$ENDIF}
   Classes, SysUtils, Math,
   // LCL
-  Forms, Controls, Menus, ComCtrls, ExtCtrls, LMessages,
+  Forms, Controls, Menus, ComCtrls, ExtCtrls, LMessages, LCLDiagServer,
 {$IF DEFINED(LCLGtk) OR DEFINED(LCLQt)}
   LCLIntf,
 {$ENDIF}
@@ -586,6 +586,7 @@ end;
 
 procedure TMainIDEBar.SetMainIDEHeightEvent(Sender: TObject);
 begin
+  DebugLn('[SetMainIDEHeight] caller=SetMainIDEHeightEvent');
   SetMainIDEHeight;
 end;
 
@@ -635,12 +636,14 @@ constructor TMainIDEBar.Create(TheOwner: TComponent);
 begin
   // This form has no resource => must be constructed using CreateNew
   inherited CreateNew(TheOwner, 1);
+  DebugLogging := True;
   DebugLn('(mainbar) [TMainIDEBar.Create] after CreateNew Bounds=',dbgs(BoundsRect));
   AllowDropFiles:=true;
   Scaled:=true;
   OnDropFiles:=@MainIDEBarDropFiles;
   if Assigned(IDEDockMaster) then
     IDEDockMaster.SetMainDockWindow(Self);
+  SetDebugLoggingUp(Self);
   {$IFNDEF LCLGtk2}
   try
     Icon.LoadFromResourceName(HInstance, 'WIN_MAIN');
@@ -757,6 +760,7 @@ procedure TMainIDEBar.InitPaletteAndCoolBar;
 begin
   RefreshCoolbar;
   ComponentPageControl.OnChange(Self);//refresh component palette with button reposition
+  DebugLn('[SetMainIDEHeight] caller=InitPaletteAndCoolBar');
   SetMainIDEHeight;
   if IDEDockMaster<>nil then
     IDEDockMaster.ResetSplitters;
@@ -820,6 +824,7 @@ end;
 procedure TMainIDEBar.MainSplitterMoved(Sender: TObject);
 begin
   EnvironmentGuiOpts.Desktop.IDECoolBarOptions.Width := ScaleFormTo96(CoolBar.Width);
+  DebugLn('[SetMainIDEHeight] caller=MainSplitterMoved');
   SetMainIDEHeight;
 end;
 
@@ -827,6 +832,7 @@ procedure TMainIDEBar.CoolBarOnChange(Sender: TObject);
 begin
   IDECoolBar.CopyFromRealCoolbar(Coolbar);
   IDECoolBar.CopyToOptions(EnvironmentGuiOpts.Desktop.IDECoolBarOptions);
+  DebugLn('[SetMainIDEHeight] caller=CoolBarOnChange');
   SetMainIDEHeight;
 end;
 
@@ -858,6 +864,7 @@ begin
   if aVisible then//when showing component palette, it must be visible to calculate it correctly
     //this will cause the IDE to flicker, but it's better than to have wrongly calculated IDE height
     DoSetMainIDEHeight(WindowState = wsMaximized, 55);
+  DebugLn('[SetMainIDEHeight] caller=DoSetViewComponentPalette');
   SetMainIDEHeight;
 end;
 

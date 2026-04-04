@@ -12,7 +12,7 @@ Add a **localhost TCP diagnostic service** to the LCL (behind `{$IFDEF ENABLE_LC
 - **`DebugLn` hook**: Wraps `TLazLoggerFile.OnDebugLn` via a small `TDiagDebugLnHook` object (`TLazLoggerWriteEvent` is `of object`). Previous handler is chained so **disk logging is unchanged**.
 - **`TLCLDiagServer`**: Accepts on `127.0.0.1`, port from `LCL_DIAG_PORT` or **4747**, then tries **4747–4756** if bind fails.
 - **Protocol**: One JSON object per line (newline-terminated), one JSON response per line.
-- **Commands** (v1): `ping`, `tree` (optional `depth`), `forms` (depth 0), `props` (`path` like `FormName/Child/...`), `events` (`since_seq`, `max`), `stats`, `set_debug` (`path`, `value` true/false).
+- **Commands** (v1): `ping`, `tree` (optional `depth`), `forms` (depth 0), `props` (`path` like `FormName/Child/...`), `events` (`since_seq`, `max`), `stats`, `set_debug` (`path`, `value` true/false), `find` (`name`/`class`/`caption` substring, optional `set_debug` bool), `debug_all` (optional `value` bool, default true).
 - **Without the define**: unit compiles to empty `LCLDiagStartServer` / `LCLDiagStopServer` — no socket code linked.
 
 ### Hooks

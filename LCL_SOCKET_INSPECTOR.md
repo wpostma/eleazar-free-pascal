@@ -522,6 +522,22 @@ Or enable for an entire class at once:
 ← {"id":16, "result":{"count":12}}
 ```
 
+Or enable debug on **all forms and all dock sites** in one shot with `debug_all`
+(implemented in `lcldiagserver.pas`). This walks `Screen.CustomForms[]` directly
+so it works even when dock site controls are buried behind unnamed
+`TAnchorDockPageControl`/`TAnchorDockPage` nodes that path-based commands can't
+traverse:
+
+```json
+→ {"id":17, "cmd":"debug_all"}
+← {"id":17, "result":{"forms_set":7,"docksites_set":16,"value":true}}
+
+→ {"id":18, "cmd":"debug_all", "value":false}
+← {"id":18, "result":{"forms_set":7,"docksites_set":16,"value":false}}
+```
+
+`value` defaults to `true` if omitted.
+
 **Three layers, each independent:**
 
 | Layer | Controls | Purpose |

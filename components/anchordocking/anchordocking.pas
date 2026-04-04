@@ -112,6 +112,8 @@ uses
   Controls, Forms, ExtCtrls, ComCtrls, Graphics, Themes, Menus, Buttons,
   // LazUtils
   LazLoggerBase, LazTracer, LazConfigStorage, Laz2_XMLCfg, LazFileCache, LazUTF8,
+  // LCL diag
+  LCLDiagServer,
   // AnchorDocking
   AnchorDockStr, AnchorDockStorage, AnchorDockPanel;
 
@@ -6694,6 +6696,7 @@ end;
 constructor TAnchorDockHostSite.CreateNew(AOwner: TComponent; Num: Integer);
 begin
   inherited CreateNew(AOwner,Num);
+  DebugLogging := True;
   FMinimizedControl:=Nil;
   Visible:=false;
   FHeaderSide:=akTop;

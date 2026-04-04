@@ -187,11 +187,11 @@ begin
 end;
 
 initialization
-  Registration := TDockedFormEditSetup.Create;
-  SetupDlgFrameList.Add(Registration);
+  //Registration := TDockedFormEditSetup.Create;
+  //SetupDlgFrameList.Add(Registration);
 
 finalization
-  FreeAndNil(Registration);
+  //FreeAndNil(Registration);
 
 end.
 

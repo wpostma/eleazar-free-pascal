@@ -43,6 +43,7 @@ uses
   IdeIntfStrConsts,
   // IDEConfig
   LazConf, EnvironmentOpts, FppkgHelper,
+
   // IDE
   LazarusIDEStrConsts;
 

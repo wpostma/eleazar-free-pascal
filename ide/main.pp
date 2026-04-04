@@ -1526,8 +1526,9 @@ begin
     ShowSetupDialog := SetupDlgFrameList[i].RequireSetup;
   end;
 
-
-  ShowSetupDialog := true;
+  
+  //ShowSetupDialog := true;
+  
 
   // show setup dialog
   if ShowSetupDialog then begin
