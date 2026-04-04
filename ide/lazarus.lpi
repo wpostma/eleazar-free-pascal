@@ -739,7 +739,9 @@
       <Unit>
         <Filename Value="splash.pp"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="SplashForm"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="Splash"/>
       </Unit>
       <Unit>
@@ -848,7 +850,10 @@
       <Unit>
         <Filename Value="procedurelist.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="ProcedureListForm"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
+        <UnitName Value="ProcedureList"/>
       </Unit>
       <Unit>
         <Filename Value="abstractsmethodsdlg.pas"/>
@@ -929,7 +934,9 @@
       <Unit>
         <Filename Value="findreplacedialog.pp"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="LazFindReplaceDialog"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="FindReplaceDialog"/>
       </Unit>
       <Unit>
@@ -1082,7 +1089,9 @@
       <Unit>
         <Filename Value="codeexplorer.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="CodeExplorerView"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="CodeExplorer"/>
       </Unit>
       <Unit>
@@ -1330,6 +1339,7 @@
       <Unit>
         <Filename Value="idedefs.pas"/>
         <IsPartOfProject Value="True"/>
+        <UnitName Value="IDEDefs"/>
       </Unit>
       <Unit>
         <Filename Value="formeditor.pp"/>
@@ -1364,6 +1374,7 @@
         <ComponentName Value="QFInitLocalVarDialog"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
+        <UnitName Value="QFInitLocalVarDlg"/>
       </Unit>
       <Unit>
         <Filename Value="../packager/interpkgconflictfiles.pas"/>
@@ -1420,7 +1431,9 @@
       <Unit>
         <Filename Value="findinfileswnd.pas"/>
         <IsPartOfProject Value="True"/>
+        <ComponentName Value="LazFindInFilesWindow"/>
         <HasResources Value="True"/>
+        <ResourceBaseClass Value="Form"/>
         <UnitName Value="FindInFilesWnd"/>
       </Unit>
       <Unit>

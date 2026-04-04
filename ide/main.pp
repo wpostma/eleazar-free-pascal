@@ -1016,7 +1016,7 @@ var
   ParamBaseDirectory: string = '';
   SkipAutoLoadingLastProject: boolean = false;
   StartedByStartLazarus: boolean = false;
-  ShowSetupDialog: boolean = false;
+  ShowSetupDialog: boolean = true;
 
 type
   TDoDropFilesAsyncParams = class(TComponent)
@@ -1525,6 +1525,9 @@ begin
     if ShowSetupDialog then break;
     ShowSetupDialog := SetupDlgFrameList[i].RequireSetup;
   end;
+
+
+  ShowSetupDialog := true;
 
   // show setup dialog
   if ShowSetupDialog then begin

@@ -60,7 +60,9 @@ msgid "Component name \"%s\" is not a valid identifier"
 msgstr "Komponento pavadinimas „%s“ nėra tinkamas identifikatorius"
 
 #: ideconfstrconsts.lisconfigdirectory
-msgid "Lazarus config directory"
+#, fuzzy
+#| msgid "Lazarus config directory"
+msgid "Eleazar config directory"
 msgstr "Lazarus nustatymų aplankas"
 
 #: ideconfstrconsts.liscpu
@@ -207,19 +209,27 @@ msgid "Launching target command line"
 msgstr "Startuojamos paskirties komandinė eilutė"
 
 #: ideconfstrconsts.lislazarusdirectory
-msgid "Lazarus directory"
+#, fuzzy
+#| msgid "Lazarus directory"
+msgid "Eleazar directory"
 msgstr "Lazarus aplankas"
 
 #: ideconfstrconsts.lislazaruslanguageid
-msgid "Lazarus language ID (e.g. en, de, br, fi)"
+#, fuzzy
+#| msgid "Lazarus language ID (e.g. en, de, br, fi)"
+msgid "Eleazar language ID (e.g. en, de, br, fi)"
 msgstr "Lazarus kalbos ID (t.y. en, de, lt, …)"
 
 #: ideconfstrconsts.lislazaruslanguagename
-msgid "Lazarus language name (e.g. english, deutsch)"
+#, fuzzy
+#| msgid "Lazarus language name (e.g. english, deutsch)"
+msgid "Eleazar language name (e.g. english, deutsch)"
 msgstr "Lazarus kalbos pavadinimas (t.y. anglų, vokiečių, lietuvių, …)"
 
 #: ideconfstrconsts.lislazver
-msgid "Lazarus Version (e.g. 1.2.4)"
+#, fuzzy
+#| msgid "Lazarus Version (e.g. 1.2.4)"
+msgid "Eleazar Version (e.g. 1.2.4)"
 msgstr "„Lazarus“ laida (pvz. 1.6.4)"
 
 #: ideconfstrconsts.lislclwidgettype

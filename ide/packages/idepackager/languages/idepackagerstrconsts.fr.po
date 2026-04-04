@@ -115,11 +115,15 @@ msgid "Issues xml file"
 msgstr "Fichier XML des problèmes"
 
 #: idepackagerstrconsts.lispkgfiletypelfm
-msgid "LFM - Lazarus form text"
+#, fuzzy
+#| msgid "LFM - Lazarus form text"
+msgid "LFM - Eleazar form text"
 msgstr "Fiche Lazarus texte - LFM"
 
 #: idepackagerstrconsts.lispkgfiletypelrs
-msgid "LRS - Lazarus resource"
+#, fuzzy
+#| msgid "LRS - Lazarus resource"
+msgid "LRS - Eleazar resource"
 msgstr "Fichier ressource Lazarus - LRS"
 
 #: idepackagerstrconsts.lispkgfiletypemainunit

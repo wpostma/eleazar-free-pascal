@@ -63,7 +63,9 @@ msgid "Component name \"%s\" is not a valid identifier"
 msgstr "שם הרכיב s%s%s% אינו מזהה חוקי"
 
 #: ideconfstrconsts.lisconfigdirectory
-msgid "Lazarus config directory"
+#, fuzzy
+#| msgid "Lazarus config directory"
+msgid "Eleazar config directory"
 msgstr "ספריית הגדרות לזרוס"
 
 #: ideconfstrconsts.liscpu
@@ -213,19 +215,25 @@ msgid "Launching target command line"
 msgstr "טעינת שורת הפקודה המיועדת"
 
 #: ideconfstrconsts.lislazarusdirectory
-msgid "Lazarus directory"
+#, fuzzy
+#| msgid "Lazarus directory"
+msgid "Eleazar directory"
 msgstr "הספרייה של לזרוס"
 
 #: ideconfstrconsts.lislazaruslanguageid
-msgid "Lazarus language ID (e.g. en, de, br, fi)"
+#, fuzzy
+#| msgid "Lazarus language ID (e.g. en, de, br, fi)"
+msgid "Eleazar language ID (e.g. en, de, br, fi)"
 msgstr "מזהה השפה של לזרוס (למשל: en, de, br,fi, he)"
 
 #: ideconfstrconsts.lislazaruslanguagename
-msgid "Lazarus language name (e.g. english, deutsch)"
+#, fuzzy
+#| msgid "Lazarus language name (e.g. english, deutsch)"
+msgid "Eleazar language name (e.g. english, deutsch)"
 msgstr "שם השפה של לזרוס (למשל english, deutsch, hebrew)"
 
 #: ideconfstrconsts.lislazver
-msgid "Lazarus Version (e.g. 1.2.4)"
+msgid "Eleazar Version (e.g. 1.2.4)"
 msgstr ""
 
 #: ideconfstrconsts.lislclwidgettype

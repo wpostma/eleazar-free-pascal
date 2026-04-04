@@ -60,7 +60,9 @@ msgid "Component name \"%s\" is not a valid identifier"
 msgstr "Nome de componente \"%s\" não é um identificador válido"
 
 #: ideconfstrconsts.lisconfigdirectory
-msgid "Lazarus config directory"
+#, fuzzy
+#| msgid "Lazarus config directory"
+msgid "Eleazar config directory"
 msgstr "Diretório de configuração do Lazarus"
 
 #: ideconfstrconsts.liscpu
@@ -207,19 +209,27 @@ msgid "Launching target command line"
 msgstr "Iniciando linha de comando alvo"
 
 #: ideconfstrconsts.lislazarusdirectory
-msgid "Lazarus directory"
+#, fuzzy
+#| msgid "Lazarus directory"
+msgid "Eleazar directory"
 msgstr "Diretório Lazarus"
 
 #: ideconfstrconsts.lislazaruslanguageid
-msgid "Lazarus language ID (e.g. en, de, br, fi)"
+#, fuzzy
+#| msgid "Lazarus language ID (e.g. en, de, br, fi)"
+msgid "Eleazar language ID (e.g. en, de, br, fi)"
 msgstr "ID de idioma do Lazarus (ex. en, de, br, fi)"
 
 #: ideconfstrconsts.lislazaruslanguagename
-msgid "Lazarus language name (e.g. english, deutsch)"
+#, fuzzy
+#| msgid "Lazarus language name (e.g. english, deutsch)"
+msgid "Eleazar language name (e.g. english, deutsch)"
 msgstr "Nome de idioma do Lazarus (ex. inglês, alemão)"
 
 #: ideconfstrconsts.lislazver
-msgid "Lazarus Version (e.g. 1.2.4)"
+#, fuzzy
+#| msgid "Lazarus Version (e.g. 1.2.4)"
+msgid "Eleazar Version (e.g. 1.2.4)"
 msgstr "Versão Lazarus (ex. 1.2.4)"
 
 #: ideconfstrconsts.lislclwidgettype
