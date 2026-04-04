@@ -1,0 +1,6 @@
+#!/bin/sh
+make clean >clean.log 
+echo clean...
+tail -5 clean.log
+echo done...
+
