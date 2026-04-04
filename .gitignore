@@ -34,3 +34,9 @@ link*.res
 .DS_Store
 **/desktop.ini
 ide/packages/idepackager/languages/idepackagerstrconsts.af_ZA.po ide/packages/idepackager/languages/idepackagerstrconsts.ar.po ide/packages/idepackager/languages/idepackagerstrconsts.ca.po ide/packages/idepackager/languages/idepackagerstrconsts.cs.po ide/packages/idepackager/languages/idepackagerstrconsts.de.po ide/packages/idepackager/languages/idepackagerstrconsts.es.po ide/packages/idepackager/languages/idepackagerstrconsts.fi.po ide/packages/idepackager/languages/idepackagerstrconsts.fr.po ide/packages/idepackager/languages/idepackagerstrconsts.he.po ide/packages/idepackager/languages/idepackagerstrconsts.hu.po ide/packages/idepackager/languages/idepackagerstrconsts.id.po ide/packages/idepackager/languages/idepackagerstrconsts.it.po ide/packages/idepackager/languages/idepackagerstrconsts.ja.po ide/packages/idepackager/languages/idepackagerstrconsts.lt.po ide/packages/idepackager/languages/idepackagerstrconsts.nl.po ide/packages/idepackager/languages/idepackagerstrconsts.pl.po ide/packages/idepackager/languages/idepackagerstrconsts.pt_BR.po ide/packages/idepackager/languages/idepackagerstrconsts.ru.po ide/packages/idepackager/languages/idepackagerstrconsts.sk.po ide/packages/idepackager/languages/idepackagerstrconsts.tr.po ide/packages/idepackager/languages/idepackagerstrconsts.uk.po ide/packages/idepackager/languages/idepackagerstrconsts.zh_CN.po
+lcl/interfaces/qt5/cbindings/
+ide/GPATH
+ide/GRTAGS
+ide/GTAGS
+make.log
+clean.log
