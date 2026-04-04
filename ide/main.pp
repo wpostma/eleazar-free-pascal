@@ -1438,9 +1438,8 @@ var
   SkipAllTests: Boolean;
   i: Integer;
 begin
-  {$IFDEF DebugSearchFPCSrcThread}
-  ShowSetupDialog:=true;
-  {$ENDIF}
+  ShowSetupDialog:= false;
+  
 
   SkipAllTests := GetSkipCheck(skcSetup);
 
@@ -1509,6 +1508,7 @@ begin
     end;
   end;
 
+  
   ConfigFile:=EnvironmentOptions.GetParsedFppkgConfig;
   // check fppkg configuration
   if (not ShowSetupDialog)
@@ -1527,7 +1527,7 @@ begin
   end;
 
   
-  //ShowSetupDialog := true;
+  
   
 
   // show setup dialog

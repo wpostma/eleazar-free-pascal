@@ -1642,6 +1642,7 @@ begin
     result := FONT_STRETCH_NORMAL;
 end;
 
+
 procedure AddCmdLineParamDesc(var aText: TStringList; aParamOpts: array of string; aDescr: string);
 var
   i: Integer;

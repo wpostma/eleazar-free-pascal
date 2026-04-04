@@ -382,7 +382,7 @@ reachable on some monitor.**
 
 ## 3. Synchronous X11 Round-Trip Inside GTK Signal Handler
 
-**Status:** GNOME/Mutter-specific; does not reproduce on KDE Plasma
+**Status:** Fixed — `gdk_window_get_root_origin` replaced with `gdk_window_get_position` (gtk2proc.inc:7221)
 **Unit:** `lcl/interfaces/gtk2/gtk2proc.inc`
 **Severity:** Critical on GNOME — KWin handles `_NET_FRAME_EXTENTS` timing differently
 

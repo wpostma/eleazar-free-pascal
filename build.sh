@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+# Note: no set -e/-o pipefail — we check PIPESTATUS[0] explicitly after the make pipe
 
 # Usage:
 #   bash build.sh                  # default: bigide gtk2
@@ -34,9 +34,16 @@ echo "=== Eleazar Build: target=$TARGET platform=$PLATFORM ==="
 echo "Started: $(date '+%Y-%m-%d %H:%M:%S')"
 
 if [ -n "$OPT_FLAGS" ]; then
-  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" OPT="$OPT_FLAGS" 2>&1 | tail -95
+  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" OPT="$OPT_FLAGS" 2>&1 | tee make.log | grep -E 'Error|Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
 else
-  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" 2>&1 | tail -5
+  make clean "$TARGET" LCL_PLATFORM="$PLATFORM" 2>&1 | tee make.log | grep -E 'Error|Fatal'; MAKE_EXIT=${PIPESTATUS[0]}
+fi
+
+if [ "$MAKE_EXIT" -ne 0 ]; then
+  echo ""
+  echo "=== Build FAILED (exit $MAKE_EXIT): $(date '+%Y-%m-%d %H:%M:%S') ==="
+  echo "  Full log: make.log"
+  exit "$MAKE_EXIT"
 fi
 
 echo ""

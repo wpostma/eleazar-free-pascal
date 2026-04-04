@@ -64,12 +64,12 @@ type
     FMainOwningComponent: TComponent;
     FOldWindowState: TWindowState;
     FOnActive: TNotifyEvent;
-    FPendingHeightAdjust: Boolean;      // true when async height recalc is queued
+    FSettleTimer: TTimer;               // debounce: fires 50ms after last resize/height request
     procedure CreatePopupMenus(TheOwner: TComponent);
     function CalcMainIDEHeight: Integer;
     function CalcNonClientHeight: Integer;
     function FindCompScrollBox: TScrollBox;
-    procedure AsyncSetMainIDEHeight(Data: PtrInt); // QueueAsyncCall target
+    procedure OnHeightSettleTimer(Sender: TObject); // fires once GTK has gone quiet
   protected
     procedure DoActive;
     procedure WndProc(var Message: TLMessage); override;
@@ -429,22 +429,22 @@ begin
     FOnActive(Self);
 end;
 
-procedure TMainIDEBar.AsyncSetMainIDEHeight(Data: PtrInt);
-{ Runs on the main thread during idle, OUTSIDE any WMSize/size-allocate context.
+procedure TMainIDEBar.OnHeightSettleTimer(Sender: TObject);
+{ Fires 50ms after the last WMSize/DoSetMainIDEHeight call — GTK has settled.
   Safe to mutate geometry here. }
 var
   AIDEIsMaximized: Boolean;
   ANewHeight: Integer;
 begin
-  FPendingHeightAdjust := False;
+  FSettleTimer.Enabled := False; // one-shot
   AIDEIsMaximized := WindowState = wsMaximized;
   ANewHeight := 0;
-  DebugLn('[AsyncSetMainIDEHeight] Maximized=',dbgs(AIDEIsMaximized),
+  DebugLn('[OnHeightSettleTimer] Maximized=',dbgs(AIDEIsMaximized),
     ' CalcH=',dbgs(CalcMainIDEHeight),
     ' Showing=',dbgs(Showing),
     ' DockMaster=',dbgs(Assigned(IDEDockMaster)),
     ' Bounds=',dbgs(BoundsRect));
-  DisableAutoSizing('TMainIDEBar.AsyncSetMainIDEHeight');
+  DisableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
   try
     if Assigned(IDEDockMaster) then
     begin
@@ -473,25 +473,21 @@ begin
       end;
     end;
   finally
-    EnableAutoSizing('TMainIDEBar.AsyncSetMainIDEHeight');
+    EnableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
   end;
-  DebugLn('[AsyncSetMainIDEHeight] done, ClientHeight=', IntToStr(ClientHeight));
+  DebugLn('[OnHeightSettleTimer] done, ClientHeight=', IntToStr(ClientHeight));
 end;
 
 procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
-{ Schedules a height adjustment for the next idle cycle.
-  Must NOT mutate geometry synchronously — this is called from WMSize/Resizing
-  contexts (directly or via CoolBarOnChange/MainSplitterMoved which fire during
-  layout cascades). Writing ClientHeight here re-enters the GTK size-allocate
-  signal and causes unbounded WMSize feedback loops.
-  AIDEIsMaximized and ANewHeight are ignored — the async callback recalculates
+{ Debounces height adjustment: restarts a 50ms timer on every call.
+  The timer only fires once WMSize/size-allocate signals have gone quiet.
+  AIDEIsMaximized and ANewHeight are ignored — OnHeightSettleTimer recalculates
   from current state when it actually runs. }
 begin
-  DebugLn('[DoSetMainIDEHeight] deferring to async (Maximized=',dbgs(AIDEIsMaximized),
+  DebugLn('[DoSetMainIDEHeight] (re)starting settle timer (Maximized=',dbgs(AIDEIsMaximized),
     ' RequestedH=',dbgs(ANewHeight),')');
-  if FPendingHeightAdjust then Exit; // already queued
-  FPendingHeightAdjust := True;
-  Application.QueueAsyncCall(@AsyncSetMainIDEHeight, 0);
+  FSettleTimer.Enabled := False; // reset
+  FSettleTimer.Enabled := True;  // restart 50ms countdown
 end;
 
 function TMainIDEBar.CalcMainIDEHeight: Integer;
@@ -656,6 +652,10 @@ begin
   inherited CreateNew(TheOwner, 1);
   DebugLogging := True;
   DebugLn('(mainbar) [TMainIDEBar.Create] after CreateNew Bounds=',dbgs(BoundsRect));
+  FSettleTimer := TTimer.Create(Self);
+  FSettleTimer.Interval := 50;
+  FSettleTimer.Enabled := False;
+  FSettleTimer.OnTimer := @OnHeightSettleTimer;
   AllowDropFiles:=true;
   Scaled:=true;
   OnDropFiles:=@MainIDEBarDropFiles;
@@ -831,12 +831,11 @@ end;
 
 procedure TMainIDEBar.Resizing(State: TWindowState);
 begin
-  // Never adjust height synchronously during a resize/move signal.
-  // GTK fires size-allocate on every pixel of a drag. Mutating geometry
-  // here causes feedback loops. Instead, just let the inherited handler
-  // track state — height adjustment happens via SetMainIDEHeight which
-  // is called from appropriate places (InitPaletteAndCoolBar, etc).
+  // Restart the settle timer on every resize signal — the height adjustment
+  // fires only after GTK has gone quiet for 50ms. Never mutate geometry here.
   inherited Resizing(State);
+  FSettleTimer.Enabled := False;
+  FSettleTimer.Enabled := True;
 end;
 
 procedure TMainIDEBar.MainSplitterMoved(Sender: TObject);
