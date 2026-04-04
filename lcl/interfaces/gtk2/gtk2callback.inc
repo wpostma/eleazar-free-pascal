@@ -2525,6 +2525,24 @@ begin
     DebugLn('VFP gtksize_allocateCB: ',TControl(Data).ClassName,' ',dbgs(Size^.X),',',dbgs(Size^.Y));
   {$ENDIF}
 
+  { Guard against GTK re-entrancy during LCL tree surgery.
+    When DisableAutoSizing is active (lock > 0) the LCL is mid-layout:
+    reparenting controls, adjusting splitters, restoring dock layouts.
+    GTK fires size-allocate synchronously during these operations.
+    Delivering LM_SIZE now causes EnableAutoSizing → DoAllAutoSize →
+    RealizeBoundsRecursive → more GTK size-allocate → unbounded recursion.
+    On GNOME/Mutter this spirals heights to 32000px and crashes.
+    Skip the notification — the LCL will realize correct bounds itself
+    when EnableAutoSizing drops the count to zero. }
+  if GTK2ControlIsAutoSizeLocked(Data) then
+  begin
+    if TControl(Data).DebugLogging then
+      DebugLn(['[gtksize_allocateCB] SKIPPED (AutoSizeLock=',
+        TControlCracker(Data).AutoSizingLockCount, ') ', DbgSName(TControl(Data)),
+        ' ', Size^.Width, 'x', Size^.Height]);
+    Exit;
+  end;
+
   if GTK_WIDGET_REALIZED(widget) and LockTopLevelWindowResizeOnNativeCall then
   begin
     Inc(TopLevelWindowResizeLocked);

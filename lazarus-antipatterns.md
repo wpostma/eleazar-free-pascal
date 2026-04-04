@@ -1259,3 +1259,117 @@ Don't persist a "test in progress" flag to disk. Instead:
 | `components/macroscript/registerems.pas` | Selftest runner and config persistence |
 | `components/macroscript/emsselftest.pas` | Actual selftest implementation |
 | `~/.lazarus/editormacroscript.xml` | Persisted selftest state |
+
+---
+
+## WM_SIZE Feedback Loop: Mutating Geometry Inside a WMSize Handler
+
+**Found:** 2026-04-03  
+**Files:** `ide/mainbar.pas`, `lcl/interfaces/gtk2/gtk2callback.inc`, `lcl/interfaces/gtk2/gtk2proc.pp`
+
+### The Bug
+
+`TMainIDEBar.Resizing()` — called from `TScrollingWinControl.WMSize` whenever
+GTK delivers a `size-allocate` signal with `FromIntf=True` — was calling
+`DoSetMainIDEHeight`, which synchronously wrote `ClientHeight`.
+
+Writing `ClientHeight` inside a WMSize handler re-enters GTK's resize path:
+
+```
+GTK size-allocate
+  → gtksize_allocateCB
+    → SendSizeNotificationToLCL → LM_SIZE (FromIntf=True)
+      → TScrollingWinControl.WMSize
+        → TMainIDEBar.Resizing
+          → DoSetMainIDEHeight
+            → ClientHeight := N          ← geometry mutation
+              → gtk_widget_set_size_request / size-allocate again
+                → all dock sites get WMSize (FromIntf=False)
+                  → each resizes its anchored neighbors
+                    → neighbors resize back
+                      → oscillation: 1396 ↔ 2880 ↔ 1440 ↔ ...
+```
+
+The oscillation was visible in the ring buffer: ~7700 WMSize events/second,
+sustained, all `FromIntf=False`, widths bouncing between two or three values.
+`AutoSizeLock=0` on all recipients — the lock on the *sender* doesn't protect
+the *recipients* from being re-entered.
+
+`CoolBarOnChange` and `MainSplitterMoved` also called `SetMainIDEHeight`
+directly, and both fired during layout cascades triggered by the resize, adding
+more geometry mutations mid-storm.
+
+### The Rule
+
+**Never mutate geometry (ClientHeight, SetBounds, Constraints) synchronously
+inside a WMSize handler, a Resizing override, or any callback that fires
+during a GTK size-allocate signal.**
+
+GTK fires `size-allocate` synchronously and re-entrantly. Any geometry write
+inside the handler causes another `size-allocate` before the first one returns.
+The LCL's auto-sizing lock (`DisableAutoSizing`) protects *that control* but
+not its unlocked siblings and neighbors, which will process the cascade freely.
+
+### The Fix
+
+`DoSetMainIDEHeight` now only queues a deferred call:
+
+```pascal
+procedure TMainIDEBar.DoSetMainIDEHeight(...);
+begin
+  if FPendingHeightAdjust then Exit;  // coalesce: one async call per storm
+  FPendingHeightAdjust := True;
+  Application.QueueAsyncCall(@AsyncSetMainIDEHeight, 0);
+end;
+
+procedure TMainIDEBar.AsyncSetMainIDEHeight(Data: PtrInt);
+begin
+  FPendingHeightAdjust := False;
+  // recalculate from current state, now safe to write geometry
+  ...
+  ClientHeight := ANewHeight;
+end;
+```
+
+No matter how many times `DoSetMainIDEHeight` is called during a storm (7000+
+calls/second observed), only one `QueueAsyncCall` is posted. The actual height
+adjustment runs once, during the next idle cycle, outside any size-allocate
+context.
+
+### Related Fix: GTK size-allocate guard
+
+`gtksize_allocateCB` now skips the LM_SIZE delivery entirely when the target
+control has `AutoSizingLockCount > 0` — the LCL is mid-layout for that control,
+and delivering a size message now causes the EnableAutoSizing → DoAllAutoSize →
+RealizeBounds → size-allocate recursion.
+
+The check uses a class cracker (defined in `gtk2proc.pp`) to access the
+protected `TControl.AutoSizingLockCount` field without making it public:
+
+```pascal
+type
+  TControlCracker = class(TControl);  // local to gtk2proc.pp, never exported
+
+function GTK2ControlIsAutoSizeLocked(AData: gPointer): Boolean; inline;
+begin
+  Result := (AData <> nil)
+        and (TObject(AData) is TControl)
+        and (TControlCracker(AData).AutoSizingLockCount > 0);
+end;
+```
+
+### Why `QueueAsyncCall` and not `PostMessage`
+
+`Application.QueueAsyncCall` runs during the next `Application.Idle` cycle,
+after all pending GTK events are processed. The callback fires on the main
+thread with no GTK resize signals in flight — safe to call `ClientHeight :=`.
+`PostMessage` would deliver during the current event loop iteration, potentially
+still inside a resize cascade.
+
+### Files Changed
+
+| File | Change |
+|------|--------|
+| `ide/mainbar.pas` | `DoSetMainIDEHeight` deferred via `QueueAsyncCall`; `FPendingHeightAdjust` coalescing flag; `AsyncSetMainIDEHeight` callback |
+| `lcl/interfaces/gtk2/gtk2callback.inc` | Skip LM_SIZE when `AutoSizingLockCount > 0`; use `GTK2ControlIsAutoSizeLocked` helper |
+| `lcl/interfaces/gtk2/gtk2proc.pp` | `TControlCracker` class cracker; `GTK2ControlIsAutoSizeLocked` helper function |

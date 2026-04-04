@@ -64,10 +64,12 @@ type
     FMainOwningComponent: TComponent;
     FOldWindowState: TWindowState;
     FOnActive: TNotifyEvent;
+    FPendingHeightAdjust: Boolean;      // true when async height recalc is queued
     procedure CreatePopupMenus(TheOwner: TComponent);
     function CalcMainIDEHeight: Integer;
     function CalcNonClientHeight: Integer;
     function FindCompScrollBox: TScrollBox;
+    procedure AsyncSetMainIDEHeight(Data: PtrInt); // QueueAsyncCall target
   protected
     procedure DoActive;
     procedure WndProc(var Message: TLMessage); override;
@@ -427,22 +429,28 @@ begin
     FOnActive(Self);
 end;
 
-procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
+procedure TMainIDEBar.AsyncSetMainIDEHeight(Data: PtrInt);
+{ Runs on the main thread during idle, OUTSIDE any WMSize/size-allocate context.
+  Safe to mutate geometry here. }
+var
+  AIDEIsMaximized: Boolean;
+  ANewHeight: Integer;
 begin
-  DebugLn('[DoSetMainIDEHeight] Maximized=',dbgs(AIDEIsMaximized),
-    ' RequestedH=',dbgs(ANewHeight),
+  FPendingHeightAdjust := False;
+  AIDEIsMaximized := WindowState = wsMaximized;
+  ANewHeight := 0;
+  DebugLn('[AsyncSetMainIDEHeight] Maximized=',dbgs(AIDEIsMaximized),
     ' CalcH=',dbgs(CalcMainIDEHeight),
     ' Showing=',dbgs(Showing),
     ' DockMaster=',dbgs(Assigned(IDEDockMaster)),
     ' Bounds=',dbgs(BoundsRect));
-  DisableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
+  DisableAutoSizing('TMainIDEBar.AsyncSetMainIDEHeight');
   try
     if Assigned(IDEDockMaster) then
     begin
       if EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeight then
       begin
-        if ANewHeight <= 0 then
-          ANewHeight := CalcMainIDEHeight;
+        ANewHeight := CalcMainIDEHeight;
         if ANewHeight > 0 then
           IDEDockMaster.AdjustMainIDEWindowHeight(Self, True, ANewHeight);
       end
@@ -452,15 +460,9 @@ begin
     begin
       if (AIDEIsMaximized or EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeight) then
       begin
-        if ANewHeight <= 0 then
-          ANewHeight := CalcMainIDEHeight;
+        ANewHeight := CalcMainIDEHeight;
         if ANewHeight <= 0 then Exit; // components not ready yet, don't touch constraints
         Inc(ANewHeight, CalcNonClientHeight);
-        // Do NOT set Constraints.MinHeight/MaxHeight. That sets
-        // WM_NORMAL_HINTS min_size/max_size which makes Mutter (and
-        // other EWMH-compliant WMs) treat the window as a fixed-size
-        // panel and fight the user during drags. Just set ClientHeight
-        // and let the LCL auto-sizing handle it internally.
         if ClientHeight <> ANewHeight then
           ClientHeight := ANewHeight;
       end else
@@ -471,9 +473,25 @@ begin
       end;
     end;
   finally
-    EnableAutoSizing('TMainIDEBar.DoSetMainIDEHeight');
+    EnableAutoSizing('TMainIDEBar.AsyncSetMainIDEHeight');
   end;
-  DebugLn('[TMainIDEBar.DoSetMainIDEHeight] done, ClientHeight=', IntToStr(ClientHeight));
+  DebugLn('[AsyncSetMainIDEHeight] done, ClientHeight=', IntToStr(ClientHeight));
+end;
+
+procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
+{ Schedules a height adjustment for the next idle cycle.
+  Must NOT mutate geometry synchronously — this is called from WMSize/Resizing
+  contexts (directly or via CoolBarOnChange/MainSplitterMoved which fire during
+  layout cascades). Writing ClientHeight here re-enters the GTK size-allocate
+  signal and causes unbounded WMSize feedback loops.
+  AIDEIsMaximized and ANewHeight are ignored — the async callback recalculates
+  from current state when it actually runs. }
+begin
+  DebugLn('[DoSetMainIDEHeight] deferring to async (Maximized=',dbgs(AIDEIsMaximized),
+    ' RequestedH=',dbgs(ANewHeight),')');
+  if FPendingHeightAdjust then Exit; // already queued
+  FPendingHeightAdjust := True;
+  Application.QueueAsyncCall(@AsyncSetMainIDEHeight, 0);
 end;
 
 function TMainIDEBar.CalcMainIDEHeight: Integer;

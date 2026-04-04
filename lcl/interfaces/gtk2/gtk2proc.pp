@@ -1035,6 +1035,22 @@ end;
 { Callbacks for events }
 
 {$I gtk2proc.inc}
+
+{ Class cracker — gives this unit read access to TControl.AutoSizingLockCount
+  without making the property public. Never instantiated; only used for casting. }
+type
+  TControlCracker = class(TControl);
+
+{ Helper: returns True if the LCL control has auto-sizing locked.
+  size-allocate only fires for realized widgets, i.e. TWinControl instances,
+  but the lock count lives on TControl. }
+function GTK2ControlIsAutoSizeLocked(AData: gPointer): Boolean; inline;
+begin
+  Result := (AData <> nil)
+        and (TObject(AData) is TControl)
+        and (TControlCracker(AData).AutoSizingLockCount > 0);
+end;
+
 {$I gtk2callback.inc}
 
 initialization
