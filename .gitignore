@@ -40,3 +40,4 @@ ide/GRTAGS
 ide/GTAGS
 make.log
 clean.log
+ide/.vscode/
