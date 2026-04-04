@@ -135,7 +135,7 @@ Protocols without contracts are just hopes. Hopes are not architecture.
 
 ## 1. Endless Recursion in Event Callbacks
 
-**Status:** Fixed (removed call from `Resizing`); hang was GNOME/Mutter-specific
+**Status:** Fixed — debounce timer in `DoSetMainIDEHeight` and `Resizing`; confirmed no WMSize storm via ring buffer
 **Unit:** `ide/mainbar.pas` — `TMainIDEBar`
 **Severity:** Critical on GNOME — does not reproduce on KDE Plasma
 
@@ -221,46 +221,57 @@ handle the re-entrant sizing more gracefully. This suggests Mutter's
 `size-allocate` dispatch is more aggressive about firing signals synchronously
 during allocation, while KWin batches or defers them.
 
-### Proposed Fix
+### Fix Applied
 
-Add a re-entrancy guard to `TMainIDEBar`:
+A **debounce timer** (`FSettleTimer: TTimer`, 50ms) replaces both the
+synchronous geometry mutation and the one-shot `QueueAsyncCall` approach.
+
+Both `Resizing` and `DoSetMainIDEHeight` restart the timer instead of
+touching geometry. The timer fires once GTK has been quiet for 50ms,
+at which point `ClientHeight` is stable and `AdjustMainIDEWindowHeight`
+reads a real value rather than an oscillating one.
 
 ```pascal
-{ In TMainIDEBar class declaration (mainbar.pas) }
-private
-  FResizing: Boolean;
-
-{ In TMainIDEBar.Resizing }
+{ TMainIDEBar.Resizing — just restarts the timer, never touches geometry }
 procedure TMainIDEBar.Resizing(State: TWindowState);
 begin
-  if FResizing then Exit;          // ← break the cycle
-  FResizing := True;
+  inherited Resizing(State);
+  FSettleTimer.Enabled := False;
+  FSettleTimer.Enabled := True;
+end;
+
+{ TMainIDEBar.DoSetMainIDEHeight — same: restart timer only }
+procedure TMainIDEBar.DoSetMainIDEHeight(...);
+begin
+  FSettleTimer.Enabled := False;
+  FSettleTimer.Enabled := True;
+end;
+
+{ OnHeightSettleTimer — fires 50ms after last resize signal }
+procedure TMainIDEBar.OnHeightSettleTimer(Sender: TObject);
+begin
+  FSettleTimer.Enabled := False;
+  DisableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
   try
-    if LazarusIDE.IDEStarted then
-      case State of
-        wsMaximized, wsNormal: begin
-          DoSetMainIDEHeight(State = wsMaximized);
-        end;
-      end;
-    inherited Resizing(State);
+    // ... read stable ClientHeight, call AdjustMainIDEWindowHeight ...
   finally
-    FResizing := False;
+    EnableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
   end;
 end;
 ```
 
-This is the minimal fix. The `FResizing` flag prevents `Resizing` from
-re-entering when `DoSetMainIDEHeight` triggers another `size-allocate`
-signal. The `try/finally` ensures the flag is cleared even if an exception
-occurs.
+**Why debounce beats a re-entrancy flag:** A boolean flag stops
+re-entry but doesn't stop the oscillation — the second call is
+silently dropped, GTK fires another WMSize, and the cycle continues
+at a lower rate. The debounce lets the storm exhaust itself and only
+acts on the final stable state.
 
-An alternative approach would be to guard `DoSetMainIDEHeight` itself,
-but `Resizing` is the better place because:
-1. It's the entry point from the widget toolkit callback chain
-2. `DoSetMainIDEHeight` is also called from `SetMainIDEHeight` (line 814)
-   which has its own call path and should not be blocked
-3. The guard at the outermost layer prevents any re-entrant size changes,
-   not just the specific ones in `DoSetMainIDEHeight`
+**Why debounce beats one-shot `QueueAsyncCall`:** `QueueAsyncCall`
+runs on the next idle cycle, which may be while GTK is still delivering
+WMSize events. `AdjustMainIDEWindowHeight` then reads an unstable
+`ClientHeight`, computes a new `Site.Height`, GTK responds with another
+WMSize, and another async call is queued. The debounce timer won't fire
+until the WMSize storm has actually stopped.
 
 ### General Rule
 

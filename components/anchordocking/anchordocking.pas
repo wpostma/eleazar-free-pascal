@@ -6696,7 +6696,6 @@ end;
 constructor TAnchorDockHostSite.CreateNew(AOwner: TComponent; Num: Integer);
 begin
   inherited CreateNew(AOwner,Num);
-  DebugLogging := True;
   FMinimizedControl:=Nil;
   Visible:=false;
   FHeaderSide:=akTop;
