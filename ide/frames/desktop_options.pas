@@ -344,7 +344,15 @@ begin
           AnEnvironmentOptions.Filename := OpenDialog.Filename;
           AnEnvironmentOptions.Load(true);
           DoLoadSettings(AnEnvironmentOptions);
-          IDEWindowCreators.RestoreSimpleLayout;
+          DebugLn('[TDesktopOptionsFrame.ImportDesktopButtonClick] Importing layout - disabling timers');
+          IDEWindowIntf.SetLayoutOperationInProgress(True);
+          try
+            IDEWindowCreators.RestoreSimpleLayout;
+            DebugLn('[TDesktopOptionsFrame.ImportDesktopButtonClick] Layout imported');
+          finally
+            DebugLn('[TDesktopOptionsFrame.ImportDesktopButtonClick] Re-enabling timers');
+            IDEWindowIntf.SetLayoutOperationInProgress(False);
+          end;
           ShowMessageFmt(lisSuccessfullyImported, [OpenDialog.Filename]);
         finally
           AnEnvironmentOptions.Free;

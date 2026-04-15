@@ -9,7 +9,7 @@ uses
   // LCL
   Graphics, Forms, Controls,
   // LazUtils
-  LazFileUtils, FileUtil, LazFileCache, LazUTF8, Laz2_XMLCfg, Laz2_DOM,
+  LazFileUtils, FileUtil, LazFileCache, LazUTF8, Laz2_XMLCfg, Laz2_DOM, LazLoggerBase,
   // BuildIntf
   ProjectIntf, IDEOptionsIntf, IDEExternToolIntf, ComponentReg,
   // IDEIntf
@@ -719,9 +719,22 @@ end;
 
 procedure TDesktopOpt.RestoreDesktop;
 begin
-  IDEWindowCreators.RestoreSimpleLayout;
-  if Assigned(FDockedOpt) then
-    FDockedOpt.RestoreDesktop;
+  // During layout restoration, disable resize timers to prevent cascading wmSize loops
+  DebugLn('[TDesktopOpt.RestoreDesktop] START - disabling timers');
+  IDEWindowIntf.SetLayoutOperationInProgress(True);
+  try
+    DebugLn('[TDesktopOpt.RestoreDesktop] Restoring simple layout...');
+    IDEWindowCreators.RestoreSimpleLayout;
+    if Assigned(FDockedOpt) then
+    begin
+      DebugLn('[TDesktopOpt.RestoreDesktop] Restoring docked layout...');
+      FDockedOpt.RestoreDesktop;
+    end;
+    DebugLn('[TDesktopOpt.RestoreDesktop] Layouts restored');
+  finally
+    DebugLn('[TDesktopOpt.RestoreDesktop] END - re-enabling timers');
+    IDEWindowIntf.SetLayoutOperationInProgress(False);
+  end;
 end;
 
 procedure TDesktopOpt.Save(Path: String);

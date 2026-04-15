@@ -64,14 +64,13 @@ type
     FMainOwningComponent: TComponent;
     FOldWindowState: TWindowState;
     FOnActive: TNotifyEvent;
-    FSettleTimer: TTimer;               // debounce: fires 50ms after last resize/height request
     procedure CreatePopupMenus(TheOwner: TComponent);
-    function CalcMainIDEHeight: Integer;
+    function CalculateCoolbarHeight: Integer;
     function CalcNonClientHeight: Integer;
     function FindCompScrollBox: TScrollBox;
-    procedure OnHeightSettleTimer(Sender: TObject); // fires once GTK has gone quiet
   protected
     procedure DoActive;
+    procedure DoShow; override;
     procedure WndProc(var Message: TLMessage); override;
     procedure Resizing(State: TWindowState); override;
   public
@@ -429,92 +428,49 @@ begin
     FOnActive(Self);
 end;
 
-procedure TMainIDEBar.OnHeightSettleTimer(Sender: TObject);
-{ Fires 50ms after the last WMSize/DoSetMainIDEHeight call — GTK has settled.
-  Safe to mutate geometry here. }
-var
-  AIDEIsMaximized: Boolean;
-  ANewHeight: Integer;
+procedure TMainIDEBar.DoShow;
 begin
-  FSettleTimer.Enabled := False; // one-shot
-  AIDEIsMaximized := WindowState = wsMaximized;
-  ANewHeight := 0;
-  DebugLn('[OnHeightSettleTimer] Maximized=',dbgs(AIDEIsMaximized),
-    ' CalcH=',dbgs(CalcMainIDEHeight),
-    ' Showing=',dbgs(Showing),
-    ' DockMaster=',dbgs(Assigned(IDEDockMaster)),
-    ' Bounds=',dbgs(BoundsRect));
-  DisableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
-  try
-    if Assigned(IDEDockMaster) then
-    begin
-      if EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeight then
-      begin
-        ANewHeight := CalcMainIDEHeight;
-        if ANewHeight > 0 then
-          IDEDockMaster.AdjustMainIDEWindowHeight(Self, True, ANewHeight);
-      end
-      else
-        IDEDockMaster.AdjustMainIDEWindowHeight(Self, False, 0);
-    end else
-    begin
-      if (AIDEIsMaximized or EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeight) then
-      begin
-        ANewHeight := CalcMainIDEHeight;
-        if ANewHeight <= 0 then Exit; // components not ready yet, don't touch constraints
-        Inc(ANewHeight, CalcNonClientHeight);
-        if ClientHeight <> ANewHeight then
-          ClientHeight := ANewHeight;
-      end else
-      if Constraints.MaxHeight <> 0 then
-      begin
-        Constraints.MaxHeight := 0;
-        Constraints.MinHeight := 0;
-      end;
-    end;
-  finally
-    EnableAutoSizing('TMainIDEBar.OnHeightSettleTimer');
-  end;
-  DebugLn('[OnHeightSettleTimer] done, ClientHeight=', IntToStr(ClientHeight));
+  inherited DoShow;
+  DebugLn('[TMainIDEBar.DoShow] Form is being shown, enabling resize timers');
+  IDEWindowIntf.SetLayoutOperationInProgress(False);
+  DebugLn('[TMainIDEBar.DoShow] Layout timers are now enabled');
 end;
 
 procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
-{ Debounces height adjustment: restarts a 50ms timer on every call.
-  The timer only fires once WMSize/size-allocate signals have gone quiet.
-  AIDEIsMaximized and ANewHeight are ignored — OnHeightSettleTimer recalculates
-  from current state when it actually runs. }
 begin
-  DebugLn('[DoSetMainIDEHeight] (re)starting settle timer (Maximized=',dbgs(AIDEIsMaximized),
-    ' RequestedH=',dbgs(ANewHeight),')');
-  FSettleTimer.Enabled := False; // reset
-  FSettleTimer.Enabled := True;  // restart 50ms countdown
+  // No-op: height is managed by LCL/GTK natively in docked-only mode.
 end;
 
-function TMainIDEBar.CalcMainIDEHeight: Integer;
+function TMainIDEBar.CalculateCoolbarHeight: Integer;
 var
   NewHeight: Integer;
   I: Integer;
   CompScrollBox: TScrollBox;
   SBControl: TControl;
+  CoolbarH: Integer;
 begin
   Result := 0;
   if (EnvironmentGuiOpts=Nil) or (CoolBar=Nil) or (ComponentPageControl=Nil) then
   begin
-    DebugLn('CalcMainIDEHeight: Can''t calculate yet');
+    DebugLn('CalculateCoolbarHeight: Can''t calculate yet');
     Exit;
   end;
 
+  CoolbarH := 0;
   // IDE Coolbar height
   if EnvironmentGuiOpts.Desktop.IDECoolBarOptions.Visible then
   begin
     for I := 0 to CoolBar.Bands.Count-1 do
     begin
       NewHeight := CoolBar.Bands[I].Top + CoolBar.Bands[I].Height;
-      Assert(NewHeight >= 0, Format('TMainIDEBar.CalcMainIDEHeight, IDE Coolbar: '+
+      Assert(NewHeight >= 0, Format('TMainIDEBar.CalculateCoolbarHeight, IDE Coolbar: '+
         'NewHeight %d < 0. Band Top=%d, Band Height=%d.',
         [NewHeight, CoolBar.Bands[I].Top, CoolBar.Bands[I].Height]) );
       Result := Max(Result, NewHeight);
+      DebugLn('[CalculateCoolbarHeight.Coolbar] Band[',dbgs(I),'] Top=',dbgs(CoolBar.Bands[I].Top),
+        ' Height=',dbgs(CoolBar.Bands[I].Height),' NewHeight=',dbgs(NewHeight),' Result=',dbgs(Result));
     end;
+    CoolbarH := Result;
   end;
 
   // Component palette height
@@ -522,24 +478,37 @@ begin
   and Assigned(ComponentPageControl.ActivePage) then
   begin
     CompScrollBox := FindCompScrollBox;
-    if CompScrollBox=Nil then Exit;
+    if CompScrollBox=Nil then
+    begin
+      DebugLn('[CalculateCoolbarHeight] No CompScrollBox found, returning coolbar height=',dbgs(Result));
+      Exit;
+    end;
+    DebugLn('[CalculateCoolbarHeight.Palette] CompScrollBox.ControlCount=',dbgs(CompScrollBox.ControlCount),
+      ' PageControl.Height=',dbgs(ComponentPageControl.Height),
+      ' ScrollBox.ClientHeight=',dbgs(CompScrollBox.ClientHeight));
     for I := 0 to CompScrollBox.ControlCount-1 do
     begin
       SBControl := CompScrollBox.Controls[I];
       NewHeight := SBControl.Top + SBControl.Height +  //button height
         //page control non-client height (tabs, borders).
         ComponentPageControl.Height - CompScrollBox.ClientHeight;
-      Assert(NewHeight >= 0, Format('TMainIDEBar.CalcMainIDEHeight, Component palette : '+
+      Assert(NewHeight >= 0, Format('TMainIDEBar.CalculateCoolbarHeight, Component palette : '+
         'NewHeight %d < 0. Cntrl.Top=%d, Cntrl.Height=%d, '+
         'PageControl.Height=%d, ScrollBox.ClientHeight=%d.',
         [NewHeight, SBControl.Top, SBControl.Height,
          ComponentPageControl.Height, CompScrollBox.ClientHeight]) );
       Result := Max(Result, NewHeight);
+      DebugLn('[CalculateCoolbarHeight.Palette] Cntrl[',dbgs(I),'] Top=',dbgs(SBControl.Top),
+        ' Height=',dbgs(SBControl.Height),' PageCtrlH-SBCliH=',
+        dbgs(ComponentPageControl.Height - CompScrollBox.ClientHeight),
+        ' NewHeight=',dbgs(NewHeight),' Result=',dbgs(Result));
 
       if not EnvironmentGuiOpts.Desktop.AutoAdjustIDEHeightFullCompPal then
         Break;  //we need only one button (we calculate one line only)
     end;
   end;
+
+  DebugLn('[CalculateCoolbarHeight] FINAL: CoolbarH=',dbgs(CoolbarH),' PaletteH=',dbgs(Result));
 end;
 
 function TMainIDEBar.CalcNonClientHeight: Integer;
@@ -652,10 +621,6 @@ begin
   inherited CreateNew(TheOwner, 1);
   DebugLogging := True;
   DebugLn('(mainbar) [TMainIDEBar.Create] after CreateNew Bounds=',dbgs(BoundsRect));
-  FSettleTimer := TTimer.Create(Self);
-  FSettleTimer.Interval := 50;
-  FSettleTimer.Enabled := False;
-  FSettleTimer.OnTimer := @OnHeightSettleTimer;
   AllowDropFiles:=true;
   Scaled:=true;
   OnDropFiles:=@MainIDEBarDropFiles;
@@ -830,11 +795,7 @@ end;
 
 procedure TMainIDEBar.Resizing(State: TWindowState);
 begin
-  // Restart the settle timer on every resize signal — the height adjustment
-  // fires only after GTK has gone quiet for 50ms. Never mutate geometry here.
   inherited Resizing(State);
-  FSettleTimer.Enabled := False;
-  FSettleTimer.Enabled := True;
 end;
 
 procedure TMainIDEBar.MainSplitterMoved(Sender: TObject);

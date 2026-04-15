@@ -2330,6 +2330,24 @@ begin
       NewBounds:=Rect(ScaleChildX(NewBounds.Left), ScaleChildY(NewBounds.Top),
                       ScaleChildX(NewBounds.Right),ScaleChildY(NewBounds.Bottom));
   end;
+  // Sanity check: if the restored bounds exceed the virtual desktop by more than
+  // 1.5x in either dimension, the saved layout is corrupt or a DPI conversion
+  // went wrong. Applying it triggers a GTK WMSize loop (the widget backend
+  // clamps, LCL re-applies, repeat). Substitute safe defaults so the site is
+  // still fully set up (parented, visible, focusable); the user can re-arrange.
+  if ((NewBounds.Right-NewBounds.Left) > Round(Screen.DesktopWidth * 1.5)) or
+     ((NewBounds.Bottom-NewBounds.Top) > Round(Screen.DesktopHeight * 1.5)) then
+  begin
+    DebugLn('ERROR: TAnchorDockMaster.SetupSite clamping oversize bounds',
+      ' Site=',DbgSName(Site),
+      ' BadBounds=',dbgs(NewBounds),
+      ' Screen.Desktop=',dbgs(Screen.DesktopWidth),'x',dbgs(Screen.DesktopHeight),
+      ' ANode.PPI=',dbgs(ANode.PixelsPerInch),
+      ' Screen.PPI=',dbgs(Screen.PixelsPerInch),
+      ' ANode.BoundsRect=',dbgs(ANode.BoundsRect));
+    NewBounds := Rect(NewBounds.Left, NewBounds.Top,
+                      NewBounds.Left + 300, NewBounds.Top + 300);
+  end;
   {$IFDEF VerboseAnchorDockRestore}
   //if Scale then
     debugln(['TAnchorDockMaster.RestoreLayout.SetupSite scale Site=',DbgSName(Site),' Caption="',Site.Caption,'" OldWorkArea=',dbgs(SrcWorkArea),' CurWorkArea=',dbgs(WorkArea),' OldBounds=',dbgs(aNode.BoundsRect),' NewBounds=',dbgs(NewBounds)]);

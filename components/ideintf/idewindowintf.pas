@@ -482,6 +482,9 @@ procedure SetPopupModeParentForPropertyEditor(const AEditorDlg: TCustomForm);
 
 procedure Register;
 
+function GetLayoutOperationInProgress: Boolean;
+procedure SetLayoutOperationInProgress(InProgress: Boolean);
+
 implementation
 
 uses
@@ -490,6 +493,7 @@ uses
 var
   FIDEWindowsGlobalOptions: TIDEWindowsGlobalOptions = nil;
   TheIDEDockMaster: TIDEDockMaster = nil; // can be set by a package
+  LayoutOperationInProgress: Boolean = True; // True during startup or layout restore; timer disabled
 
 procedure SetPopupModeParentForPropertyEditor(const AEditorDlg: TCustomForm);
 begin
@@ -516,6 +520,20 @@ begin
   if (TheIDEDockMaster = nil) and Assigned(OnIDEDockMasterNeeded) then
     OnIDEDockMasterNeeded;
   Result := TheIDEDockMaster;
+end;
+
+function GetLayoutOperationInProgress: Boolean;
+begin
+  Result := LayoutOperationInProgress;
+end;
+
+procedure SetLayoutOperationInProgress(InProgress: Boolean);
+{ Called during IDE initialization, layout restore, or any operation that mutates window geometry.
+  Controls whether size-adjustment timers are allowed to start.
+  Set to True before layout operations, False when complete. }
+begin
+  DebugLn('[SetLayoutOperationInProgress] InProgress=',dbgs(InProgress),' (was ',dbgs(LayoutOperationInProgress),')');
+  LayoutOperationInProgress := InProgress;
 end;
 
 procedure MakeIDEWindowDockable(AControl: TWinControl);

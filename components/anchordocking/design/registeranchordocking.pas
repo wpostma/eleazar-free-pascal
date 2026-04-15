@@ -304,12 +304,15 @@ var
   Site: TAnchorDockHostSite;
   I: Integer;
   SiteNewHeight: Integer;
+  MinDockSiteHeight: Integer;
+  SafeNewHeight: Integer;
 begin
   inherited AdjustMainIDEWindowHeight(AIDEWindow, AAdjustHeight, ANewHeight);
 
   DebugLn('[AdjustMainIDEWindowHeight] AdjustH=',dbgs(AAdjustHeight),
     ' NewH=',dbgs(ANewHeight),
-    ' ChildCount=',dbgs(AIDEWindow.ControlCount));
+    ' ChildCount=',dbgs(AIDEWindow.ControlCount),
+    ' AIDEWindowClientH=',dbgs(AIDEWindow.ClientHeight));
 
   Site := nil;
   for I := 0 to AIDEWindow.ControlCount-1 do begin
@@ -349,11 +352,27 @@ begin
     Site.BoundSplitter.Constraints.MinHeight := 2;
     Site.BoundSplitter.Height := Site.BoundSplitter.Constraints.MinHeight;
   end;
-  SiteNewHeight := Site.Parent.ClientHeight - ANewHeight - Site.BoundSplitter.Height;
-  DebugLn('[AdjustMainIDEWindowHeight] Setting SiteH=',dbgs(SiteNewHeight),
+
+  // Safety: clamp ANewHeight to reasonable bounds to prevent shrinking the IDE into an unusable state
+  SafeNewHeight := ANewHeight;
+  MinDockSiteHeight := 300; // minimum space for the dock site itself
+  if SafeNewHeight + MinDockSiteHeight > Site.Parent.ClientHeight then
+  begin
+    SafeNewHeight := Site.Parent.ClientHeight - MinDockSiteHeight;
+    DebugLn('[AdjustMainIDEWindowHeight] CLAMPED NewHeight from ',dbgs(ANewHeight),
+      ' to ',dbgs(SafeNewHeight),' (leaving min ',dbgs(MinDockSiteHeight),' for dock site)');
+  end;
+
+  SiteNewHeight := Site.Parent.ClientHeight - SafeNewHeight - Site.BoundSplitter.Height;
+  DebugLn('[AdjustMainIDEWindowHeight] Calculated SiteNewHeight=',dbgs(SiteNewHeight),
     ' (was ',dbgs(Site.Height),')');
   if AAdjustHeight and (Site.Height <> SiteNewHeight) then
+  begin
     Site.Height := SiteNewHeight;
+    DebugLn('[AdjustMainIDEWindowHeight] APPLIED SiteHeight change to ',dbgs(SiteNewHeight));
+  end
+  else if AAdjustHeight then
+    DebugLn('[AdjustMainIDEWindowHeight] No change needed (Site.Height already ',dbgs(SiteNewHeight),')');
 end;
 
 procedure TIDEAnchorDockMaster.ShowForm(AForm: TCustomForm;
