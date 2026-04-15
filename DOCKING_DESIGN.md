@@ -42,17 +42,19 @@ The old code violated this:
 
 **Unidirectional only:** Client → declare constraints → DockMaster → read constraints → apply layout.
 
-## Rule 4: Timer Debouncing, Not Height Adjustment
+## Rule 4: Don't Decouple Layout With Timers
 
-If your window receives many rapid wmSize messages (especially during GTK initialization), use a debounce timer to let things settle:
+When layout code feels like it needs to "settle" or "wait for GTK", that is a signal the caller is running in the wrong phase, not a signal to add a timer.
 
-```pascal
-FSettleTimer.Interval := 50;  // Wait 50ms for GTK to go quiet
-// Fire once in the timer handler, but DON'T re-layout in response
-// Just mark that we've settled and let the docking manager decide what to do next
-```
+A timer is the weakest form of decoupling available: it reruns arbitrary code at an arbitrary wall-clock moment with no knowledge of what state the program is in. It can fire during modal dialogs, before subsystems are assigned, or after the owning form has begun tearing down. Every timer handler that touches layout becomes a second entry point into code that assumed a specific call order, and the bugs that result are non-deterministic and hard to reproduce.
 
-Never use the settle timer to force geometry changes. It's purely for observing when GTK has stopped reshuffling.
+Prefer, in order:
+
+1. **Do the work in the correct phase.** One-shot init (after constructors, after `IDEDockMaster` is assigned, after desktop restore completes) is almost always the right place for min-constraint enforcement, splitter locking, and similar configuration.
+2. **`Application.QueueAsyncCall`** when you genuinely need to defer until the current message is drained — it runs once, in the message loop, not on a wall-clock interval.
+3. **An explicit state flag** (`LayoutOperationInProgress`) that makes re-entrant handlers exit early, rather than a timer that papers over the re-entry.
+
+If after all of the above a timer is still the answer, it is an admission that the underlying layout API is wrong. Document that, don't hide it.
 
 ## Rule 5: Enforce Window-Level Constraints Only
 
@@ -92,10 +94,22 @@ function TIDEAnchorDockMaster.CalcLayout(...): TRect;
   Child.Height := SafeHeight;
 
 // 4. Client's wmSize fires, but MainIDEBar doesn't fight it
-procedure TMainIDEBar.OnHeightSettleTimer(...);
-  // Just observe that GTK has settled
-  // Don't call AdjustMainIDEWindowHeight or force any heights
+procedure TMainIDEBar.Resizing(State);
+  inherited; // no geometry mutation in response to resize signals
 ```
+
+## Open Issue: Anchor-Docked WMSize Loop (2026-04-14)
+
+With the TMainIDEBar timer removed, the main bar no longer loops. A separate `ELayoutException: WMSize loop detected` burst still fires in the anchor-docking / editor pane subtree during first layout realization. Observed via LCL diag socket:
+
+- 174 loop-exceptions in a 175ms burst at one layout phase
+- Affected controls: `TAnchorDockHeader`, `TAnchorDockHostSite`, `TAnchorDockSplitter`, `TTabSheet`, `TSrcEditTabSheet`, `TSrcEditExtendedNotebook`, `TSourcePageControl`, `TSourceNotebook`, `TSynChildWinControl`, `TIDESynEditor`, `TObjectInspectorDlg`, `TProjectInspectorForm`, `TTreeView`, `TPanel`, `TGroupBox`
+- Pattern: `BoundsRealized.b` consistently ~973px larger than `NewBoundsRealized.b` (e.g. 4429 vs 3456, 4443 vs 3470). 3456 matches `MaxWidget` screen height from GTK init — so the dock manager is asking for a height that exceeds the physical display, GTK clamps, loop detector fires.
+
+Next diagnostic step: trace who is setting the initial `BoundsRealized` height to 4429 on the anchor-dock tree — likely stale saved-layout values being applied without clamping against `Screen.WorkAreaHeight` before the first `WMSize` round-trip. Candidate files:
+- `components/anchordocking/anchordocking.pas` — `TAnchorDockHostSite.BoundsChanged`, layout restore
+- `components/anchordocking/anchordockstorage.pas` — saved-layout application
+- `components/anchordocking/design/registeranchordocking.pas` — IDE-specific dock master
 
 ## Understanding WMSize Messages
 
