@@ -58,7 +58,7 @@ uses
 type
   { TMainIDEBar }
 
-  TMainIDEBar = class(TForm)
+  TMainIDEBar = class(TForm {, TODO:IAnchorDockable})
   private
     OptionsPopupMenu: TPopupMenu;
     FMainOwningComponent: TComponent;
@@ -432,13 +432,17 @@ procedure TMainIDEBar.DoShow;
 begin
   inherited DoShow;
   DebugLn('[TMainIDEBar.DoShow] Form is being shown, enabling resize timers');
-  IDEWindowIntf.SetLayoutOperationInProgress(False);
+  IDEWindowIntf.SetLayoutOperationInProgress(False); //TODO maybe this should be the responsibility of the docking manager!
   DebugLn('[TMainIDEBar.DoShow] Layout timers are now enabled');
 end;
 
 procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
 begin
   // No-op: height is managed by LCL/GTK natively in docked-only mode.
+  // TODO some kind of mechanism from the LCL dock manager.
+  // - call CalculateCoolbarHeight
+  // - update only the coolbar docked height if a tweak is needed, or the main form height if undocked,
+  //   but be careful not to reintroduce loops.
 end;
 
 function TMainIDEBar.CalculateCoolbarHeight: Integer;

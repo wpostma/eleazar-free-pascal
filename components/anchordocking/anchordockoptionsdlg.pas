@@ -95,13 +95,15 @@ var
 begin
   Dlg:=TForm.Create(nil);
   try
-    Dlg.DisableAutoSizing('ShowAnchorDockOptions');
+    //Dlg.DisableAutoSizing('ShowAnchorDockOptions');
     try
       Dlg.Position:=poScreenCenter;
       Dlg.AutoSize:=true;
       Dlg.Caption:=adrsGeneralDockingOptions;
 
       OptsFrame:=TAnchorDockOptionsFrame.Create(Dlg);
+
+      Dlg.Width := Round(OptsFrame.Width*1.2);
       OptsFrame.Align:=alClient;
       OptsFrame.Parent:=Dlg;
       OptsFrame.Master:=ADockMaster;
@@ -111,7 +113,7 @@ begin
       BtnPanel.OKButton.OnClick:=@OptsFrame.OkClick;
       BtnPanel.Parent:=Dlg;
     finally
-      Dlg.EnableAutoSizing('ShowAnchorDockOptions');
+      //Dlg.EnableAutoSizing('ShowAnchorDockOptions');
     end;
     Result:=Dlg.ShowModal;
   finally
