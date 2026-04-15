@@ -29,6 +29,9 @@ We are committed to transparency, open licensing, and collaboration. Wherever po
 
 Eleazar is not a replacement for Lazarus — it is a companion project, an R&D branch, and a catalyst for progress.Our goal is to empower developers, welcome new contributors, and push the Pascal ecosystem forward with respect, clarity, and ambition. We also plan to use a lot of the great stuff already there in FreePascal 3.x that isn't getting much of a workout yet in the classic LCL.
 
+### Key Design Documents
+
+- **[DOCKING_DESIGN.md](DOCKING_DESIGN.md)** — Architectural rules for the docking system to prevent feedback loops and maintain stability
 
 ---
 
