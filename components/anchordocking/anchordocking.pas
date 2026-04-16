@@ -134,6 +134,26 @@ const
 type
   TAnchorDockHostSite = class;
 
+  { IDockManagerActions
+    One-shot post-restore notification. The form returns an absolute target
+    for each edge's top-strip content size (coolbar + menu + chrome, splitter
+    excluded). Zero on a field = "don't touch that side." The master locates
+    the form's child dock-host site, finds the splitter adjacent to each side,
+    and applies: siteTop := DesiredTopAreaHeight + topSplitter.Height, etc.
+    Form owns the latch; the master calls unconditionally on every restore. }
+  TDockResizeRequest = record
+    DesiredTopAreaHeight: Integer;
+    DesiredBottomAreaHeight: Integer;
+    DesiredLeftAreaWidth: Integer;
+    DesiredRightAreaWidth: Integer;
+    Valid: Boolean;
+  end;
+
+  IDockManagerActions = interface
+    ['{7A8B2C4E-1D6F-4A3B-9E5C-8F2A1D4B7C3E}']
+    function NotifyAfterRestoreLayout: TDockResizeRequest;
+  end;
+
   { TAnchorDockCloseButton
     Close button used in TAnchorDockHeader, uses the close button glyph of the
     theme shrinked to a small size. The glyph is shared by all close buttons. }
@@ -238,6 +258,7 @@ type
     FDockParentClientSize: TSize;
     FDockRestoreBounds: TRect;
     FPercentPosition: Single;
+    FMouseInside: Boolean;
     procedure SetAsyncUpdateDockBounds(const AValue: boolean);
     procedure UpdatePercentPosition;
   protected
@@ -246,6 +267,8 @@ type
     procedure SetParent(NewParent: TWinControl); override;
     procedure PopupMenuPopup(Sender: TObject); virtual;
     procedure Paint; override;
+    procedure MouseEnter; override;
+    procedure MouseLeave; override;
   public
     procedure MoveSplitter(Offset: integer); override;
   public
@@ -753,6 +776,7 @@ type
     procedure StartHideOverlappingTimer;
     procedure StopHideOverlappingTimer;
     procedure AsyncSimplify({%H-}Data: PtrInt);
+    procedure AsyncNotifyRestoreAwareForms({%H-}Data: PtrInt);
   public
     procedure RegisterHeaderStyle(StyleName: THeaderStyleName; DrawProc:TDrawADHeaderProc; NeedDrawHeaderAfterText,NeedHighlightText: boolean);
     procedure ShowOverlappingForm;
@@ -2818,13 +2842,28 @@ begin
   OptionsChanged;
 end;
 
+function AnchorDockMinSplitterFloor: Integer;
+// DPI-scaled minimum so splitters remain grabbable on hi-dpi displays.
+// 96dpi -> 11 (>= user requirement of 10), 150dpi -> 17, 192dpi -> 22.
+var
+  PPI: Integer;
+begin
+  PPI := Screen.PixelsPerInch;
+  if PPI < 96 then PPI := 96;
+  Result := (11 * PPI) div 96;
+  if Result < 10 then Result := 10;
+end;
+
 procedure TAnchorDockMaster.SetSplitterWidth(const AValue: integer);
 var
-  i: Integer;
+  i, NewVal, Floor: Integer;
   Splitter: TAnchorDockSplitter;
 begin
-  if (AValue<1) or (AValue=SplitterWidth) then exit;
-  FSplitterWidth:=AValue;
+  NewVal:=AValue;
+  Floor:=AnchorDockMinSplitterFloor;
+  if NewVal<Floor then NewVal:=Floor;
+  if (NewVal<1) or (NewVal=SplitterWidth) then exit;
+  FSplitterWidth:=NewVal;
   for i:=0 to ComponentCount-1 do begin
     Splitter:=TAnchorDockSplitter(Components[i]);
     if not (Splitter is TAnchorDockSplitter) then continue;
@@ -2909,6 +2948,116 @@ procedure TAnchorDockMaster.AsyncSimplify(Data: PtrInt);
 begin
   FQueueSimplify:=false;
   SimplifyPendingLayouts;
+end;
+
+function FindContentHostSite(AForm: TCustomForm): TAnchorDockHostSite;
+var
+  j: Integer;
+  C: TControl;
+  Best: TAnchorDockHostSite;
+begin
+  Best := nil;
+  for j := 0 to AForm.ControlCount - 1 do
+  begin
+    C := AForm.Controls[j];
+    if C is TAnchorDockHostSite then
+    begin
+      if Best = nil then
+        Best := TAnchorDockHostSite(C)
+      else if C.Width * C.Height > Best.Width * Best.Height then
+        Best := TAnchorDockHostSite(C);
+    end;
+  end;
+  Result := Best;
+end;
+
+function FindAdjacentSplitter(AForm: TCustomForm; ASite: TControl;
+  ASide: TAlign): TAnchorDockSplitter;
+var
+  j: Integer;
+  C: TControl;
+  S: TAnchorDockSplitter;
+  Match: Boolean;
+begin
+  Result := nil;
+  for j := 0 to AForm.ControlCount - 1 do
+  begin
+    C := AForm.Controls[j];
+    if not (C is TAnchorDockSplitter) then Continue;
+    S := TAnchorDockSplitter(C);
+    Match := False;
+    case ASide of
+      alTop:    Match := (S.Top + S.Height <= ASite.Top + 2) and (S.Height < S.Width);
+      alBottom: Match := (S.Top >= ASite.Top + ASite.Height - 2) and (S.Height < S.Width);
+      alLeft:   Match := (S.Left + S.Width <= ASite.Left + 2) and (S.Width < S.Height);
+      alRight:  Match := (S.Left >= ASite.Left + ASite.Width - 2) and (S.Width < S.Height);
+    end;
+    if Match then Exit(S);
+  end;
+end;
+
+procedure TAnchorDockMaster.AsyncNotifyRestoreAwareForms(Data: PtrInt);
+var
+  i: Integer;
+  AForm: TCustomForm;
+  Intf: IDockManagerActions;
+  Req: TDockResizeRequest;
+  Site: TAnchorDockHostSite;
+  Splitter: TAnchorDockSplitter;
+  NewTop, NewLeft, NewW, NewH, SplitterH, SplitterW: Integer;
+begin
+  for i := 0 to Screen.CustomFormCount - 1 do
+  begin
+    AForm := Screen.CustomForms[i];
+    if not Supports(AForm, IDockManagerActions, Intf) then Continue;
+    Req := Intf.NotifyAfterRestoreLayout;
+    Intf := nil;
+    if not Req.Valid then Continue;
+    Site := FindContentHostSite(AForm);
+    if Site = nil then Continue;
+
+    NewTop := Site.Top;
+    NewLeft := Site.Left;
+    NewW := Site.Width;
+    NewH := Site.Height;
+
+    if Req.DesiredTopAreaHeight > 0 then
+    begin
+      SplitterH := 0;
+      Splitter := FindAdjacentSplitter(AForm, Site, alTop);
+      if Splitter <> nil then SplitterH := Splitter.Height;
+      NewTop := Req.DesiredTopAreaHeight + SplitterH;
+      NewH := (Site.Top + Site.Height) - NewTop;
+    end;
+    if Req.DesiredLeftAreaWidth > 0 then
+    begin
+      SplitterW := 0;
+      Splitter := FindAdjacentSplitter(AForm, Site, alLeft);
+      if Splitter <> nil then SplitterW := Splitter.Width;
+      NewLeft := Req.DesiredLeftAreaWidth + SplitterW;
+      NewW := (Site.Left + Site.Width) - NewLeft;
+    end;
+    if Req.DesiredBottomAreaHeight > 0 then
+    begin
+      SplitterH := 0;
+      Splitter := FindAdjacentSplitter(AForm, Site, alBottom);
+      if Splitter <> nil then SplitterH := Splitter.Height;
+      NewH := (AForm.ClientHeight - Req.DesiredBottomAreaHeight - SplitterH) - NewTop;
+    end;
+    if Req.DesiredRightAreaWidth > 0 then
+    begin
+      SplitterW := 0;
+      Splitter := FindAdjacentSplitter(AForm, Site, alRight);
+      if Splitter <> nil then SplitterW := Splitter.Width;
+      NewW := (AForm.ClientWidth - Req.DesiredRightAreaWidth - SplitterW) - NewLeft;
+    end;
+
+    if NewW < 50 then NewW := 50;
+    if NewH < 50 then NewH := 50;
+    DebugLn('[AnchorDockMaster.AsyncNotifyRestoreAwareForms] form=%s site=%s: L=%d T=%d W=%d H=%d',
+      [AForm.Name, Site.Name, NewLeft, NewTop, NewW, NewH]);
+    Site.SetBounds(NewLeft, NewTop, NewW, NewH);
+  end;
 end;
 
 procedure TAnchorDockMaster.ChangeLockButtonClick(Sender: TObject);
@@ -3317,7 +3466,7 @@ begin
   FShowHeaderCaption:=true;
   FHideHeaderCaptionFloatingControl:=true;
   FSplitterResizeStyle:=rsUpdate;
-  FSplitterWidth:=4;
+  FSplitterWidth:=AnchorDockMinSplitterFloor;
   FScaleOnResize:=true;
   FMapMinimizedControls:=TMapMinimizedControls.Create;
   fNeedSimplify:=TFPList.Create;
@@ -3980,6 +4129,7 @@ begin
   if (ControlCount>0) and (Controls[0] is TWinControl) then
     DebugWriteChildAnchors(TWinControl(Controls[0]),true,false);
   {$ENDIF}
+  Application.QueueAsyncCall(@AsyncNotifyRestoreAwareForms, 0);
   Result:=true;
 end;
 
@@ -6428,9 +6578,41 @@ begin
   end;
 end;
 
-procedure TAnchorDockHostSite.UpdateDockCaption(Exclude: TControl);
+function StripAggregationSuffix(const S: string): string;
+// Remove a trailing " +<digits>" so already-aggregated child captions don't
+// stack into "Foo +1 +1" when a parent re-aggregates them.
 var
-  i: Integer;
+  I, P: Integer;
+begin
+  Result:=S;
+  I:=Length(Result);
+  if I<3 then Exit;
+  P:=I;
+  while (P>0) and (Result[P] in ['0'..'9']) do Dec(P);
+  if (P=I) or (P<2) then Exit;
+  if (Result[P]='+') and (Result[P-1]=' ') then
+    SetLength(Result,P-2);
+end;
+
+procedure TAnchorDockHostSite.UpdateDockCaption(Exclude: TControl);
+
+  function CountDockableSiblings: Integer;
+  var
+    j: Integer;
+    Ch: TControl;
+  begin
+    Result:=0;
+    for j:=0 to ControlCount-1 do begin
+      Ch:=Controls[j];
+      if Ch=Exclude then continue;
+      if (Ch.HostDockSite=Self) or (Ch is TAnchorDockHostSite)
+      or (Ch is TAnchorDockPageControl) then
+        Inc(Result);
+    end;
+  end;
+
+var
+  i, Extra: Integer;
   Child: TControl;
   NewCaption, OldCaption: String;
 begin
@@ -6442,16 +6624,26 @@ begin
       NewCaption:=FMinimizedControl.Caption;
   end
   else
+  begin
+    // Aggregate child captions as "First +N" rather than "A, B, C, D" to keep
+    // tab/header captions short. First non-excluded dockable child wins.
+    NewCaption:='';
     for i:=0 to ControlCount-1 do begin
       Child:=Controls[i];
       if Child=Exclude then continue;
       if (Child.HostDockSite=Self) or (Child is TAnchorDockHostSite)
       or (Child is TAnchorDockPageControl) then begin
-        if NewCaption<>'' then
-          NewCaption:=NewCaption+', ';
-        NewCaption:=NewCaption+Child.Caption;
+        if NewCaption='' then
+          NewCaption:=StripAggregationSuffix(Child.Caption)
+        else begin
+          Extra:=CountDockableSiblings-1;
+          if Extra>0 then
+            NewCaption:=NewCaption+' +'+IntToStr(Extra);
+          break;
+        end;
       end;
     end;
+  end;
   OldCaption:=Caption;
   Caption:=NewCaption;
   //debugln(['TAnchorDockHostSite.UpdateDockCaption Caption="',Caption,'" NewCaption="',NewCaption,'" HasParent=',Parent<>nil,' ',DbgSName(Header)]);
@@ -8058,7 +8250,20 @@ begin
 end;
 
 procedure TAnchorDockSplitter.ConstrainBounds(var ALeft, ATop, AWidth, AHeight: integer);
+var
+  Floor: Integer;
 begin
+  // Enforce a DPI-scaled minimum thickness so splitters remain grabbable.
+  // Thickness axis depends on ResizeAnchor: horizontal splitters (akTop/
+  // akBottom) are constrained in Height; vertical splitters in Width.
+  Floor := AnchorDockMinSplitterFloor;
+  case ResizeAnchor of
+    akTop, akBottom:
+      if AHeight < Floor then AHeight := Floor;
+    akLeft, akRight:
+      if AWidth < Floor then AWidth := Floor;
+  end;
+
   if (Parent = nil) or (not HandleAllocated) or
      (FPercentPosition <= 0) or
      ((DockMaster <> nil) and (DockMaster.fUpdateCount > 0))
@@ -8293,13 +8498,74 @@ begin
 end;
 
 procedure TAnchorDockSplitter.Paint;
+
+  procedure DrawDottedBorder;
+  // Draws a DPI-scaled 50%-gray dotted outline on all four sides so the
+  // splitter reads as an obvious, grabbable boundary. Dots are square,
+  // drawn at a fixed pitch (dot size = gap).
+  const
+    Gray50 = TColor($808080);
+  var
+    PPI, Dot, Pitch, X, Y, W, H: Integer;
+  begin
+    PPI := Screen.PixelsPerInch;
+    if PPI < 96 then PPI := 96;
+    Dot := (2 * PPI) div 96;
+    if Dot < 2 then Dot := 2;
+    Pitch := Dot * 2;
+    W := Width;
+    H := Height;
+    if (W < Dot) or (H < Dot) then Exit;
+    Canvas.Brush.Color := Gray50;
+    // Top + bottom edges
+    X := 0;
+    while X < W do
+    begin
+      Canvas.FillRect(Rect(X, 0, X + Dot, Dot));
+      Canvas.FillRect(Rect(X, H - Dot, X + Dot, H));
+      Inc(X, Pitch);
+    end;
+    // Left + right edges
+    Y := 0;
+    while Y < H do
+    begin
+      Canvas.FillRect(Rect(0, Y, Dot, Y + Dot));
+      Canvas.FillRect(Rect(W - Dot, Y, W, Y + Dot));
+      Inc(Y, Pitch);
+    end;
+  end;
+
 begin
   if Enabled then
-    inherited Paint
+  begin
+    inherited Paint;
+    if FMouseInside then
+      DrawDottedBorder;
+  end
   else
   begin
     Canvas.Brush.Color := clDefault;
     Canvas.FillRect(ClientRect);
+  end;
+end;
+
+procedure TAnchorDockSplitter.MouseEnter;
+begin
+  inherited MouseEnter;
+  if not FMouseInside then
+  begin
+    FMouseInside := True;
+    Invalidate;
+  end;
+end;
+
+procedure TAnchorDockSplitter.MouseLeave;
+begin
+  inherited MouseLeave;
+  if FMouseInside then
+  begin
+    FMouseInside := False;
+    Invalidate;
   end;
 end;
 
@@ -8449,17 +8715,26 @@ end;
 
 procedure TAnchorDockPageControl.UpdateDockCaption(Exclude: TControl);
 var
-  i: Integer;
+  i, j, Extra: Integer;
   Child: TControl;
   NewCaption: String;
 begin
+  // Aggregate as "First +N" to keep tab/header captions short.
   NewCaption:='';
   for i:=0 to Pages.Count-1 do begin
     Child:=Page[i];
     if Child=Exclude then continue;
-    if NewCaption<>'' then
-      NewCaption:=NewCaption+', ';
-    NewCaption:=NewCaption+Child.Caption;
+    if NewCaption='' then
+      NewCaption:=StripAggregationSuffix(Child.Caption)
+    else begin
+      // Count remaining non-excluded pages from this index onward.
+      Extra:=0;
+      for j:=i to Pages.Count-1 do
+        if Page[j]<>Exclude then Inc(Extra);
+      if Extra>0 then
+        NewCaption:=NewCaption+' +'+IntToStr(Extra);
+      break;
+    end;
   end;
   //debugln(['TAnchorDockPageControl.UpdateDockCaption ',Caption,' ',NewCaption]);
   if Caption=NewCaption then exit;
@@ -8527,20 +8802,34 @@ end;
 
 procedure TAnchorDockPage.UpdateDockCaption(Exclude: TControl);
 var
-  i: Integer;
+  i, Extra, j: Integer;
   Child: TControl;
-  NewCaption: String;
+  NewCaption, FullCaption: String;
 begin
+  // Aggregate as "First +N"; keep FullCaption (comma list) as the hover hint.
   NewCaption:='';
+  FullCaption:='';
   for i:=0 to ControlCount-1 do begin
     Child:=Controls[i];
     if Child=Exclude then continue;
     if not (Child is TAnchorDockHostSite) then continue;
-    if NewCaption<>'' then
-      NewCaption:=NewCaption+', ';
-    NewCaption:=NewCaption+Child.Caption;
+    if FullCaption<>'' then
+      FullCaption:=FullCaption+', ';
+    FullCaption:=FullCaption+StripAggregationSuffix(Child.Caption);
+    if NewCaption='' then
+      NewCaption:=StripAggregationSuffix(Child.Caption);
   end;
-  //debugln(['TAnchorDockPage.UpdateDockCaption ',Caption,' ',NewCaption]);
+  if NewCaption<>'' then begin
+    Extra:=0;
+    for j:=0 to ControlCount-1 do
+      if (Controls[j]<>Exclude) and (Controls[j] is TAnchorDockHostSite) then
+        Inc(Extra);
+    Dec(Extra); // first one is already shown
+    if Extra>0 then
+      NewCaption:=NewCaption+' +'+IntToStr(Extra);
+  end;
+  Hint:=FullCaption;
+  ShowHint:=FullCaption<>'';
   if Caption=NewCaption then exit;
   Caption:=NewCaption;
   if Parent is TAnchorDockPageControl then
