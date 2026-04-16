@@ -18,7 +18,7 @@ procedure RegisterIDEDiagCommands;
 implementation
 
 uses
-  Classes, SysUtils, Forms, Controls,
+  Classes, SysUtils, Types, Forms, Controls, Graphics, GraphType, IntfGraphics, FPimage,
   LCLDiagServer,
   LazIDEIntf, SrcEditorIntf, ProjectIntf,
   EnvGuiOptions;
@@ -1088,6 +1088,355 @@ begin
   Result := Req.Result;
 end;
 
+{ ===== Command: screenshot =================================================
+  Paints a TCustomForm, downscales to a grayscale PNG quantized to N levels,
+  saves under /tmp/lclserver/images/, returns the file path plus size info. }
+
+var
+  ScreenshotSeq: Integer = 0;
+
+function SanitizeForFilename(const S: string): string;
+var
+  I: Integer;
+begin
+  Result := '';
+  for I := 1 to Length(S) do
+    if S[I] in ['A'..'Z','a'..'z','0'..'9','_','-'] then
+      Result := Result + S[I]
+    else
+      Result := Result + '_';
+  if Length(Result) > 40 then
+    Result := Copy(Result, 1, 40);
+  if Result = '' then Result := 'control';
+end;
+
+type
+  TMarkRect = record
+    Path: string;
+    Rect: TRect;        // in output (small) image coords
+    SrcRect: TRect;     // in form bitmap coords
+  end;
+  TMarkRectArray = array of TMarkRect;
+
+procedure SplitCSV(const S: string; out Parts: TStringArray);
+var
+  I, Start, N: Integer;
+begin
+  N := 0;
+  SetLength(Parts, 0);
+  if S = '' then Exit;
+  Start := 1;
+  for I := 1 to Length(S) + 1 do
+    if (I > Length(S)) or (S[I] = ',') then
+    begin
+      if I > Start then
+      begin
+        SetLength(Parts, N + 1);
+        Parts[N] := Trim(Copy(S, Start, I - Start));
+        Inc(N);
+      end;
+      Start := I + 1;
+    end;
+end;
+
+procedure CollectDockSitesRec(Parent: TWinControl; var Paths: TStringArray);
+  function BuildPath(C: TControl): string;
+  begin
+    if C.Parent = nil then
+      Result := C.Name
+    else
+      Result := BuildPath(C.Parent) + '/' + C.Name;
+  end;
+var
+  I, N: Integer;
+  Child: TControl;
+begin
+  if Parent = nil then Exit;
+  for I := 0 to Parent.ControlCount - 1 do
+  begin
+    Child := Parent.Controls[I];
+    if (Child.ClassName = 'TAnchorDockHostSite') and (Child.Name <> '') then
+    begin
+      N := Length(Paths);
+      SetLength(Paths, N + 1);
+      Paths[N] := BuildPath(Child);
+    end;
+    if Child is TWinControl then
+      CollectDockSitesRec(TWinControl(Child), Paths);
+  end;
+end;
+
+procedure DrawRedRect(Img: TLazIntfImage; R: TRect; Thickness: Integer);
+var
+  Red: TFPColor;
+  X, Y, W, H, T: Integer;
+begin
+  Red := FPColor($FFFF, 0, 0, $FFFF);
+  W := Img.Width;
+  H := Img.Height;
+  T := Thickness;
+  if T < 1 then T := 1;
+  // Clamp
+  if R.Left < 0 then R.Left := 0;
+  if R.Top < 0 then R.Top := 0;
+  if R.Right > W then R.Right := W;
+  if R.Bottom > H then R.Bottom := H;
+  if (R.Right <= R.Left) or (R.Bottom <= R.Top) then Exit;
+  // Top + bottom edges
+  for Y := 0 to T - 1 do
+  begin
+    if (R.Top + Y) < H then
+      for X := R.Left to R.Right - 1 do
+        Img.Colors[X, R.Top + Y] := Red;
+    if (R.Bottom - 1 - Y) >= 0 then
+      for X := R.Left to R.Right - 1 do
+        Img.Colors[X, R.Bottom - 1 - Y] := Red;
+  end;
+  // Left + right edges
+  for X := 0 to T - 1 do
+  begin
+    if (R.Left + X) < W then
+      for Y := R.Top to R.Bottom - 1 do
+        Img.Colors[R.Left + X, Y] := Red;
+    if (R.Right - 1 - X) >= 0 then
+      for Y := R.Top to R.Bottom - 1 do
+        Img.Colors[R.Right - 1 - X, Y] := Red;
+  end;
+end;
+
+procedure DoScreenshot(Data: PtrInt);
+const
+  DefaultMaxW = 640;
+  DefaultMaxH = 480;
+  DefaultLevels = 4;
+  HardCapW = 2048;
+  HardCapH = 2048;
+  OutDir = '/tmp/lclserver/images/';
+var
+  Req: PDiagRequest;
+  Path, MarksStr: string;
+  MaxW, MaxH, Levels: Int64;
+  MarkDockSites: Boolean;
+  MarkPaths: TStringArray;
+  Marks: TMarkRectArray;
+  MarkCount, MI: Integer;
+  MC: TControl;
+  ScrPt: TPoint;
+  BmpX, BmpY: Integer;
+  MarksJSON: string;
+  C: TControl;
+  Frm: TCustomForm;
+  FullW, FullH, OutW, OutH: Integer;
+  Bmp: TBitmap;
+  FullImg, SmallImg: TLazIntfImage;
+  X, Y, SrcX, SrcY: Integer;
+  Col: TFPColor;
+  Lum, Band, Step, LevelsI: Integer;
+  GrayVal: Word;
+  PNG: TPortableNetworkGraphic;
+  FName, Stamp, SafeName: string;
+  Seq: Integer;
+  FileBytes: Int64;
+  FS: TFileStream;
+begin
+  Req := PDiagRequest(Data);
+  Path := ExtractJStr(Req^.Line, 'path');
+  MaxW := ExtractJInt(Req^.Line, 'max_width');
+  MaxH := ExtractJInt(Req^.Line, 'max_height');
+  Levels := ExtractJInt(Req^.Line, 'levels');
+  MarksStr := ExtractJStr(Req^.Line, 'marks');
+  MarkDockSites := ExtractJBool(Req^.Line, 'mark_dock_sites');
+  if MaxW <= 0 then MaxW := DefaultMaxW;
+  if MaxH <= 0 then MaxH := DefaultMaxH;
+  if Levels <= 1 then Levels := DefaultLevels;
+  if MaxW > HardCapW then MaxW := HardCapW;
+  if MaxH > HardCapH then MaxH := HardCapH;
+  if Levels > 256 then Levels := 256;
+
+  if Path = '' then begin
+    Req^.Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  C := FindControlByPath(Path);
+  if C = nil then begin
+    Req^.Result := '{' + JStr('error', 'control not found: ' + Path) + '}';
+    Exit;
+  end;
+  if not (C is TCustomForm) then begin
+    Req^.Result := '{' + JStr('error', 'only TCustomForm supported in v1: ' + C.ClassName) + '}';
+    Exit;
+  end;
+  Frm := TCustomForm(C);
+  if (not Frm.HandleAllocated) or (not Frm.Showing) or (not Frm.Visible) then begin
+    Req^.Result := '{' + JStr('error', 'form not visible: ' + Path) + '}';
+    Exit;
+  end;
+
+  FullW := Frm.Width;
+  FullH := Frm.Height;
+  if (FullW <= 0) or (FullH <= 0) then begin
+    Req^.Result := '{' + JStr('error', 'form has no area') + '}';
+    Exit;
+  end;
+
+  // Preserve aspect ratio within (MaxW, MaxH).
+  OutW := FullW;
+  OutH := FullH;
+  if OutW > MaxW then begin
+    OutH := (OutH * MaxW) div OutW;
+    OutW := MaxW;
+  end;
+  if OutH > MaxH then begin
+    OutW := (OutW * MaxH) div OutH;
+    OutH := MaxH;
+  end;
+  if OutW < 1 then OutW := 1;
+  if OutH < 1 then OutH := 1;
+
+  // Build the list of mark paths: explicit "marks" CSV + optional dock sites.
+  SplitCSV(MarksStr, MarkPaths);
+  if MarkDockSites and (Frm is TWinControl) then
+    CollectDockSitesRec(TWinControl(Frm), MarkPaths);
+
+  // Resolve each path to a rectangle in both form-bitmap and scaled-output coords.
+  // Form bitmap origin is (Frm.Left, Frm.Top) in screen coords: PaintTo paints
+  // the outer form (including chrome) into (0,0) of a Frm.Width x Frm.Height bitmap.
+  MarkCount := 0;
+  SetLength(Marks, Length(MarkPaths));
+  for MI := 0 to Length(MarkPaths) - 1 do
+  begin
+    if MarkPaths[MI] = '' then Continue;
+    MC := FindControlByPath(MarkPaths[MI]);
+    if (MC = nil) or (MC.Width <= 0) or (MC.Height <= 0) then Continue;
+    if MC.Parent <> nil then
+      ScrPt := MC.Parent.ClientToScreen(Point(MC.Left, MC.Top))
+    else
+      ScrPt := Point(MC.Left, MC.Top);
+    BmpX := ScrPt.X - Frm.Left;
+    BmpY := ScrPt.Y - Frm.Top;
+    Marks[MarkCount].Path := MarkPaths[MI];
+    Marks[MarkCount].SrcRect := Rect(BmpX, BmpY, BmpX + MC.Width, BmpY + MC.Height);
+    Marks[MarkCount].Rect := Rect(
+      (BmpX * OutW) div FullW,
+      (BmpY * OutH) div FullH,
+      ((BmpX + MC.Width) * OutW) div FullW,
+      ((BmpY + MC.Height) * OutH) div FullH);
+    Inc(MarkCount);
+  end;
+  SetLength(Marks, MarkCount);
+
+  Bmp := nil; FullImg := nil; SmallImg := nil; PNG := nil;
+  FileBytes := 0;
+  try
+    Bmp := TBitmap.Create;
+    Bmp.SetSize(FullW, FullH);
+    Frm.PaintTo(Bmp.Canvas, 0, 0);
+    FullImg := Bmp.CreateIntfImage;
+
+    SmallImg := TLazIntfImage.Create(OutW, OutH, [riqfRGB, riqfAlpha]);
+    LevelsI := Levels;
+    if LevelsI < 2 then LevelsI := 2;
+    Step := 65535 div (LevelsI - 1);
+
+    for Y := 0 to OutH - 1 do
+    begin
+      SrcY := (Y * FullH) div OutH;
+      if SrcY >= FullH then SrcY := FullH - 1;
+      for X := 0 to OutW - 1 do
+      begin
+        SrcX := (X * FullW) div OutW;
+        if SrcX >= FullW then SrcX := FullW - 1;
+        Col := FullImg.Colors[SrcX, SrcY];
+        // Luminance in 16-bit space: 0.299 R + 0.587 G + 0.114 B
+        Lum := (299 * Col.red + 587 * Col.green + 114 * Col.blue) div 1000;
+        if Lum < 0 then Lum := 0;
+        if Lum > 65535 then Lum := 65535;
+        Band := Lum div Step;
+        if Band >= LevelsI then Band := LevelsI - 1;
+        GrayVal := Band * Step;
+        SmallImg.Colors[X, Y] := FPColor(GrayVal, GrayVal, GrayVal, $FFFF);
+      end;
+    end;
+
+    // Overlay red rectangles for each resolved mark (drawn after grayscaling
+    // so the red survives the quantization step).
+    for MI := 0 to MarkCount - 1 do
+      DrawRedRect(SmallImg, Marks[MI].Rect, 2);
+
+    // Compose filename
+    ForceDirectories(OutDir);
+    Inc(ScreenshotSeq);
+    Seq := ScreenshotSeq;
+    Stamp := FormatDateTime('yyyymmdd_hhnnss', Now);
+    SafeName := SanitizeForFilename(Path);
+    FName := OutDir + Stamp + '_' + Format('%.6d', [Seq]) + '_' + SafeName + '.png';
+
+    PNG := TPortableNetworkGraphic.Create;
+    PNG.LoadFromIntfImage(SmallImg);
+    PNG.SaveToFile(FName);
+
+    // File byte count
+    if FileExists(FName) then
+    begin
+      FS := TFileStream.Create(FName, fmOpenRead or fmShareDenyNone);
+      try
+        FileBytes := FS.Size;
+      finally
+        FS.Free;
+      end;
+    end;
+
+    // Build marks JSON: [{"path":..,"src":[l,t,r,b],"out":[l,t,r,b]},...]
+    MarksJSON := '';
+    for MI := 0 to MarkCount - 1 do
+    begin
+      if MI > 0 then MarksJSON := MarksJSON + ',';
+      MarksJSON := MarksJSON + '{' +
+        JStr('path', Marks[MI].Path) + ',' +
+        '"src":[' + IntToStr(Marks[MI].SrcRect.Left) + ',' +
+                    IntToStr(Marks[MI].SrcRect.Top) + ',' +
+                    IntToStr(Marks[MI].SrcRect.Right) + ',' +
+                    IntToStr(Marks[MI].SrcRect.Bottom) + '],' +
+        '"out":[' + IntToStr(Marks[MI].Rect.Left) + ',' +
+                    IntToStr(Marks[MI].Rect.Top) + ',' +
+                    IntToStr(Marks[MI].Rect.Right) + ',' +
+                    IntToStr(Marks[MI].Rect.Bottom) + ']}';
+    end;
+
+    Req^.Result := '{' + JStr('result', 'ok') + ',' +
+      JStr('path', Path) + ',' +
+      JStr('file', FName) + ',' +
+      JInt('actualWidth', FullW) + ',' +
+      JInt('actualHeight', FullH) + ',' +
+      JInt('outWidth', OutW) + ',' +
+      JInt('outHeight', OutH) + ',' +
+      JInt('levels', LevelsI) + ',' +
+      JInt('bytes', FileBytes) + ',' +
+      JInt('markCount', MarkCount) + ',' +
+      '"marks":[' + MarksJSON + ']}';
+  except
+    on E: Exception do
+      Req^.Result := '{' + JStr('error', 'screenshot failed: ' + E.Message) + '}';
+  end;
+  PNG.Free;
+  SmallImg.Free;
+  FullImg.Free;
+  Bmp.Free;
+end;
+
+function HandleScreenshot(const ALine: string): string;
+var
+  Req: TDiagRequest;
+begin
+  if ExtractJStr(ALine, 'path') = '' then begin
+    Result := '{' + JStr('error', 'missing path') + '}';
+    Exit;
+  end;
+  Req.Line := ALine;
+  RunOnMainThread(@DoScreenshot, PtrInt(@Req));
+  Result := Req.Result;
+end;
+
 { ===== Registration ======================================================== }
 
 procedure DoRegisterAll;
@@ -1116,6 +1465,7 @@ begin
   RegisterDiagCommand('resize', @HandleResize);
   RegisterDiagCommand('move', @HandleMove);
   RegisterDiagCommand('dock_state', @HandleDockState);
+  RegisterDiagCommand('screenshot', @HandleScreenshot);
 end;
 
 procedure RegisterIDEDiagCommands;

@@ -56,14 +56,31 @@ uses
   LazarusIDEStrConsts, IdeCoolbarData, EnvGuiOptions;
 
 type
+  // Mirror of AnchorDocking.IDockManagerActions. Same GUID and layout so
+  // Supports() matches at runtime — this lets mainbar avoid a compile-time
+  // dep on the anchordocking package (which isn't linked into lazbuild).
+  TDockResizeRequest = record
+    DesiredTopAreaHeight: Integer;
+    DesiredBottomAreaHeight: Integer;
+    DesiredLeftAreaWidth: Integer;
+    DesiredRightAreaWidth: Integer;
+    Valid: Boolean;
+  end;
+
+  IDockManagerActions = interface
+    ['{7A8B2C4E-1D6F-4A3B-9E5C-8F2A1D4B7C3E}']
+    function NotifyAfterRestoreLayout: TDockResizeRequest;
+  end;
+
   { TMainIDEBar }
 
-  TMainIDEBar = class(TForm {, TODO:IAnchorDockable})
+  TMainIDEBar = class(TForm, IDockManagerActions)
   private
     OptionsPopupMenu: TPopupMenu;
     FMainOwningComponent: TComponent;
     FOldWindowState: TWindowState;
     FOnActive: TNotifyEvent;
+    FDidPostRestore: Boolean;
     procedure CreatePopupMenus(TheOwner: TComponent);
     function CalculateCoolbarHeight: Integer;
     function CalcNonClientHeight: Integer;
@@ -404,6 +421,7 @@ type
     procedure DoSetViewComponentPalette(aVisible: Boolean);
     procedure AllowCompilation(aAllow: Boolean);
     procedure InitPaletteAndCoolBar;
+    function NotifyAfterRestoreLayout: TDockResizeRequest;
   end;
 
 var
@@ -439,10 +457,48 @@ end;
 procedure TMainIDEBar.DoSetMainIDEHeight(const AIDEIsMaximized: Boolean; ANewHeight: Integer);
 begin
   // No-op: height is managed by LCL/GTK natively in docked-only mode.
-  // TODO some kind of mechanism from the LCL dock manager.
-  // - call CalculateCoolbarHeight
-  // - update only the coolbar docked height if a tweak is needed, or the main form height if undocked,
-  //   but be careful not to reintroduce loops.
+  // Post-restore adjustments happen once in NotifyAfterRestoreLayout.
+end;
+
+function TMainIDEBar.NotifyAfterRestoreLayout: TDockResizeRequest;
+var
+  CoolH, PalH, NonClient, Target, MinContent, I, BandBottom: Integer;
+begin
+  // Compute a stable target height for the dock site that hosts TMainIDEBar.
+  // The controls' .Height fields are unreliable here: if the previous restore
+  // collapsed the top strip, CoolBar.Height / ComponentPageControl.Height read
+  // as 1px. Use content-based measures (band geometry, scaled defaults) that
+  // survive a collapsed parent.
+  Result := Default(TDockResizeRequest);
+  if FDidPostRestore then Exit;
+  FDidPostRestore := True;
+
+  CoolH := 0;
+  if (CoolBar <> nil) and CoolBar.Visible then
+  begin
+    for I := 0 to CoolBar.Bands.Count-1 do
+    begin
+      BandBottom := CoolBar.Bands[I].Top + CoolBar.Bands[I].Height;
+      if BandBottom > CoolH then CoolH := BandBottom;
+    end;
+    if CoolH < Scale96ToForm(26) then CoolH := Scale96ToForm(26);
+  end;
+
+  PalH := 0;
+  if (ComponentPageControl <> nil) and ComponentPageControl.Visible then
+    PalH := Scale96ToForm(54); // one row of buttons + tab chrome
+
+  NonClient := CalcNonClientHeight;
+  MinContent := Scale96ToForm(110);
+  Target := CoolH + PalH;
+  if Target < MinContent then Target := MinContent;
+  Target := Target + NonClient;
+  if Target <= 0 then Exit;
+
+  Result.Valid := True;
+  Result.DesiredTopAreaHeight := Target;
+  DebugLn('[TMainIDEBar.NotifyAfterRestoreLayout] coolbarContent=%d paletteContent=%d nonClient=%d minContent=%d target=%d',
+    [CoolH, PalH, NonClient, MinContent, Target]);
 end;
 
 function TMainIDEBar.CalculateCoolbarHeight: Integer;
